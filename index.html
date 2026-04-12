@@ -119,9 +119,43 @@ body{font-family:'Quicksand','Trebuchet MS',Verdana,sans-serif;background:linear
 .conf{position:absolute;top:-20px;-webkit-animation:cfall 3s linear forwards;animation:cfall 3s linear forwards}
 @-webkit-keyframes cfall{0%{-webkit-transform:translateY(0) rotate(0);opacity:1}100%{-webkit-transform:translateY(110vh) rotate(720deg);opacity:0}}
 @keyframes cfall{0%{transform:translateY(0) rotate(0);opacity:1}100%{transform:translateY(110vh) rotate(720deg);opacity:0}}
+/* === LOGIN === */
+#loginScreen{position:fixed;top:0;left:0;width:100%;height:100%;background:linear-gradient(160deg,#0B0E2D,#141852,#1B1F6A);z-index:200;display:-webkit-box;display:flex;-webkit-box-orient:vertical;flex-direction:column;-webkit-box-align:center;align-items:center;-webkit-box-pack:center;justify-content:center;gap:20px;padding:20px;text-align:center}
+#loginScreen>*+*{margin-top:20px}
+#loginScreen.hidden{display:none}
+.login-lock{font-size:64px;-webkit-animation:bob 3s ease-in-out infinite;animation:bob 3s ease-in-out infinite}
+.login-title{font-family:'Fredoka','Trebuchet MS',sans-serif;font-size:24px;font-weight:700;background:-webkit-linear-gradient(left,#FFD93D,#00E5FF);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background:linear-gradient(90deg,#FFD93D,#00E5FF);background-clip:text;color:#FFD93D}
+.login-sub{font-size:13px;color:rgba(255,255,255,.4);margin-top:-12px}
+.login-form{display:-webkit-box;display:flex;-webkit-box-orient:vertical;flex-direction:column;gap:12px;width:100%;max-width:300px}
+.login-form>*+*{margin-top:12px}
+.login-input{width:100%;padding:14px 18px;border-radius:14px;border:2px solid rgba(255,255,255,.1);background:#1c1f5a;color:#fff;font-family:'Quicksand','Trebuchet MS',sans-serif;font-size:16px;font-weight:600;outline:none;-webkit-transition:border-color .2s;transition:border-color .2s;-webkit-appearance:none;appearance:none}
+.login-input:focus{border-color:rgba(0,229,255,.5)}
+.login-input::-webkit-input-placeholder{color:rgba(255,255,255,.25)}
+.login-input::placeholder{color:rgba(255,255,255,.25)}
+.login-btn{width:100%;padding:15px;border:none;border-radius:14px;background:-webkit-linear-gradient(315deg,#FFD93D,#FF6B35);background:linear-gradient(135deg,#FFD93D,#FF6B35);color:#000;font-family:'Fredoka','Trebuchet MS',sans-serif;font-size:18px;font-weight:600;cursor:pointer;-webkit-transition:all .2s;transition:all .2s;box-shadow:0 8px 25px rgba(255,107,53,.3)}
+.login-btn:active{-webkit-transform:scale(.97);transform:scale(.97)}
+.login-btn:disabled{opacity:.5;cursor:not-allowed;-webkit-transform:none;transform:none}
+.login-error{font-size:13px;color:#FF4444;min-height:20px;-webkit-transition:opacity .2s;transition:opacity .2s}
+.login-lockout{font-size:13px;color:#FF6B35;min-height:20px}
+.login-attempts{font-size:11px;color:rgba(255,255,255,.25);min-height:16px}
+.login-dedication{font-size:11px;color:rgba(255,255,255,.3);font-style:italic;margin-top:10px}
 </style>
 </head>
 <body>
+<div id="loginScreen">
+  <div class="login-lock">🔐</div>
+  <div class="login-title">Study Quiz</div>
+  <div class="login-sub">Enter your credentials to start</div>
+  <div class="login-form">
+    <input class="login-input" type="text" id="loginUser" placeholder="👤 Username" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false">
+    <input class="login-input" type="password" id="loginPass" placeholder="🔑 Password">
+    <button class="login-btn" id="loginBtn" onclick="tryLogin()">Enter →</button>
+  </div>
+  <div class="login-error" id="loginError"></div>
+  <div class="login-attempts" id="loginAttempts"></div>
+  <div class="login-dedication">Study Quiz for Benício, with love, from Daddy. ❤️</div>
+</div>
+<div id="appWrapper" style="display:none">
 <div class="particles" id="particles"></div>
 <div class="dedication">Study Quiz for Benício, with love, from Daddy. ❤️</div>
 <div class="screen active" id="home">
@@ -736,6 +770,105 @@ function confetti(){var c=document.createElement('div');c.className='confetti-c'
 (function(){var c=document.getElementById('particles');var cols=['#FFD93D','#00E5FF','#FF1493','#39FF14','#B388FF'];for(var i=0;i<25;i++){var p=document.createElement('div');p.className='particle';p.style.left=Math.random()*100+'%';p.style.top=Math.random()*100+'%';var s=4+Math.random()*10;p.style.width=s+'px';p.style.height=s+'px';p.style.background=cols[~~(Math.random()*cols.length)];var dur=(8+Math.random()*15)+'s';p.style.webkitAnimationDuration=dur;p.style.animationDuration=dur;p.style.webkitAnimationDelay=Math.random()*5+'s';p.style.animationDelay=Math.random()*5+'s';c.appendChild(p)}})();
 
 renderHome();
+</script>
+</div><!-- end appWrapper -->
+
+<script>
+// ===================== LOGIN SYSTEM =====================
+var LOGIN_USER='pueri';
+var LOGIN_PASS='pueri';
+var MAX_ATTEMPTS=5;
+var LOCKOUT_MS=3*60*1000; // 3 minutes
+var failCount=0;
+var lockUntil=0;
+var lockTimer=null;
+
+// Check if already authenticated this session
+if(window.sessionStorage){try{if(sessionStorage.getItem('sq_auth')==='1'){unlockApp()}}catch(e){}}
+
+// Enter key support
+document.getElementById('loginUser').addEventListener('keydown',function(e){if(e.key==='Enter'){document.getElementById('loginPass').focus()}});
+document.getElementById('loginPass').addEventListener('keydown',function(e){if(e.key==='Enter'){tryLogin()}});
+
+function tryLogin(){
+  var now=Date.now();
+  var errEl=document.getElementById('loginError');
+  var attEl=document.getElementById('loginAttempts');
+  var btn=document.getElementById('loginBtn');
+
+  // Check lockout
+  if(now<lockUntil){
+    var secsLeft=Math.ceil((lockUntil-now)/1000);
+    errEl.textContent='🔒 Too many attempts. Wait '+secsLeft+'s';
+    return;
+  }
+
+  var user=document.getElementById('loginUser').value.trim().toLowerCase();
+  var pass=document.getElementById('loginPass').value;
+
+  if(user===LOGIN_USER && pass===LOGIN_PASS){
+    // Success
+    failCount=0;
+    if(window.sessionStorage){try{sessionStorage.setItem('sq_auth','1')}catch(e){}}
+    unlockApp();
+  } else {
+    // Fail
+    failCount++;
+    var remaining=MAX_ATTEMPTS-failCount;
+
+    if(failCount>=MAX_ATTEMPTS){
+      lockUntil=now+LOCKOUT_MS;
+      errEl.textContent='🔒 Blocked! Too many wrong attempts.';
+      attEl.textContent='Try again in 3 minutes';
+      btn.disabled=true;
+      document.getElementById('loginUser').disabled=true;
+      document.getElementById('loginPass').disabled=true;
+
+      // Countdown timer
+      if(lockTimer)clearInterval(lockTimer);
+      lockTimer=setInterval(function(){
+        var left=Math.ceil((lockUntil-Date.now())/1000);
+        if(left<=0){
+          clearInterval(lockTimer);
+          lockTimer=null;
+          failCount=0;
+          btn.disabled=false;
+          document.getElementById('loginUser').disabled=false;
+          document.getElementById('loginPass').disabled=false;
+          errEl.textContent='';
+          attEl.textContent='You can try again now!';
+        } else {
+          var m=Math.floor(left/60);
+          var s=left%60;
+          attEl.textContent='⏳ Wait '+m+':'+(s<10?'0':'')+s;
+        }
+      },1000);
+    } else {
+      errEl.textContent='❌ Wrong username or password';
+      attEl.textContent=remaining+' attempt'+(remaining!==1?'s':'')+' left';
+    }
+
+    // Shake animation
+    var form=document.querySelector('.login-form');
+    form.style.animation='none';
+    form.offsetHeight; // trigger reflow
+    form.style.webkitAnimation='shake .4s ease';
+    form.style.animation='shake .4s ease';
+
+    document.getElementById('loginPass').value='';
+    document.getElementById('loginPass').focus();
+  }
+}
+
+function unlockApp(){
+  document.getElementById('loginScreen').classList.add('hidden');
+  document.getElementById('appWrapper').style.display='block';
+}
+
+// Add shake keyframes dynamically (WebView safe)
+var shakeStyle=document.createElement('style');
+shakeStyle.textContent='@-webkit-keyframes shake{0%,100%{-webkit-transform:translateX(0)}20%{-webkit-transform:translateX(-12px)}40%{-webkit-transform:translateX(12px)}60%{-webkit-transform:translateX(-8px)}80%{-webkit-transform:translateX(8px)}}@keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-12px)}40%{transform:translateX(12px)}60%{transform:translateX(-8px)}80%{transform:translateX(8px)}}';
+document.head.appendChild(shakeStyle);
 </script>
 </body>
 </html>
