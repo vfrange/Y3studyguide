@@ -1,0 +1,741 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>Benício's Study Quiz</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Quicksand:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;-webkit-text-size-adjust:100%}
+:root{--bg1:#0B0E2D;--bg2:#141852;--bg3:#1B1F6A;--yellow:#FFD93D;--orange:#FF6B35;--pink:#FF1493;--cyan:#00E5FF;--green:#39FF14;--purple:#B388FF;--red:#FF4444;--card:rgba(255,255,255,0.06);--card-solid:#1c1f5a;--border:rgba(255,255,255,0.1);--r:18px}
+html{height:100%;-webkit-overflow-scrolling:touch}
+body{font-family:'Quicksand','Trebuchet MS',Verdana,sans-serif;background:linear-gradient(160deg,#0B0E2D,#141852,#1B1F6A);background-attachment:fixed;color:#fff;min-height:100vh;min-height:100dvh;overflow-x:hidden;-webkit-font-smoothing:antialiased}
+.screen{display:none;min-height:100vh;padding:20px;padding-top:36px;padding-top:calc(36px + env(safe-area-inset-top,0px));padding-bottom:80px;padding-bottom:calc(80px + env(safe-area-inset-bottom,0px));position:relative;-webkit-box-orient:vertical;-webkit-box-direction:normal;flex-direction:column;-webkit-box-align:center;align-items:center}
+.screen.active{display:-webkit-box;display:flex}
+.particles{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:0;overflow:hidden}
+.particle{position:absolute;border-radius:50%;-webkit-animation:drift 12s linear infinite;animation:drift 12s linear infinite;opacity:.15}
+@-webkit-keyframes drift{0%{-webkit-transform:translateY(0) translateX(0);transform:translateY(0) translateX(0)}25%{-webkit-transform:translateY(-30px) translateX(15px);transform:translateY(-30px) translateX(15px)}50%{-webkit-transform:translateY(0) translateX(30px);transform:translateY(0) translateX(30px)}75%{-webkit-transform:translateY(30px) translateX(15px);transform:translateY(30px) translateX(15px)}100%{-webkit-transform:translateY(0) translateX(0);transform:translateY(0) translateX(0)}}
+@keyframes drift{0%{-webkit-transform:translateY(0) translateX(0);transform:translateY(0) translateX(0)}25%{-webkit-transform:translateY(-30px) translateX(15px);transform:translateY(-30px) translateX(15px)}50%{-webkit-transform:translateY(0) translateX(30px);transform:translateY(0) translateX(30px)}75%{-webkit-transform:translateY(30px) translateX(15px);transform:translateY(30px) translateX(15px)}100%{-webkit-transform:translateY(0) translateX(0);transform:translateY(0) translateX(0)}}
+.hdr{width:100%;max-width:420px;display:-webkit-box;display:flex;-webkit-box-align:center;align-items:center;gap:12px;z-index:1;margin-bottom:16px;-webkit-flex-shrink:0;flex-shrink:0}
+.hdr>*+*{margin-left:12px}
+.hdr-back{width:42px;height:42px;background:#1c1f5a;border:1px solid rgba(255,255,255,.1);border-radius:14px;color:#fff;font-size:18px;cursor:pointer;display:-webkit-box;display:flex;-webkit-box-align:center;align-items:center;-webkit-box-pack:center;justify-content:center;-webkit-transition:all .2s;transition:all .2s}
+.hdr-back:active{-webkit-transform:scale(.93);transform:scale(.93)}
+.hdr-title{font-family:'Fredoka','Trebuchet MS',sans-serif;font-size:20px;font-weight:700;-webkit-box-flex:1;flex:1}
+.hdr-badge{font-size:11px;background:rgba(255,255,255,.1);padding:4px 10px;border-radius:20px;color:rgba(255,255,255,.5);white-space:nowrap}
+#home{-webkit-box-pack:center;justify-content:center;gap:24px;text-align:center;z-index:1}
+#home>*+*{margin-top:24px}
+.logo{width:100px;height:100px;background:-webkit-linear-gradient(315deg,#FFD93D,#FF6B35);background:linear-gradient(135deg,#FFD93D,#FF6B35);border-radius:28px;display:-webkit-box;display:flex;-webkit-box-align:center;align-items:center;-webkit-box-pack:center;justify-content:center;font-size:52px;box-shadow:0 12px 40px rgba(255,107,53,.35);-webkit-animation:bob 3s ease-in-out infinite;animation:bob 3s ease-in-out infinite}
+@-webkit-keyframes bob{0%,100%{-webkit-transform:translateY(0) rotate(0);transform:translateY(0) rotate(0)}50%{-webkit-transform:translateY(-8px) rotate(2deg);transform:translateY(-8px) rotate(2deg)}}
+@keyframes bob{0%,100%{-webkit-transform:translateY(0) rotate(0);transform:translateY(0) rotate(0)}50%{-webkit-transform:translateY(-8px) rotate(2deg);transform:translateY(-8px) rotate(2deg)}}
+.home-title{font-family:'Fredoka','Trebuchet MS',sans-serif;font-size:30px;font-weight:700;background:-webkit-linear-gradient(left,#FFD93D,#00E5FF);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background:linear-gradient(90deg,#FFD93D,#00E5FF);background-clip:text;color:#FFD93D}
+.home-sub{color:rgba(255,255,255,.5);font-size:14px;margin-top:-16px}
+.exam-list{display:-webkit-box;display:flex;-webkit-box-orient:vertical;flex-direction:column;gap:12px;width:100%;max-width:420px}
+.exam-list>*+*{margin-top:12px}
+.exam-card{background:#1c1f5a;border:2px solid rgba(255,255,255,.1);border-radius:18px;padding:16px 18px;cursor:pointer;-webkit-transition:all .25s;transition:all .25s;display:-webkit-box;display:flex;-webkit-box-align:center;align-items:center;gap:14px;position:relative;overflow:hidden;text-align:left}
+.exam-card>*+*{margin-left:14px}
+.exam-card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:5px}
+.exam-card:active{-webkit-transform:scale(.98);transform:scale(.98);border-color:rgba(255,255,255,.2)}
+.exam-icon{font-size:32px;min-width:40px;text-align:center}
+.exam-info{-webkit-box-flex:1;flex:1}
+.exam-name{font-family:'Fredoka','Trebuchet MS',sans-serif;font-size:17px;font-weight:600}
+.exam-meta{font-size:12px;color:rgba(255,255,255,.45);margin-top:3px;display:-webkit-box;display:flex;gap:8px;-webkit-flex-wrap:wrap;flex-wrap:wrap}
+.exam-meta>*+*{margin-left:8px}
+.exam-meta .tag{background:rgba(255,255,255,.08);padding:2px 8px;border-radius:8px;display:inline-block}
+.exam-arrow{font-size:16px;color:rgba(255,255,255,.3)}
+.dedication{position:fixed;top:0;left:0;right:0;text-align:center;font-size:11px;color:rgba(255,255,255,.45);font-style:italic;pointer-events:none;z-index:50;letter-spacing:.2px;padding:6px 16px;padding-top:calc(6px + env(safe-area-inset-top,0px));background:rgba(11,14,45,.85)}
+.c-science::before{background:-webkit-linear-gradient(#00E5FF,#39FF14);background:linear-gradient(#00E5FF,#39FF14)}
+.c-ciencias::before{background:-webkit-linear-gradient(#39FF14,#FFD93D);background:linear-gradient(#39FF14,#FFD93D)}
+.c-social::before{background:-webkit-linear-gradient(#FF6B35,#FFD93D);background:linear-gradient(#FF6B35,#FFD93D)}
+.c-historia::before{background:-webkit-linear-gradient(#FF1493,#FF6B35);background:linear-gradient(#FF1493,#FF6B35)}
+.c-portugues::before{background:-webkit-linear-gradient(#B388FF,#FF1493);background:linear-gradient(#B388FF,#FF1493)}
+.c-math::before{background:-webkit-linear-gradient(#00E5FF,#B388FF);background:linear-gradient(#00E5FF,#B388FF)}
+.c-matematica::before{background:-webkit-linear-gradient(#FFD93D,#FF6B35);background:linear-gradient(#FFD93D,#FF6B35)}
+#topics{z-index:1}
+.topic-grid{display:-webkit-box;display:flex;-webkit-box-orient:vertical;flex-direction:column;gap:12px;width:100%;max-width:420px}
+.topic-grid>*+*{margin-top:12px}
+.topic-card{background:#1c1f5a;border:2px solid rgba(255,255,255,.1);border-radius:18px;padding:18px;cursor:pointer;-webkit-transition:all .25s;transition:all .25s;position:relative;overflow:hidden}
+.topic-card:active{-webkit-transform:scale(.98);transform:scale(.98)}
+.topic-icon{font-size:34px;margin-bottom:8px}
+.topic-name{font-family:'Fredoka','Trebuchet MS',sans-serif;font-size:18px;font-weight:600}
+.topic-desc{font-size:13px;color:rgba(255,255,255,.5);margin-top:4px;line-height:1.4}
+.study-ref{width:100%;max-width:420px;background:rgba(255,217,61,.08);border:1px solid rgba(255,217,61,.2);border-radius:18px;padding:16px;margin-top:8px}
+.study-ref-title{font-family:'Fredoka','Trebuchet MS',sans-serif;font-size:15px;color:#FFD93D;margin-bottom:8px}
+.study-ref p{font-size:13px;color:rgba(255,255,255,.55);line-height:1.6}
+#lesson{z-index:1}
+.lesson-wrap{width:100%;max-width:420px}
+.lesson-illus{width:100%;position:relative;padding-top:62.5%;border-radius:18px;overflow:hidden;margin-bottom:18px}
+.lesson-illus svg{position:absolute;top:0;left:0;width:100%;height:100%}
+.lesson-body{background:#1c1f5a;border:1px solid rgba(255,255,255,.1);border-radius:18px;padding:20px;line-height:1.75;font-size:15px}
+.lesson-body h3{font-family:'Fredoka','Trebuchet MS',sans-serif;font-size:20px;margin-bottom:10px}
+.lesson-body p{margin-bottom:10px;color:rgba(255,255,255,.7)}
+.hl{color:#FFD93D;font-weight:700}
+.quiz-start{width:100%;max-width:420px;background:-webkit-linear-gradient(315deg,#00E5FF,#B388FF);background:linear-gradient(135deg,#00E5FF,#B388FF);border:none;border-radius:18px;padding:16px;color:#fff;font-family:'Fredoka','Trebuchet MS',sans-serif;font-size:18px;font-weight:600;cursor:pointer;margin-top:14px;box-shadow:0 8px 25px rgba(0,229,255,.25);-webkit-transition:-webkit-transform .2s;transition:transform .2s}
+.quiz-start:active{-webkit-transform:scale(.97);transform:scale(.97)}
+#quiz{z-index:1}
+.prog-bar{width:100%;max-width:420px;height:7px;background:rgba(255,255,255,.08);border-radius:10px;overflow:hidden}
+.prog-fill{height:100%;background:-webkit-linear-gradient(left,#00E5FF,#39FF14);background:linear-gradient(90deg,#00E5FF,#39FF14);border-radius:10px;-webkit-transition:width .4s;transition:width .4s}
+.q-count{font-size:13px;color:rgba(255,255,255,.4);width:100%;max-width:420px;text-align:right;margin-top:4px}
+.q-card{width:100%;max-width:420px;background:#1c1f5a;border:1px solid rgba(255,255,255,.1);border-radius:18px;padding:22px;margin-bottom:14px}
+.q-text{font-family:'Fredoka','Trebuchet MS',sans-serif;font-size:18px;font-weight:600;line-height:1.5}
+.q-img{width:100%;position:relative;padding-top:60%;border-radius:14px;overflow:hidden;margin-top:14px}
+.q-img svg{position:absolute;top:0;left:0;width:100%;height:100%}
+.opts{display:-webkit-box;display:flex;-webkit-box-orient:vertical;flex-direction:column;gap:10px;width:100%;max-width:420px}
+.opts>*+*{margin-top:10px}
+.opt{background:#1c1f5a;border:2px solid rgba(255,255,255,.1);border-radius:14px;padding:14px 16px;color:#fff;font-family:'Quicksand','Trebuchet MS',sans-serif;font-size:15px;font-weight:600;cursor:pointer;-webkit-transition:all .25s;transition:all .25s;text-align:left;display:-webkit-box;display:flex;-webkit-box-align:center;align-items:center;gap:12px}
+.opt>*+*{margin-left:12px}
+.opt:active:not(.dis){-webkit-transform:scale(.98);transform:scale(.98)}
+.opt-l{width:32px;height:32px;min-width:32px;border-radius:9px;background:rgba(255,255,255,.1);display:-webkit-box;display:flex;-webkit-box-align:center;align-items:center;-webkit-box-pack:center;justify-content:center;font-family:'Fredoka','Trebuchet MS',sans-serif;font-size:15px;font-weight:600}
+.opt.ok{border-color:#39FF14;background:rgba(57,255,20,.12)}.opt.ok .opt-l{background:#39FF14;color:#000}
+.opt.no{border-color:#FF4444;background:rgba(255,68,68,.12)}.opt.no .opt-l{background:#FF4444;color:#fff}
+.opt.dis{pointer-events:none;opacity:.45}.opt.ok.dis,.opt.no.dis{opacity:1}
+.fb{width:100%;max-width:420px;border-radius:18px;padding:16px;margin-top:6px;font-size:14px;line-height:1.5;display:none;-webkit-animation:su .3s;animation:su .3s}
+@-webkit-keyframes su{from{opacity:0;-webkit-transform:translateY(8px)}to{opacity:1;-webkit-transform:translateY(0)}}
+@keyframes su{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.fb.fb-ok{background:rgba(57,255,20,.08);border:1px solid rgba(57,255,20,.25)}
+.fb.fb-no{background:rgba(255,68,68,.08);border:1px solid rgba(255,68,68,.25)}
+.nxt{width:100%;max-width:420px;background:-webkit-linear-gradient(315deg,#B388FF,#FF1493);background:linear-gradient(135deg,#B388FF,#FF1493);border:none;border-radius:18px;padding:15px;color:#fff;font-family:'Fredoka','Trebuchet MS',sans-serif;font-size:17px;font-weight:600;cursor:pointer;margin-top:8px;display:none;-webkit-animation:su .3s;animation:su .3s;-webkit-transition:-webkit-transform .2s;transition:transform .2s}
+.nxt:active{-webkit-transform:scale(.97);transform:scale(.97)}
+#results{-webkit-box-pack:center;justify-content:center;gap:20px;text-align:center;z-index:1}
+#results>*+*{margin-top:20px}
+.res-emoji{font-size:72px;-webkit-animation:bob 2s ease-in-out infinite;animation:bob 2s ease-in-out infinite}
+.res-title{font-family:'Fredoka','Trebuchet MS',sans-serif;font-size:26px;font-weight:700}
+.res-score{font-size:54px;font-weight:800;font-family:'Fredoka','Trebuchet MS',sans-serif}
+.res-score .tot{font-size:24px;color:rgba(255,255,255,.4)}
+.res-stars{display:-webkit-box;display:flex;gap:6px;font-size:36px}
+.res-stars>*+*{margin-left:6px}
+.res-stars span{-webkit-animation:pop .3s ease backwards;animation:pop .3s ease backwards}
+@-webkit-keyframes pop{from{-webkit-transform:scale(0)}to{-webkit-transform:scale(1)}}
+@keyframes pop{from{transform:scale(0)}to{transform:scale(1)}}
+.res-msg{font-size:15px;color:rgba(255,255,255,.5);max-width:280px;line-height:1.5}
+.res-btns{display:-webkit-box;display:flex;-webkit-box-orient:vertical;flex-direction:column;gap:10px;width:100%;max-width:320px}
+.res-btns>*+*{margin-top:10px}
+.btn-retry,.btn-home{border:none;border-radius:18px;padding:15px;font-family:'Fredoka','Trebuchet MS',sans-serif;font-size:17px;font-weight:600;cursor:pointer;-webkit-transition:all .2s;transition:all .2s}
+.btn-retry{background:-webkit-linear-gradient(315deg,#00E5FF,#39FF14);background:linear-gradient(135deg,#00E5FF,#39FF14);color:#000}
+.btn-home{background:#1c1f5a;border:2px solid rgba(255,255,255,.1);color:#fff}
+.btn-retry:active,.btn-home:active{-webkit-transform:scale(.97);transform:scale(.97)}
+.confetti-c{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:100;overflow:hidden}
+.conf{position:absolute;top:-20px;-webkit-animation:cfall 3s linear forwards;animation:cfall 3s linear forwards}
+@-webkit-keyframes cfall{0%{-webkit-transform:translateY(0) rotate(0);opacity:1}100%{-webkit-transform:translateY(110vh) rotate(720deg);opacity:0}}
+@keyframes cfall{0%{transform:translateY(0) rotate(0);opacity:1}100%{transform:translateY(110vh) rotate(720deg);opacity:0}}
+</style>
+</head>
+<body>
+<div class="particles" id="particles"></div>
+<div class="dedication">Study Quiz for Benício, with love, from Daddy. ❤️</div>
+<div class="screen active" id="home">
+  <div class="logo">📚</div>
+  <div class="home-title">Study Quiz</div>
+  <div class="home-sub">Benício's Exam Prep · Y3</div>
+  <div class="exam-list" id="examList"></div>
+</div>
+<div class="screen" id="topics">
+  <div class="hdr"><button class="hdr-back" onclick="go('home')">←</button><div class="hdr-title" id="topicsTitle"></div><div class="hdr-badge" id="topicsBadge"></div></div>
+  <div class="topic-grid" id="topicGrid"></div>
+  <div class="study-ref" id="studyRef"></div>
+</div>
+<div class="screen" id="lesson">
+  <div class="hdr"><button class="hdr-back" onclick="go('topics')">←</button><div class="hdr-title" id="lessonTitle"></div></div>
+  <div class="lesson-wrap"><div class="lesson-illus" id="lessonIllus"></div><div class="lesson-body" id="lessonBody"></div></div>
+  <button class="quiz-start" id="quizStartBtn" onclick="startQuiz()">🎮 Start Quiz!</button>
+</div>
+<div class="screen" id="quiz">
+  <div class="hdr"><button class="hdr-back" onclick="go('topics')">←</button><div class="hdr-title" id="quizHdrTitle"></div></div>
+  <div class="prog-bar"><div class="prog-fill" id="progFill"></div></div>
+  <div class="q-count" id="qCount"></div>
+  <div class="q-card"><div class="q-text" id="qText"></div><div class="q-img" id="qImg"></div></div>
+  <div class="opts" id="optsList"></div>
+  <div class="fb" id="fb"></div>
+  <button class="nxt" id="nxtBtn" onclick="nextQ()"></button>
+</div>
+<div class="screen" id="results">
+  <div class="res-emoji" id="resEmoji"></div>
+  <div class="res-title" id="resTitle"></div>
+  <div class="res-score" id="resScore"></div>
+  <div class="res-stars" id="resStars"></div>
+  <div class="res-msg" id="resMsg"></div>
+  <div class="res-btns"><button class="btn-retry" id="btnRetry" onclick="startQuiz()"></button><button class="btn-home" onclick="go('home')">🏠 Back to Exams</button></div>
+</div>
+
+<script>
+// ===================== SVG BUILDER HELPERS =====================
+function S(w,h,bg,content){return `<svg viewBox="0 0 ${w} ${h}" xmlns="http://www.w3.org/2000/svg"><defs><filter id="gl"><feGaussianBlur stdDeviation="2.5"/><feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs><rect width="${w}" height="${h}" rx="14" fill="${bg}"/>${content}</svg>`}
+const W=500,H=300;
+
+// ===================== QUESTION ILLUSTRATIONS (per question) =====================
+const QI = {
+  // === SCIENCE: REFLECTION ===
+  sci_refl_0: ()=>S(W,H,'#0d1b2a',`
+    <rect x="230" y="50" width="16" height="200" rx="3" fill="#a8d8ea" opacity=".8"/>
+    <circle cx="80" cy="100" r="30" fill="#FFD93D" filter="url(#gl)"/>
+    <line x1="110" y1="115" x2="230" y2="150" stroke="#FFD93D" stroke-width="3" stroke-dasharray="7,4"><animate attributeName="stroke-dashoffset" from="22" to="0" dur=".8s" repeatCount="indefinite"/></line>
+    <line x1="246" y1="150" x2="400" y2="100" stroke="#FFD93D" stroke-width="3" stroke-dasharray="7,4"><animate attributeName="stroke-dashoffset" from="0" to="22" dur=".8s" repeatCount="indefinite"/></line>
+    <text x="250" y="280" fill="#a8d8ea" font-family="Fredoka" font-size="16" text-anchor="middle">🪞 Mirror</text>
+    <circle cx="420" cy="90" r="20" fill="none" stroke="#00E5FF" stroke-width="2"/><circle cx="414" cy="85" r="3" fill="#fff"/><circle cx="426" cy="85" r="3" fill="#fff"/><path d="M413,97 Q420,103 427,97" fill="none" stroke="#fff" stroke-width="2"/>
+    <text x="420" y="125" fill="#00E5FF" font-family="Fredoka" font-size="11" text-anchor="middle">👁️</text>
+  `),
+  sci_refl_1: ()=>S(W,H,'#0d1b2a',`
+    <rect x="80" y="90" width="100" height="120" rx="8" fill="#1a1a2e" stroke="#555" stroke-width="2"/><text x="130" y="155" fill="#555" font-family="Fredoka" font-size="12" text-anchor="middle">T-shirt</text>
+    <rect x="220" y="60" width="14" height="180" rx="3" fill="#c0e8f0" stroke="#fff" stroke-width="1" opacity=".7"/><text x="227" y="260" fill="#a8d8ea" font-family="Fredoka" font-size="13" text-anchor="middle">Mirror ✨</text>
+    <rect x="360" y="100" width="80" height="60" rx="6" fill="#8B4513" stroke="#654321" stroke-width="2"/><text x="400" y="185" fill="rgba(255,255,255,.4)" font-family="Fredoka" font-size="12" text-anchor="middle">Wood</text>
+    <circle cx="227" cy="150" r="40" fill="none" stroke="#FFD93D" stroke-width="1.5" stroke-dasharray="4,4" opacity=".5"><animate attributeName="r" values="35;45;35" dur="2s" repeatCount="indefinite"/></circle>
+  `),
+  sci_refl_2: ()=>S(W,H,'#0d1b2a',`
+    <circle cx="120" cy="80" r="28" fill="#FFD93D" filter="url(#gl)"/>
+    <rect x="200" y="100" width="100" height="100" rx="8" fill="#556" stroke="#778" stroke-width="2"/>
+    <line x1="148" y1="90" x2="200" y2="130" stroke="#FFD93D" stroke-width="3" stroke-dasharray="6,3"><animate attributeName="stroke-dashoffset" from="18" to="0" dur=".7s" repeatCount="indefinite"/></line>
+    <line x1="200" y1="130" x2="148" y2="170" stroke="#FFD93D" stroke-width="3" stroke-dasharray="6,3"><animate attributeName="stroke-dashoffset" from="0" to="18" dur=".7s" repeatCount="indefinite"/></line>
+    <text x="250" y="230" fill="rgba(255,255,255,.5)" font-family="Fredoka" font-size="14" text-anchor="middle">↩️ Light bounces back!</text>
+    <text x="380" y="160" fill="#FFD93D" font-size="40" text-anchor="middle">🏀</text>
+    <text x="380" y="190" fill="rgba(255,255,255,.3)" font-family="Fredoka" font-size="11" text-anchor="middle">Like a ball!</text>
+  `),
+  sci_refl_3: ()=>S(W,H,'#0a1628',`
+    <ellipse cx="250" cy="180" rx="180" ry="60" fill="#0a3d62" stroke="#00E5FF" stroke-width="1.5" opacity=".6"/>
+    <text x="250" y="260" fill="#00E5FF" font-family="Fredoka" font-size="14" text-anchor="middle">🏞️ Still Lake</text>
+    <circle cx="250" cy="60" r="25" fill="#FFD93D" filter="url(#gl)"/>
+    <line x1="250" y1="85" x2="250" y2="120" stroke="#FFD93D" stroke-width="2" stroke-dasharray="5,3" opacity=".6"><animate attributeName="stroke-dashoffset" from="16" to="0" dur=".8s" repeatCount="indefinite"/></line>
+    <line x1="250" y1="120" x2="250" y2="85" stroke="#FFD93D" stroke-width="2" stroke-dasharray="5,3" opacity=".3"/>
+    <path d="M150,150 Q180,145 200,148 Q230,144 260,148 Q290,144 320,148 Q350,145 370,150" fill="none" stroke="rgba(255,255,255,.15)" stroke-width="1.5"/>
+    <circle cx="200" cy="100" r="15" fill="none" stroke="#39FF14" stroke-width="1.5"/><circle cx="195" cy="96" r="2.5" fill="#fff"/><circle cx="205" cy="96" r="2.5" fill="#fff"/><path d="M195,106 Q200,110 205,106" fill="none" stroke="#fff" stroke-width="1.5"/>
+    <circle cx="200" cy="160" r="15" fill="none" stroke="#39FF14" stroke-width="1" opacity=".4" transform="scale(1,-1) translate(0,-320)"/>
+  `),
+  sci_refl_4: ()=>S(W,H,'#0d1b2a',`
+    <rect x="100" y="50" width="300" height="200" rx="10" fill="#1a3a1a" stroke="#2a5a2a" stroke-width="3"/>
+    <circle cx="200" cy="150" r="12" fill="#fff" stroke="#eee" stroke-width="1"/>
+    <line x1="100" y1="250" x2="200" y2="150" stroke="#FFD93D" stroke-width="2.5" stroke-dasharray="6,3"><animate attributeName="stroke-dashoffset" from="18" to="0" dur=".7s" repeatCount="indefinite"/></line>
+    <line x1="200" y1="150" x2="350" y2="250" stroke="#FFD93D" stroke-width="2.5" stroke-dasharray="6,3"><animate attributeName="stroke-dashoffset" from="0" to="18" dur=".7s" repeatCount="indefinite"/></line>
+    <text x="170" y="110" fill="rgba(255,255,255,.3)" font-family="Fredoka" font-size="11">same angle in</text>
+    <text x="260" y="110" fill="rgba(255,255,255,.3)" font-family="Fredoka" font-size="11">= same angle out</text>
+    <text x="250" y="280" fill="#39FF14" font-family="Fredoka" font-size="13" text-anchor="middle">🎱 Pool Table — Same Angle!</text>
+  `),
+
+  // === SCIENCE: REFRACTION ===
+  sci_refr_0: ()=>S(W,H,'#0a1a30',`
+    <rect x="0" y="150" width="${W}" height="150" fill="#0a3d62" opacity=".5"/>
+    <line x1="0" y1="150" x2="${W}" y2="150" stroke="#00E5FF" stroke-width="1.5" opacity=".4"/>
+    <text x="30" y="140" fill="rgba(255,255,255,.3)" font-family="Fredoka" font-size="12">AIR</text>
+    <text x="30" y="170" fill="rgba(0,229,255,.4)" font-family="Fredoka" font-size="12">WATER</text>
+    <circle cx="80" cy="40" r="22" fill="#FFD93D" filter="url(#gl)"/>
+    <line x1="100" y1="55" x2="250" y2="150" stroke="#FFD93D" stroke-width="2.5" stroke-dasharray="7,3"><animate attributeName="stroke-dashoffset" from="20" to="0" dur=".8s" repeatCount="indefinite"/></line>
+    <line x1="250" y1="150" x2="340" y2="280" stroke="#FFD93D" stroke-width="2.5" stroke-dasharray="7,3"><animate attributeName="stroke-dashoffset" from="0" to="20" dur=".8s" repeatCount="indefinite"/></line>
+    <circle cx="250" cy="150" r="5" fill="#FF6B35"/>
+    <text x="350" y="140" fill="rgba(255,255,255,.4)" font-family="Fredoka" font-size="13">Light bends! 🔀</text>
+  `),
+  sci_refr_1: ()=>S(W,H,'#0d1b2a',`
+    <rect x="190" y="40" width="120" height="230" rx="12" fill="none" stroke="rgba(255,255,255,.25)" stroke-width="2.5"/>
+    <rect x="190" y="120" width="120" height="150" rx="0" fill="rgba(0,229,255,.08)"/>
+    <line x1="240" y1="40" x2="240" y2="120" stroke="#FF6B35" stroke-width="5" stroke-linecap="round"/>
+    <line x1="240" y1="120" x2="248" y2="270" stroke="#FF6B35" stroke-width="5" stroke-linecap="round"/>
+    <text x="250" y="290" fill="#FF6B35" font-family="Fredoka" font-size="14" text-anchor="middle">🥤 Straw looks broken!</text>
+    <text x="130" y="90" fill="rgba(255,255,255,.3)" font-family="Fredoka" font-size="11">air</text>
+    <text x="130" y="160" fill="rgba(0,229,255,.4)" font-family="Fredoka" font-size="11">water</text>
+    <path d="M310,140 L350,140 L340,135 M350,140 L340,145" stroke="#FFD93D" stroke-width="1.5" fill="none"/>
+    <text x="390" y="145" fill="#FFD93D" font-family="Fredoka" font-size="11">refraction!</text>
+  `),
+  sci_refr_2: ()=>S(W,H,'#0a1628',`
+    <path d="M100,200 Q150,50 200,200 Q250,50 300,200 Q350,50 400,200" fill="none" stroke="red" stroke-width="3" opacity=".7"/>
+    <path d="M105,200 Q155,60 205,200 Q255,60 305,200 Q355,60 405,200" fill="none" stroke="orange" stroke-width="3" opacity=".6"/>
+    <path d="M110,200 Q160,70 210,200 Q260,70 310,200 Q360,70 410,200" fill="none" stroke="yellow" stroke-width="3" opacity=".5"/>
+    <path d="M115,200 Q165,80 215,200 Q265,80 315,200 Q365,80 415,200" fill="none" stroke="#39FF14" stroke-width="3" opacity=".5"/>
+    <path d="M120,200 Q170,90 220,200 Q270,90 320,200 Q370,90 420,200" fill="none" stroke="#00E5FF" stroke-width="3" opacity=".5"/>
+    <path d="M125,200 Q175,100 225,200 Q275,100 325,200 Q375,100 425,200" fill="none" stroke="#B388FF" stroke-width="3" opacity=".5"/>
+    <circle cx="70" cy="60" r="22" fill="#FFD93D" filter="url(#gl)"/>
+    <ellipse cx="250" cy="240" rx="30" ry="15" fill="rgba(0,229,255,.15)" stroke="rgba(0,229,255,.3)" stroke-width="1.5"/>
+    <text x="250" y="280" fill="rgba(255,255,255,.5)" font-family="Fredoka" font-size="14" text-anchor="middle">🌈 Rainbow = Refraction!</text>
+  `),
+  sci_refr_3: ()=>S(W,H,'#0d1b2a',`
+    <ellipse cx="250" cy="150" rx="80" ry="110" fill="none" stroke="rgba(255,255,255,.25)" stroke-width="3"/>
+    <line x1="100" y1="150" x2="170" y2="150" stroke="#FFD93D" stroke-width="2.5" stroke-dasharray="6,3"><animate attributeName="stroke-dashoffset" from="18" to="0" dur=".7s" repeatCount="indefinite"/></line>
+    <line x1="330" y1="120" x2="420" y2="100" stroke="#FFD93D" stroke-width="2.5" stroke-dasharray="6,3"><animate attributeName="stroke-dashoffset" from="0" to="18" dur=".7s" repeatCount="indefinite"/></line>
+    <text x="250" y="280" fill="rgba(255,255,255,.5)" font-family="Fredoka" font-size="14" text-anchor="middle">🔍 Magnifying Glass</text>
+    <text x="420" y="80" fill="#FFD93D" font-size="28">🐜</text>
+    <text x="420" y="125" fill="rgba(255,255,255,.3)" font-family="Fredoka" font-size="10">looks bigger!</text>
+  `),
+  sci_refr_4: ()=>S(W,H,'#0a1a30',`
+    <rect x="0" y="150" width="${W}" height="150" fill="#0a3d62" opacity=".4"/>
+    <line x1="0" y1="150" x2="${W}" y2="150" stroke="#00E5FF" stroke-width="1.5" opacity=".3"/>
+    <circle cx="100" cy="60" r="20" fill="#FFD93D" filter="url(#gl)"/>
+    <line x1="120" y1="75" x2="250" y2="150" stroke="#FFD93D" stroke-width="3"><animate attributeName="stroke-dashoffset" from="18" to="0" dur=".7s" repeatCount="indefinite"/></line>
+    <text x="200" y="100" fill="rgba(255,255,255,.3)" font-family="Fredoka" font-size="11">FAST</text>
+    <line x1="250" y1="150" x2="340" y2="260" stroke="#FFD93D" stroke-width="3"><animate attributeName="stroke-dashoffset" from="0" to="18" dur="1s" repeatCount="indefinite"/></line>
+    <text x="330" y="200" fill="rgba(0,229,255,.4)" font-family="Fredoka" font-size="11">SLOW</text>
+    <text x="250" y="290" fill="rgba(255,255,255,.5)" font-family="Fredoka" font-size="13" text-anchor="middle">⚡ Speed changes → Light bends!</text>
+  `),
+
+  // === SCIENCE: ABSORPTION ===
+  sci_abs_0: ()=>S(W,H,'#1a0a0a',`
+    <circle cx="250" cy="40" r="28" fill="#FFD93D" filter="url(#gl)"/>
+    <line x1="250" y1="68" x2="250" y2="130" stroke="#FFD93D" stroke-width="2" stroke-dasharray="5,3"><animate attributeName="stroke-dashoffset" from="16" to="0" dur=".8s" repeatCount="indefinite"/></line>
+    <rect x="200" y="130" width="100" height="80" rx="8" fill="#222" stroke="#444" stroke-width="2"/>
+    <text x="250" y="175" fill="#666" font-family="Fredoka" font-size="13" text-anchor="middle">Dark</text>
+    <text x="250" y="240" fill="#FF6B35" font-family="Fredoka" font-size="16" text-anchor="middle">🌡️ Gets warm!</text>
+    <path d="M210,140 L210,120" stroke="rgba(255,217,61,.2)" stroke-width="1.5"/><path d="M290,140 L290,120" stroke="rgba(255,217,61,.2)" stroke-width="1.5"/>
+    <text x="250" y="270" fill="rgba(255,255,255,.4)" font-family="Fredoka" font-size="12" text-anchor="middle">Light → absorbed → heat!</text>
+  `),
+  sci_abs_1: ()=>S(W,H,'#1a0e00',`
+    <circle cx="250" cy="30" r="25" fill="#FFD93D" filter="url(#gl)"/>
+    <g><line x1="180" y1="55" x2="140" y2="120" stroke="#FFD93D" stroke-width="1.5" stroke-dasharray="5,3" opacity=".5"><animate attributeName="stroke-dashoffset" from="16" to="0" dur=".8s" repeatCount="indefinite"/></line><line x1="250" y1="55" x2="250" y2="120" stroke="#FFD93D" stroke-width="1.5" stroke-dasharray="5,3" opacity=".5"><animate attributeName="stroke-dashoffset" from="16" to="0" dur=".9s" repeatCount="indefinite"/></line><line x1="320" y1="55" x2="360" y2="120" stroke="#FFD93D" stroke-width="1.5" stroke-dasharray="5,3" opacity=".5"><animate attributeName="stroke-dashoffset" from="16" to="0" dur=".8s" repeatCount="indefinite"/></line></g>
+    <path d="M90,220 L90,130 Q90,120 100,120 L160,120 Q170,120 170,130 L170,220 Q130,235 130,235 Q90,220 90,220Z" fill="#111" stroke="#333" stroke-width="2"/>
+    <text x="130" y="180" fill="#444" font-family="Fredoka" font-size="11" text-anchor="middle">BLACK</text>
+    <text x="130" y="260" fill="#FF4444" font-family="Fredoka" font-size="13" text-anchor="middle">🥵 Hot!</text>
+    <path d="M330,220 L330,130 Q330,120 340,120 L400,120 Q410,120 410,130 L410,220 Q370,235 370,235 Q330,220 330,220Z" fill="#f5f5f5" stroke="#ddd" stroke-width="2"/>
+    <text x="370" y="180" fill="#aaa" font-family="Fredoka" font-size="11" text-anchor="middle">WHITE</text>
+    <text x="370" y="260" fill="#00E5FF" font-family="Fredoka" font-size="13" text-anchor="middle">😎 Cool!</text>
+  `),
+  sci_abs_2: ()=>S(W,H,'#1a0a0a',`
+    <circle cx="250" cy="120" r="55" fill="#cc0000" stroke="#990000" stroke-width="3"/>
+    <path d="M240,90 Q250,80 260,90 L260,110 Q250,120 240,110Z" fill="#2a6e00"/>
+    <circle cx="250" cy="120" r="55" fill="none"/>
+    <circle cx="100" cy="40" r="18" fill="#FFD93D" filter="url(#gl)"/>
+    <line x1="118" y1="50" x2="195" y2="100" stroke="red" stroke-width="2" opacity=".7"/>
+    <line x1="118" y1="50" x2="195" y2="120" stroke="blue" stroke-width="2" opacity=".5"/>
+    <line x1="118" y1="50" x2="195" y2="140" stroke="#39FF14" stroke-width="2" opacity=".5"/>
+    <line x1="305" y1="120" x2="420" y2="100" stroke="red" stroke-width="3"><animate attributeName="stroke-dashoffset" from="0" to="12" dur=".7s" repeatCount="indefinite"/></line>
+    <text x="430" y="105" fill="red" font-family="Fredoka" font-size="11">RED reflects!</text>
+    <text x="250" y="210" fill="rgba(255,255,255,.5)" font-family="Fredoka" font-size="13" text-anchor="middle">🍎 Absorbs all except red</text>
+  `),
+  sci_abs_3: ()=>S(W,H,'#0a1628',`
+    <circle cx="250" cy="30" r="25" fill="#FFD93D" filter="url(#gl)"/>
+    <path d="M120,250 L120,140 Q120,130 130,130 L180,130 Q190,130 190,140 L190,250 Q155,265 155,265 Q120,250 120,250Z" fill="#f5f5f5" stroke="#ddd" stroke-width="2"/>
+    <text x="155" y="200" fill="#aaa" font-family="Fredoka" font-size="12" text-anchor="middle">White</text>
+    <text x="155" y="285" fill="#00E5FF" font-family="Fredoka" font-size="18" text-anchor="middle">❄️</text>
+    <path d="M310,250 L310,140 Q310,130 320,130 L370,130 Q380,130 380,140 L380,250 Q345,265 345,265 Q310,250 310,250Z" fill="#111" stroke="#333" stroke-width="2"/>
+    <text x="345" y="200" fill="#444" font-family="Fredoka" font-size="12" text-anchor="middle">Black</text>
+    <text x="345" y="285" fill="#FF4444" font-family="Fredoka" font-size="18" text-anchor="middle">🔥</text>
+    <text x="250" y="285" fill="rgba(255,255,255,.3)" font-family="Fredoka" font-size="11" text-anchor="middle">Which is cooler?</text>
+  `),
+  sci_abs_4: ()=>S(W,H,'#0a1628',`
+    <circle cx="120" cy="50" r="28" fill="#FFD93D" filter="url(#gl)"/>
+    <rect x="200" y="80" width="200" height="120" rx="6" fill="#1a2a4a" stroke="#2a4a7a" stroke-width="2"/>
+    <line x1="210" y1="90" x2="390" y2="90" stroke="#2a4a7a" stroke-width="1"/><line x1="210" y1="110" x2="390" y2="110" stroke="#2a4a7a" stroke-width="1"/><line x1="210" y1="130" x2="390" y2="130" stroke="#2a4a7a" stroke-width="1"/><line x1="210" y1="150" x2="390" y2="150" stroke="#2a4a7a" stroke-width="1"/><line x1="210" y1="170" x2="390" y2="170" stroke="#2a4a7a" stroke-width="1"/><line x1="210" y1="190" x2="390" y2="190" stroke="#2a4a7a" stroke-width="1"/>
+    <line x1="148" y1="60" x2="200" y2="100" stroke="#FFD93D" stroke-width="2" stroke-dasharray="5,3"><animate attributeName="stroke-dashoffset" from="16" to="0" dur=".8s" repeatCount="indefinite"/></line>
+    <text x="300" y="230" fill="#39FF14" font-family="Fredoka" font-size="14" text-anchor="middle">☀️ Solar Panel → ⚡ Energy!</text>
+    <text x="300" y="260" fill="rgba(255,255,255,.3)" font-family="Fredoka" font-size="11" text-anchor="middle">Absorbs light to make electricity</text>
+  `),
+
+  // === SCIENCE: TRANSPARENT/TRANSLUCENT/OPAQUE ===
+  sci_trans_0: ()=>S(W,H,'#0d1b2a',`
+    <circle cx="80" cy="100" r="20" fill="#FFD93D" filter="url(#gl)"/>
+    <rect x="180" y="60" width="100" height="140" rx="6" fill="none" stroke="rgba(255,255,255,.3)" stroke-width="2.5"/>
+    <line x1="100" y1="100" x2="180" y2="100" stroke="#FFD93D" stroke-width="2.5" stroke-dasharray="6,3"><animate attributeName="stroke-dashoffset" from="18" to="0" dur=".7s" repeatCount="indefinite"/></line>
+    <line x1="280" y1="100" x2="370" y2="100" stroke="#FFD93D" stroke-width="2.5" stroke-dasharray="6,3"><animate attributeName="stroke-dashoffset" from="0" to="18" dur=".7s" repeatCount="indefinite"/></line>
+    <text x="230" y="230" fill="#00E5FF" font-family="Fredoka" font-size="14" text-anchor="middle">🪟 Clear Glass = Transparent</text>
+    <text x="380" y="90" fill="#39FF14" font-size="24">👀</text>
+    <text x="380" y="120" fill="rgba(255,255,255,.3)" font-family="Fredoka" font-size="10">I can see!</text>
+  `),
+  sci_trans_1: ()=>S(W,H,'#0d1b2a',`
+    <circle cx="80" cy="100" r="20" fill="#FFD93D" filter="url(#gl)"/>
+    <rect x="180" y="60" width="100" height="140" rx="6" fill="rgba(200,220,255,.12)" stroke="rgba(255,255,255,.25)" stroke-width="2.5"/>
+    <line x1="100" y1="100" x2="180" y2="100" stroke="#FFD93D" stroke-width="2.5" stroke-dasharray="6,3"><animate attributeName="stroke-dashoffset" from="18" to="0" dur=".7s" repeatCount="indefinite"/></line>
+    <line x1="280" y1="95" x2="350" y2="85" stroke="rgba(255,217,61,.35)" stroke-width="1.5" stroke-dasharray="4,3"/>
+    <line x1="280" y1="105" x2="350" y2="115" stroke="rgba(255,217,61,.35)" stroke-width="1.5" stroke-dasharray="4,3"/>
+    <text x="230" y="230" fill="#B388FF" font-family="Fredoka" font-size="14" text-anchor="middle">🧊 Frosted Glass = Translucent</text>
+    <text x="380" y="100" fill="rgba(255,255,255,.3)" font-size="24">😵‍💫</text>
+    <text x="380" y="130" fill="rgba(255,255,255,.25)" font-family="Fredoka" font-size="10">Blurry!</text>
+  `),
+  sci_trans_2: ()=>S(W,H,'#0d1b2a',`
+    <circle cx="80" cy="100" r="20" fill="#FFD93D" filter="url(#gl)"/>
+    <rect x="180" y="50" width="100" height="160" rx="6" fill="#444" stroke="#666" stroke-width="2.5"/>
+    <line x1="100" y1="100" x2="180" y2="100" stroke="#FFD93D" stroke-width="2.5" stroke-dasharray="6,3"><animate attributeName="stroke-dashoffset" from="18" to="0" dur=".7s" repeatCount="indefinite"/></line>
+    <text x="230" y="135" fill="#999" font-family="Fredoka" font-size="13" text-anchor="middle">🧱 Wall</text>
+    <text x="230" y="240" fill="#FF6B35" font-family="Fredoka" font-size="14" text-anchor="middle">OPAQUE = Blocks ALL light!</text>
+    <text x="350" y="100" fill="rgba(255,255,255,.2)" font-size="24">🚫</text>
+  `),
+  sci_trans_3: ()=>S(W,H,'#0d1b2a',`
+    <circle cx="100" cy="60" r="30" fill="#FFD93D" filter="url(#gl)"/>
+    <path d="M200,250 L200,100 L300,100 L300,250" fill="#555" stroke="#777" stroke-width="2"/>
+    <line x1="130" y1="70" x2="200" y2="140" stroke="#FFD93D" stroke-width="2.5" stroke-dasharray="6,3"><animate attributeName="stroke-dashoffset" from="18" to="0" dur=".7s" repeatCount="indefinite"/></line>
+    <polygon points="300,180 400,250 400,110" fill="#333" opacity=".6"/>
+    <text x="380" y="270" fill="rgba(255,255,255,.5)" font-family="Fredoka" font-size="13" text-anchor="middle">Shadow!</text>
+    <text x="250" y="280" fill="rgba(255,255,255,.4)" font-family="Fredoka" font-size="13" text-anchor="middle">Opaque objects make shadows 👻</text>
+  `),
+  sci_trans_4: ()=>S(W,H,'#0d1b2a',`
+    <rect x="60" y="70" width="90" height="120" rx="8" fill="#6a4420" stroke="#5a3410" stroke-width="2.5"/><text x="105" y="200" fill="rgba(255,255,255,.4)" font-family="Fredoka" font-size="11" text-anchor="middle">Door 🚪</text>
+    <rect x="190" y="70" width="90" height="120" rx="8" fill="#8B4513" stroke="#6a3410" stroke-width="2.5"/><text x="235" y="200" fill="rgba(255,255,255,.4)" font-family="Fredoka" font-size="11" text-anchor="middle">Wall 🧱</text>
+    <rect x="320" y="70" width="90" height="120" rx="8" fill="none" stroke="rgba(255,255,255,.3)" stroke-width="2.5"/><text x="365" y="200" fill="#39FF14" font-family="Fredoka" font-size="11" text-anchor="middle">Plastic Wrap ✨</text>
+    <text x="365" y="135" fill="#39FF14" font-size="28">✅</text>
+    <text x="250" y="260" fill="rgba(255,255,255,.4)" font-family="Fredoka" font-size="13" text-anchor="middle">Which is transparent?</text>
+  `),
+
+  // === CIÊNCIAS: SOM ===
+  som_0: ()=>S(W,H,'#0a1a30',`
+    <rect x="100" y="120" width="50" height="50" rx="4" fill="#FF6B35"/><polygon points="150,105 220,70 220,220 150,185" fill="#FF6B35" opacity=".8"/>
+    <path d="M240,110 Q280,145 240,180" fill="none" stroke="#00E5FF" stroke-width="2.5"><animate attributeName="opacity" values=".3;.8;.3" dur="1s" repeatCount="indefinite"/></path>
+    <path d="M255,85 Q310,145 255,205" fill="none" stroke="#00E5FF" stroke-width="2.5"><animate attributeName="opacity" values=".2;.6;.2" dur="1.2s" repeatCount="indefinite"/></path>
+    <text x="300" y="155" fill="rgba(255,255,255,.4)" font-family="Fredoka" font-size="13">vibrations ~</text>
+    <text x="250" y="260" fill="#00E5FF" font-family="Fredoka" font-size="14" text-anchor="middle">🔊 Sound = Vibration!</text>
+  `),
+  som_1: ()=>S(W,H,'#0a1a30',`
+    <text x="80" y="100" fill="rgba(255,255,255,.3)" font-family="Fredoka" font-size="12">AIR</text>
+    <rect x="60" y="110" width="100" height="60" rx="6" fill="rgba(0,229,255,.1)" stroke="rgba(0,229,255,.2)" stroke-width="1.5"/>
+    <path d="M80,140 Q90,125 100,140 Q110,155 120,140 Q130,125 140,140" stroke="#00E5FF" stroke-width="2" fill="none"><animate attributeName="d" values="M80,140 Q90,125 100,140 Q110,155 120,140 Q130,125 140,140;M80,140 Q90,155 100,140 Q110,125 120,140 Q130,155 140,140" dur="1s" repeatCount="indefinite"/></path>
+    <text x="250" y="100" fill="rgba(0,229,255,.4)" font-family="Fredoka" font-size="12">WATER</text>
+    <rect x="220" y="110" width="100" height="60" rx="6" fill="rgba(0,229,255,.15)" stroke="rgba(0,229,255,.3)" stroke-width="1.5"/>
+    <text x="380" y="100" fill="rgba(139,69,19,.6)" font-family="Fredoka" font-size="12">SOLID</text>
+    <rect x="350" y="110" width="100" height="60" rx="6" fill="rgba(139,69,19,.2)" stroke="rgba(139,69,19,.4)" stroke-width="1.5"/>
+    <text x="250" y="220" fill="#39FF14" font-family="Fredoka" font-size="14" text-anchor="middle">✅ Sound travels through all three!</text>
+  `),
+  som_2: ()=>S(W,H,'#0a0a2a',`
+    <rect x="100" y="80" width="300" height="140" rx="10" fill="#111" stroke="#333" stroke-width="2"/>
+    <text x="250" y="155" fill="rgba(255,255,255,.2)" font-family="Fredoka" font-size="40" text-anchor="middle">🚀</text>
+    <text x="250" y="190" fill="rgba(255,255,255,.15)" font-family="Fredoka" font-size="12" text-anchor="middle">SPACE</text>
+    <text x="250" y="250" fill="#FF4444" font-family="Fredoka" font-size="16" text-anchor="middle">🔇 No air = No sound!</text>
+    <text x="250" y="275" fill="rgba(255,255,255,.3)" font-family="Fredoka" font-size="11" text-anchor="middle">Sound needs air (or another material) to travel</text>
+  `),
+  som_3: ()=>S(W,H,'#0a1a30',`
+    <text x="130" y="120" fill="rgba(255,255,255,.5)" font-size="50" text-anchor="middle">🎵</text>
+    <path d="M80,160 Q100,180 120,160 Q140,140 160,160" stroke="#B388FF" stroke-width="3" fill="none"/><text x="130" y="200" fill="#B388FF" font-family="Fredoka" font-size="13" text-anchor="middle">LOW / Grave</text><text x="130" y="220" fill="rgba(255,255,255,.3)" font-family="Fredoka" font-size="11" text-anchor="middle">slow vibrations</text>
+    <text x="370" y="120" fill="rgba(255,255,255,.5)" font-size="50" text-anchor="middle">📯</text>
+    <path d="M320,160 Q330,175 340,160 Q350,145 360,160 Q370,175 380,160 Q390,145 400,160" stroke="#FFD93D" stroke-width="3" fill="none"/><text x="370" y="200" fill="#FFD93D" font-family="Fredoka" font-size="13" text-anchor="middle">HIGH / Agudo</text><text x="370" y="220" fill="rgba(255,255,255,.3)" font-family="Fredoka" font-size="11" text-anchor="middle">fast vibrations</text>
+  `),
+  som_4: ()=>S(W,H,'#0a1a30',`
+    <ellipse cx="250" cy="150" rx="70" ry="50" fill="#8B6B3E" stroke="#6a5030" stroke-width="3"/>
+    <ellipse cx="250" cy="115" rx="70" ry="15" fill="#c4a060" stroke="#8B6B3E" stroke-width="2"/>
+    <line x1="320" y1="80" x2="320" y2="115" stroke="#8B4513" stroke-width="4" stroke-linecap="round"/>
+    <circle cx="320" cy="75" r="10" fill="#8B4513"/>
+    <path d="M220,115 Q250,105 280,115" stroke="rgba(255,255,255,.3)" stroke-width="1.5" fill="none"><animate attributeName="d" values="M220,115 Q250,100 280,115;M220,115 Q250,115 280,115;M220,115 Q250,100 280,115" dur=".3s" repeatCount="indefinite"/></path>
+    <text x="250" y="230" fill="#FF6B35" font-family="Fredoka" font-size="14" text-anchor="middle">🥁 Drum skin vibrates first!</text>
+  `),
+
+  // === SOCIAL STUDIES ===
+  soc_cult_0: ()=>S(W,H,'#0d1b2a',`<text x="80" y="90" font-size="50">🍕</text><text x="170" y="90" font-size="50">🎵</text><text x="260" y="90" font-size="50">👘</text><text x="350" y="90" font-size="50">🗣️</text><text x="80" y="170" font-size="50">🎉</text><text x="170" y="170" font-size="50">🏠</text><text x="260" y="170" font-size="50">💃</text><text x="350" y="170" font-size="50">🎨</text><text x="250" y="250" fill="rgba(255,255,255,.5)" font-family="Fredoka" font-size="16" text-anchor="middle">Culture = food + music + clothes + language + celebrations!</text>`),
+  soc_cult_1: ()=>S(W,H,'#0d1b2a',`<text x="120" y="130" font-size="70" text-anchor="middle">👨‍👩‍👧‍👦</text><text x="120" y="180" fill="rgba(255,255,255,.4)" font-family="Fredoka" font-size="12" text-anchor="middle">Parents</text><text x="250" y="110" fill="#FFD93D" font-size="30">→</text><text x="370" y="130" font-size="70" text-anchor="middle">👶</text><text x="370" y="180" fill="rgba(255,255,255,.4)" font-family="Fredoka" font-size="12" text-anchor="middle">Children</text><text x="250" y="250" fill="#B388FF" font-family="Fredoka" font-size="15" text-anchor="middle">Traditions pass from generation to generation!</text>`),
+  soc_cult_2: ()=>S(W,H,'#0d1b2a',`<text x="100" y="110" font-size="55" text-anchor="middle">📖</text><text x="100" y="150" fill="rgba(255,255,255,.35)" font-family="Fredoka" font-size="11" text-anchor="middle">Brazil</text><text x="250" y="80" font-size="55" text-anchor="middle">📖</text><text x="250" y="120" fill="rgba(255,255,255,.35)" font-family="Fredoka" font-size="11" text-anchor="middle">Japan</text><text x="400" y="110" font-size="55" text-anchor="middle">📖</text><text x="400" y="150" fill="rgba(255,255,255,.35)" font-family="Fredoka" font-size="11" text-anchor="middle">Nigeria</text><text x="250" y="210" fill="#FFD93D" font-size="40" text-anchor="middle">❤️</text><text x="250" y="260" fill="rgba(255,255,255,.5)" font-family="Fredoka" font-size="14" text-anchor="middle">All share love, bravery & kindness!</text>`),
+  soc_cult_3: ()=>S(W,H,'#0d1b2a',`<text x="100" y="130" font-size="60" text-anchor="middle">🌍</text><text x="250" y="130" font-size="60" text-anchor="middle">🤝</text><text x="400" y="130" font-size="60" text-anchor="middle">🌈</text><text x="250" y="220" fill="#39FF14" font-family="Fredoka" font-size="16" text-anchor="middle">Respect all cultures!</text><text x="250" y="250" fill="rgba(255,255,255,.4)" font-family="Fredoka" font-size="12" text-anchor="middle">Differences make the world beautiful</text>`),
+  soc_cult_4: ()=>S(W,H,'#0d1b2a',`<text x="130" y="120" font-size="65" text-anchor="middle">🎄</text><text x="130" y="170" fill="rgba(255,255,255,.4)" font-family="Fredoka" font-size="12" text-anchor="middle">Christmas</text><text x="370" y="120" font-size="65" text-anchor="middle">🪔</text><text x="370" y="170" fill="rgba(255,255,255,.4)" font-family="Fredoka" font-size="12" text-anchor="middle">Diwali</text><text x="250" y="240" fill="#FFD93D" font-family="Fredoka" font-size="15" text-anchor="middle">🔄 Traditions repeat every year!</text>`),
+
+  // === HISTÓRIA ===
+  hist_cult_0: ()=>S(W,H,'#1a1a0a',`<text x="250" y="80" font-size="55" text-anchor="middle">🏹</text><text x="250" y="130" fill="rgba(255,255,255,.5)" font-family="Fredoka" font-size="15" text-anchor="middle">Povos Indígenas</text><text x="120" y="200" font-size="40">🌿</text><text x="200" y="200" fill="rgba(255,255,255,.4)" font-family="Fredoka" font-size="13">Mandioca</text><text x="120" y="250" font-size="40">🛏️</text><text x="200" y="250" fill="rgba(255,255,255,.4)" font-family="Fredoka" font-size="13">Rede de dormir</text>`),
+  hist_cult_1: ()=>S(W,H,'#1a0a1a',`<text x="250" y="80" font-size="55" text-anchor="middle">🌍</text><text x="250" y="130" fill="rgba(255,255,255,.5)" font-family="Fredoka" font-size="15" text-anchor="middle">Herança Africana</text><text x="100" y="200" font-size="40">🥋</text><text x="170" y="205" fill="rgba(255,255,255,.4)" font-family="Fredoka" font-size="13">Capoeira</text><text x="280" y="200" font-size="40">🥘</text><text x="350" y="205" fill="rgba(255,255,255,.4)" font-family="Fredoka" font-size="13">Feijoada</text><text x="100" y="260" font-size="40">🪘</text><text x="170" y="265" fill="rgba(255,255,255,.4)" font-family="Fredoka" font-size="13">Samba</text>`),
+  hist_cult_2: ()=>S(W,H,'#0a1a2a',`<text x="250" y="80" font-size="55" text-anchor="middle">⛵</text><text x="250" y="130" fill="rgba(255,255,255,.5)" font-family="Fredoka" font-size="15" text-anchor="middle">Portugueses</text><text x="120" y="200" font-size="35">🗣️</text><text x="180" y="205" fill="rgba(255,255,255,.4)" font-family="Fredoka" font-size="13">Língua Portuguesa</text><text x="120" y="255" font-size="35">🎆</text><text x="180" y="260" fill="rgba(255,255,255,.4)" font-family="Fredoka" font-size="13">Festas Juninas</text>`),
+  hist_cult_3: ()=>S(W,H,'#0d1b2a',`<text x="100" y="110" font-size="50">🏹</text><text x="200" y="110" font-size="50">🌍</text><text x="300" y="110" font-size="50">⛵</text><text x="250" y="180" fill="#FFD93D" font-size="50" text-anchor="middle">+</text><text x="250" y="230" fill="#39FF14" font-family="Fredoka" font-size="16" text-anchor="middle">= 🇧🇷 Diversidade Cultural!</text><text x="250" y="260" fill="rgba(255,255,255,.4)" font-family="Fredoka" font-size="12" text-anchor="middle">Diferentes culturas juntas = riqueza!</text>`),
+  hist_cult_4: ()=>S(W,H,'#1a0a1a',`<text x="250" y="100" font-size="65" text-anchor="middle">🪘</text><text x="250" y="160" fill="#FFD93D" font-family="Fredoka" font-size="18" text-anchor="middle">Samba</text><text x="250" y="200" fill="rgba(255,255,255,.5)" font-family="Fredoka" font-size="14" text-anchor="middle">Raízes Africanas 🌍</text><text x="150" y="260" font-size="40">💃</text><text x="250" y="260" font-size="40">🎶</text><text x="350" y="260" font-size="40">🥁</text>`),
+
+  // === PORTUGUÊS: BIOGRAFIA ===
+  pt_genero_0: ()=>S(W,H,'#1a0d2a',`<text x="130" y="130" font-size="60" text-anchor="middle">👤</text><text x="130" y="180" fill="rgba(255,255,255,.4)" font-family="Fredoka" font-size="11" text-anchor="middle">Pessoa famosa</text><text x="250" y="90" fill="#FFD93D" font-size="50" text-anchor="middle">→</text><text x="370" y="130" font-size="60" text-anchor="middle">✍️</text><text x="370" y="180" fill="rgba(255,255,255,.4)" font-family="Fredoka" font-size="11" text-anchor="middle">Outra pessoa escreve</text><text x="250" y="250" fill="#B388FF" font-family="Fredoka" font-size="16" text-anchor="middle">Biografia = escrita por OUTRO</text>`),
+  pt_genero_1: ()=>S(W,H,'#1a0d2a',`<text x="250" y="110" font-size="65" text-anchor="middle">🙋</text><text x="250" y="170" fill="#FFD93D" font-family="Fredoka" font-size="20" text-anchor="middle">"EU nasci no Rio..."</text><text x="250" y="220" fill="#00E5FF" font-family="Fredoka" font-size="15" text-anchor="middle">Usa "EU" → Autobiografia!</text><text x="250" y="260" fill="rgba(255,255,255,.3)" font-family="Fredoka" font-size="12" text-anchor="middle">A própria pessoa conta sua história</text>`),
+  pt_genero_2: ()=>S(W,H,'#1a0d2a',`<text x="130" y="130" font-size="55" text-anchor="middle">📖</text><text x="130" y="180" fill="#39FF14" font-family="Fredoka" font-size="13" text-anchor="middle">Fatos REAIS ✅</text><text x="370" y="130" font-size="55" text-anchor="middle">🧚</text><text x="370" y="180" fill="#FF4444" font-family="Fredoka" font-size="13" text-anchor="middle">Ficção ❌</text><text x="250" y="250" fill="rgba(255,255,255,.5)" font-family="Fredoka" font-size="14" text-anchor="middle">Biografias contam fatos reais!</text>`),
+  pt_genero_3: ()=>S(W,H,'#1a0d2a',`<text x="250" y="100" font-size="50" text-anchor="middle">👩‍⚕️</text><text x="250" y="160" fill="#FFD93D" font-family="Fredoka" font-size="18" text-anchor="middle">"ELA nasceu em 1990..."</text><text x="250" y="210" fill="#00E5FF" font-family="Fredoka" font-size="15" text-anchor="middle">Usa "ELA" (3ª pessoa) → Biografia!</text>`),
+  pt_genero_4: ()=>S(W,H,'#1a0d2a',`<text x="130" y="110" font-size="40">📅</text><text x="130" y="155" fill="rgba(255,255,255,.4)" font-family="Fredoka" font-size="12" text-anchor="middle">Nascimento</text><text x="250" y="110" font-size="40" text-anchor="middle">🏠</text><text x="250" y="155" fill="rgba(255,255,255,.4)" font-family="Fredoka" font-size="12" text-anchor="middle">Infância</text><text x="370" y="110" font-size="40" text-anchor="middle">🏆</text><text x="370" y="155" fill="rgba(255,255,255,.4)" font-family="Fredoka" font-size="12" text-anchor="middle">Conquistas</text><text x="250" y="230" fill="#39FF14" font-family="Fredoka" font-size="15" text-anchor="middle">Informações reais da vida!</text>`),
+
+  // === PORTUGUÊS: ANÁLISE LINGUÍSTICA ===
+  pt_ling_0: ()=>S(W,H,'#1a0d2a',`<text x="250" y="100" fill="#FFD93D" font-family="Fredoka" font-size="50" text-anchor="middle">Bb</text><text x="250" y="150" fill="rgba(255,255,255,.5)" font-family="Fredoka" font-size="16" text-anchor="middle">Benício · São Paulo · Brasil</text><text x="250" y="200" fill="#00E5FF" font-family="Fredoka" font-size="14" text-anchor="middle">Letra MAIÚSCULA no início e nomes próprios!</text>`),
+  pt_ling_1: ()=>S(W,H,'#1a0d2a',`<text x="250" y="100" fill="#FFD93D" font-family="Fredoka" font-size="40" text-anchor="middle">Pá<tspan fill="#39FF14">ss</tspan>aro</text><text x="250" y="160" fill="rgba(255,255,255,.5)" font-family="Fredoka" font-size="15" text-anchor="middle">SS entre vogais = som de "S"</text><text x="250" y="210" font-size="50" text-anchor="middle">🐦</text>`),
+  pt_ling_2: ()=>S(W,H,'#1a0d2a',`<text x="130" y="120" font-size="50" text-anchor="middle">🐱</text><text x="130" y="165" fill="rgba(255,255,255,.5)" font-family="Fredoka" font-size="14" text-anchor="middle">gato</text><text x="130" y="190" fill="rgba(255,255,255,.3)" font-family="Fredoka" font-size="11" text-anchor="middle">(substantivo)</text><text x="370" y="120" fill="#39FF14" font-family="Fredoka" font-size="30" text-anchor="middle">bonito</text><text x="370" y="165" fill="rgba(255,255,255,.3)" font-family="Fredoka" font-size="11" text-anchor="middle">(adjetivo)</text><text x="250" y="250" fill="#FFD93D" font-family="Fredoka" font-size="14" text-anchor="middle">Adjetivo = descreve o substantivo!</text>`),
+  pt_ling_3: ()=>S(W,H,'#1a0d2a',`<text x="250" y="100" font-size="55" text-anchor="middle">🏫</text><text x="250" y="160" fill="#FFD93D" font-family="Fredoka" font-size="28" text-anchor="middle">Escola</text><text x="250" y="210" fill="#00E5FF" font-family="Fredoka" font-size="15" text-anchor="middle">Nome de coisa = SUBSTANTIVO</text><text x="150" y="260" font-size="25">👦</text><text x="200" y="260" font-size="25">📚</text><text x="250" y="260" font-size="25">❤️</text>`),
+  pt_ling_4: ()=>S(W,H,'#1a0d2a',`<text x="250" y="90" fill="#FFD93D" font-family="Fredoka" font-size="30" text-anchor="middle">ca<tspan fill="#39FF14">s</tspan>a · me<tspan fill="#39FF14">s</tspan>a</text><text x="250" y="140" fill="rgba(255,255,255,.5)" font-family="Fredoka" font-size="16" text-anchor="middle">S entre vogais = som de Z!</text><text x="200" y="210" font-size="55" text-anchor="middle">🏠</text><text x="320" y="210" font-size="55" text-anchor="middle">🪑</text>`),
+
+  // === MATH ===
+  math_ops_0: ()=>S(W,H,'#0d1b2a',`<text x="250" y="100" fill="#FFD93D" font-family="Fredoka" font-size="45" text-anchor="middle">58 + 37</text><text x="250" y="160" fill="rgba(255,255,255,.3)" font-family="Fredoka" font-size="14" text-anchor="middle">8+7=15 → write 5, carry 1!</text><text x="250" y="230" fill="#00E5FF" font-family="Fredoka" font-size="30" text-anchor="middle">= ?</text>`),
+  math_ops_1: ()=>S(W,H,'#0d1b2a',`<text x="250" y="100" fill="#FF6B35" font-family="Fredoka" font-size="45" text-anchor="middle">83 − 46</text><text x="250" y="160" fill="rgba(255,255,255,.3)" font-family="Fredoka" font-size="14" text-anchor="middle">Borrow! 13−6=7, 7−4=3</text><text x="250" y="230" fill="#00E5FF" font-family="Fredoka" font-size="30" text-anchor="middle">= ?</text>`),
+  math_ops_2: ()=>S(W,H,'#0d1b2a',`<text x="130" y="120" font-size="60" text-anchor="middle">👦</text><text x="130" y="165" fill="rgba(255,255,255,.4)" font-family="Fredoka" font-size="12" text-anchor="middle">Tom: 45 ⭐</text><text x="250" y="100" fill="#39FF14" font-size="40" text-anchor="middle">+</text><text x="370" y="120" font-size="60" text-anchor="middle">🌟</text><text x="370" y="165" fill="rgba(255,255,255,.4)" font-family="Fredoka" font-size="12" text-anchor="middle">Gets 28 more!</text><text x="250" y="240" fill="#FFD93D" font-family="Fredoka" font-size="16" text-anchor="middle">How many altogether? 🤔</text>`),
+  math_ops_3: ()=>S(W,H,'#0d1b2a',`<text x="150" y="110" fill="#FFD93D" font-family="Fredoka" font-size="40" text-anchor="middle">17</text><text x="250" y="80" fill="#39FF14" font-family="Fredoka" font-size="14" text-anchor="middle">carry 1 →</text><text x="250" y="140" fill="rgba(255,255,255,.3)" font-family="Fredoka" font-size="13" text-anchor="middle">When digits add to more than 9...</text><text x="350" y="110" fill="#00E5FF" font-family="Fredoka" font-size="40" text-anchor="middle">¹7</text><text x="250" y="220" fill="#B388FF" font-family="Fredoka" font-size="16" text-anchor="middle">Regrouping = carrying over!</text>`),
+  math_ops_4: ()=>S(W,H,'#0d1b2a',`<text x="130" y="120" font-size="60" text-anchor="middle">👧</text><text x="130" y="170" fill="rgba(255,255,255,.4)" font-family="Fredoka" font-size="12" text-anchor="middle">Sara: 60 🍬</text><text x="250" y="100" fill="#FF4444" font-size="40" text-anchor="middle">−</text><text x="370" y="120" font-size="60" text-anchor="middle">🎁</text><text x="370" y="170" fill="rgba(255,255,255,.4)" font-family="Fredoka" font-size="12" text-anchor="middle">Gave 24 away</text><text x="250" y="240" fill="#FF6B35" font-family="Fredoka" font-size="16" text-anchor="middle">How many left? 🍬</text>`),
+
+  math_meas_0: ()=>S(W,H,'#0d1b2a',`<line x1="50" y1="150" x2="450" y2="150" stroke="#FFD93D" stroke-width="3"/><text x="50" y="140" fill="rgba(255,255,255,.3)" font-family="Fredoka" font-size="11">0 cm</text><text x="450" y="140" fill="rgba(255,255,255,.3)" font-family="Fredoka" font-size="11">100 cm</text><text x="250" y="200" fill="#00E5FF" font-family="Fredoka" font-size="20" text-anchor="middle">1 meter = ? cm</text><text x="250" y="250" font-size="40" text-anchor="middle">📏</text>`),
+  math_meas_1: ()=>S(W,H,'#0d1b2a',`<text x="250" y="90" font-size="60" text-anchor="middle">✏️</text><text x="130" y="190" font-size="45" text-anchor="middle">📏</text><text x="130" y="230" fill="#39FF14" font-family="Fredoka" font-size="12" text-anchor="middle">Ruler ✅</text><text x="370" y="190" font-size="45" text-anchor="middle">⚖️</text><text x="370" y="230" fill="rgba(255,255,255,.3)" font-family="Fredoka" font-size="12" text-anchor="middle">Scale ❌</text><text x="250" y="270" fill="rgba(255,255,255,.4)" font-family="Fredoka" font-size="13" text-anchor="middle">What measures a pencil?</text>`),
+  math_meas_2: ()=>S(W,H,'#0d1b2a',`<circle cx="250" cy="140" r="80" fill="none" stroke="#FFD93D" stroke-width="3"/><line x1="250" y1="140" x2="250" y2="80" stroke="#fff" stroke-width="3" stroke-linecap="round"/><line x1="250" y1="140" x2="310" y2="140" stroke="#00E5FF" stroke-width="2" stroke-linecap="round"/><circle cx="250" cy="140" r="4" fill="#FF6B35"/><text x="268" y="75" fill="rgba(255,255,255,.4)" font-family="Fredoka" font-size="13">12</text><text x="335" y="148" fill="rgba(255,255,255,.4)" font-family="Fredoka" font-size="13">3</text><text x="250" y="260" fill="#FFD93D" font-family="Fredoka" font-size="16" text-anchor="middle">🕐 What time is it?</text>`),
+  math_meas_3: ()=>S(W,H,'#0d1b2a',`<rect x="80" y="80" width="140" height="140" rx="6" fill="none" stroke="#FFD93D" stroke-width="3"/><text x="150" y="160" fill="#FFD93D" font-family="Fredoka" font-size="22" text-anchor="middle">1 m</text><text x="150" y="185" fill="rgba(255,255,255,.3)" font-family="Fredoka" font-size="12" text-anchor="middle">(100 cm)</text><text x="250" y="155" fill="rgba(255,255,255,.5)" font-family="Fredoka" font-size="25" text-anchor="middle">vs</text><rect x="300" y="95" width="120" height="110" rx="6" fill="none" stroke="#00E5FF" stroke-width="3"/><text x="360" y="160" fill="#00E5FF" font-family="Fredoka" font-size="22" text-anchor="middle">90 cm</text><text x="250" y="260" fill="rgba(255,255,255,.4)" font-family="Fredoka" font-size="14" text-anchor="middle">Which is longer? 🤔</text>`),
+  math_meas_4: ()=>S(W,H,'#0d1b2a',`<rect x="150" y="40" width="200" height="220" rx="8" fill="none" stroke="rgba(255,255,255,.2)" stroke-width="2"/><rect x="220" y="180" width="60" height="80" rx="3" fill="rgba(255,255,255,.1)" stroke="rgba(255,255,255,.15)" stroke-width="1.5"/><text x="250" y="140" fill="rgba(255,255,255,.3)" font-family="Fredoka" font-size="50" text-anchor="middle">🏫</text><text x="250" y="280" fill="#FFD93D" font-family="Fredoka" font-size="14" text-anchor="middle">A classroom is about 5-10 ___?</text>`),
+
+  math_graph_0: ()=>S(W,H,'#0d1b2a',`<line x1="80" y1="220" x2="420" y2="220" stroke="rgba(255,255,255,.2)" stroke-width="2"/><line x1="80" y1="220" x2="80" y2="60" stroke="rgba(255,255,255,.2)" stroke-width="2"/><rect x="120" y="140" width="50" height="80" rx="4" fill="#FF6B35"/><rect x="210" y="100" width="50" height="120" rx="4" fill="#39FF14"/><rect x="300" y="170" width="50" height="50" rx="4" fill="#00E5FF"/><text x="145" y="240" fill="rgba(255,255,255,.35)" font-family="Fredoka" font-size="10" text-anchor="middle">A</text><text x="235" y="240" fill="rgba(255,255,255,.35)" font-family="Fredoka" font-size="10" text-anchor="middle">B</text><text x="325" y="240" fill="rgba(255,255,255,.35)" font-family="Fredoka" font-size="10" text-anchor="middle">C</text><text x="235" y="87" fill="#39FF14" font-family="Fredoka" font-size="11" text-anchor="middle">tallest!</text><text x="250" y="275" fill="rgba(255,255,255,.4)" font-family="Fredoka" font-size="13" text-anchor="middle">📊 Tallest bar = biggest number!</text>`),
+  math_graph_1: ()=>S(W,H,'#0d1b2a',`<text x="120" y="100" font-size="35">📸</text><text x="180" y="100" font-size="35">📊</text><text x="240" y="100" font-size="35">🖼️</text><text x="250" y="160" fill="#FFD93D" font-family="Fredoka" font-size="18" text-anchor="middle">Pictograph</text><text x="250" y="200" fill="rgba(255,255,255,.5)" font-family="Fredoka" font-size="14" text-anchor="middle">= graph using pictures!</text><text x="150" y="260" font-size="25">⭐⭐⭐</text><text x="300" y="260" fill="rgba(255,255,255,.3)" font-family="Fredoka" font-size="12">each = 2 votes</text>`),
+  math_graph_2: ()=>S(W,H,'#0d1b2a',`<text x="80" y="120" font-size="35">🍎🍎🍎🍎</text><text x="250" y="170" fill="rgba(255,255,255,.4)" font-family="Fredoka" font-size="14" text-anchor="middle">Each 🍎 = 3 votes</text><text x="250" y="210" fill="#FFD93D" font-family="Fredoka" font-size="18" text-anchor="middle">4 × 3 = ?</text>`),
+  math_graph_3: ()=>S(W,H,'#0d1b2a',`<line x1="80" y1="50" x2="420" y2="50" stroke="rgba(255,255,255,.15)" stroke-width="1.5"/><text x="250" y="45" fill="#FFD93D" font-family="Fredoka" font-size="14" text-anchor="middle">Favorite Fruit Survey</text><line x1="80" y1="200" x2="420" y2="200" stroke="rgba(255,255,255,.2)" stroke-width="2"/><line x1="80" y1="200" x2="80" y2="70" stroke="rgba(255,255,255,.2)" stroke-width="2"/><rect x="130" y="120" width="50" height="80" rx="4" fill="#FF6B35"/><text x="155" y="220" font-size="20" text-anchor="middle">🍎</text><rect x="230" y="90" width="50" height="110" rx="4" fill="#FFD93D"/><text x="255" y="220" font-size="20" text-anchor="middle">🍌</text><rect x="330" y="140" width="50" height="60" rx="4" fill="#B388FF"/><text x="355" y="220" font-size="20" text-anchor="middle">🍇</text><text x="250" y="270" fill="rgba(255,255,255,.4)" font-family="Fredoka" font-size="13" text-anchor="middle">Always read the title & labels first!</text>`),
+  math_graph_4: ()=>S(W,H,'#0d1b2a',`<line x1="80" y1="200" x2="420" y2="200" stroke="rgba(255,255,255,.2)" stroke-width="2"/><line x1="80" y1="200" x2="80" y2="60" stroke="rgba(255,255,255,.2)" stroke-width="2"/><rect x="130" y="100" width="50" height="100" rx="4" fill="#00E5FF"/><rect x="220" y="140" width="50" height="60" rx="4" fill="#FF6B35"/><rect x="310" y="80" width="50" height="120" rx="4" fill="#39FF14"/><text x="250" y="250" fill="#FFD93D" font-family="Fredoka" font-size="15" text-anchor="middle">📊 Bar graphs compare amounts!</text>`),
+
+  // === MATEMÁTICA ===
+  mat_add_0: ()=>S(W,H,'#0d1b2a',`<text x="250" y="100" fill="#FFD93D" font-family="Fredoka" font-size="45" text-anchor="middle">47 + 35</text><text x="250" y="160" fill="rgba(255,255,255,.3)" font-family="Fredoka" font-size="14" text-anchor="middle">7+5=12 → escreve 2, leva 1!</text><text x="250" y="230" fill="#00E5FF" font-family="Fredoka" font-size="30" text-anchor="middle">= ?</text>`),
+  mat_add_1: ()=>S(W,H,'#0d1b2a',`<text x="250" y="100" fill="#FF6B35" font-family="Fredoka" font-size="45" text-anchor="middle">63 − 28</text><text x="250" y="160" fill="rgba(255,255,255,.3)" font-family="Fredoka" font-size="14" text-anchor="middle">3 não tira 8... pega emprestado!</text><text x="250" y="230" fill="#00E5FF" font-family="Fredoka" font-size="30" text-anchor="middle">= ?</text>`),
+  mat_add_2: ()=>S(W,H,'#0d1b2a',`<text x="130" y="120" font-size="55" text-anchor="middle">👧</text><text x="130" y="170" fill="rgba(255,255,255,.4)" font-family="Fredoka" font-size="12" text-anchor="middle">Maria: 56 🎴</text><text x="250" y="100" fill="#39FF14" font-size="35" text-anchor="middle">+</text><text x="370" y="120" font-size="55" text-anchor="middle">🎁</text><text x="370" y="170" fill="rgba(255,255,255,.4)" font-family="Fredoka" font-size="12" text-anchor="middle">Ganhou 27!</text><text x="250" y="240" fill="#FFD93D" font-family="Fredoka" font-size="16" text-anchor="middle">Quantas figurinhas? 🤔</text>`),
+  mat_add_3: ()=>S(W,H,'#0d1b2a',`<text x="150" y="110" fill="#FFD93D" font-family="Fredoka" font-size="40" text-anchor="middle">18</text><text x="250" y="80" fill="#39FF14" font-family="Fredoka" font-size="14" text-anchor="middle">leva 1 →</text><text x="350" y="110" fill="#00E5FF" font-family="Fredoka" font-size="40" text-anchor="middle">¹8</text><text x="250" y="190" fill="rgba(255,255,255,.5)" font-family="Fredoka" font-size="16" text-anchor="middle">Passou de 9? Leva 1!</text><text x="250" y="250" fill="#B388FF" font-family="Fredoka" font-size="14" text-anchor="middle">Reserva = levar para a próxima casa</text>`),
+  mat_add_4: ()=>S(W,H,'#0d1b2a',`<text x="130" y="120" font-size="55" text-anchor="middle">👦</text><text x="130" y="170" fill="rgba(255,255,255,.4)" font-family="Fredoka" font-size="12" text-anchor="middle">Pedro: 91 cards</text><text x="250" y="100" fill="#FF4444" font-size="35" text-anchor="middle">−</text><text x="370" y="120" font-size="55" text-anchor="middle">🃏</text><text x="370" y="170" fill="rgba(255,255,255,.4)" font-family="Fredoka" font-size="12" text-anchor="middle">Deu 45</text><text x="250" y="240" fill="#FF6B35" font-family="Fredoka" font-size="16" text-anchor="middle">Quantos ficaram? 🤔</text>`),
+
+  mat_med_0: ()=>S(W,H,'#0d1b2a',`<line x1="50" y1="150" x2="450" y2="150" stroke="#FFD93D" stroke-width="3"/><text x="50" y="140" fill="rgba(255,255,255,.3)" font-family="Fredoka" font-size="11">0</text><text x="450" y="140" fill="rgba(255,255,255,.3)" font-family="Fredoka" font-size="11">100</text><text x="250" y="90" fill="#00E5FF" font-family="Fredoka" font-size="20" text-anchor="middle">1 metro = ? centímetros</text><text x="250" y="220" font-size="45" text-anchor="middle">📏</text>`),
+  mat_med_1: ()=>S(W,H,'#0d1b2a',`<text x="250" y="80" font-size="55" text-anchor="middle">✏️</text><text x="130" y="190" font-size="40" text-anchor="middle">📏</text><text x="130" y="230" fill="#39FF14" font-family="Fredoka" font-size="12" text-anchor="middle">Régua ✅</text><text x="370" y="190" font-size="40" text-anchor="middle">🌡️</text><text x="370" y="230" fill="rgba(255,255,255,.3)" font-family="Fredoka" font-size="12" text-anchor="middle">Termômetro ❌</text>`),
+  mat_med_2: ()=>S(W,H,'#0d1b2a',`<circle cx="250" cy="140" r="80" fill="none" stroke="#FFD93D" stroke-width="3"/><line x1="250" y1="140" x2="250" y2="75" stroke="#fff" stroke-width="3" stroke-linecap="round"/><line x1="250" y1="140" x2="310" y2="140" stroke="#00E5FF" stroke-width="2" stroke-linecap="round"/><circle cx="250" cy="140" r="4" fill="#FF6B35"/><text x="261" y="72" fill="rgba(255,255,255,.35)" font-family="Fredoka" font-size="12">12</text><text x="320" y="148" fill="rgba(255,255,255,.35)" font-family="Fredoka" font-size="12">3</text><text x="253" y="230" fill="rgba(255,255,255,.35)" font-family="Fredoka" font-size="12">6</text><text x="250" y="265" fill="#FFD93D" font-family="Fredoka" font-size="14" text-anchor="middle">🕐 Que horas são?</text>`),
+  mat_med_3: ()=>S(W,H,'#0d1b2a',`<rect x="100" y="80" width="130" height="130" rx="6" fill="none" stroke="#FFD93D" stroke-width="3"/><text x="165" y="155" fill="#FFD93D" font-family="Fredoka" font-size="20" text-anchor="middle">1 m</text><text x="250" y="150" fill="rgba(255,255,255,.5)" font-family="Fredoka" font-size="22" text-anchor="middle">vs</text><rect x="290" y="90" width="110" height="110" rx="6" fill="none" stroke="#00E5FF" stroke-width="3"/><text x="345" y="155" fill="#00E5FF" font-family="Fredoka" font-size="20" text-anchor="middle">80 cm</text><text x="250" y="260" fill="rgba(255,255,255,.4)" font-family="Fredoka" font-size="14" text-anchor="middle">Qual é maior?</text>`),
+  mat_med_4: ()=>S(W,H,'#0d1b2a',`<rect x="100" y="60" width="300" height="180" rx="8" fill="rgba(255,255,255,.05)" stroke="rgba(255,255,255,.15)" stroke-width="2"/><rect x="220" y="170" width="60" height="70" rx="3" fill="rgba(255,255,255,.08)" stroke="rgba(255,255,255,.12)" stroke-width="1.5"/><text x="250" y="140" font-size="50" text-anchor="middle">🚪</text><text x="250" y="275" fill="#FFD93D" font-family="Fredoka" font-size="14" text-anchor="middle">Para medir uma porta usamos...?</text>`),
+
+  mat_graf_0: ()=>S(W,H,'#0d1b2a',`<line x1="80" y1="210" x2="400" y2="210" stroke="rgba(255,255,255,.2)" stroke-width="2"/><line x1="80" y1="210" x2="80" y2="60" stroke="rgba(255,255,255,.2)" stroke-width="2"/><rect x="120" y="130" width="50" height="80" rx="4" fill="#FF6B35"/><rect x="210" y="90" width="50" height="120" rx="4" fill="#39FF14"/><rect x="300" y="160" width="50" height="50" rx="4" fill="#00E5FF"/><text x="235" y="80" fill="#39FF14" font-family="Fredoka" font-size="11" text-anchor="middle">↑ mais alta!</text><text x="250" y="265" fill="rgba(255,255,255,.4)" font-family="Fredoka" font-size="13" text-anchor="middle">Barra mais alta = maior quantidade!</text>`),
+  mat_graf_1: ()=>S(W,H,'#0d1b2a',`<text x="120" y="110" font-size="40">⭐⭐⭐</text><text x="250" y="160" fill="rgba(255,255,255,.5)" font-family="Fredoka" font-size="15" text-anchor="middle">Pictograma = gráfico com figurinhas!</text><text x="120" y="220" font-size="40">🍎🍎🍎</text><text x="350" y="220" fill="rgba(255,255,255,.4)" font-family="Fredoka" font-size="12">cada = 2</text>`),
+  mat_graf_2: ()=>S(W,H,'#0d1b2a',`<text x="100" y="120" font-size="35">⭐⭐⭐⭐⭐</text><text x="250" y="170" fill="rgba(255,255,255,.5)" font-family="Fredoka" font-size="15" text-anchor="middle">Cada ⭐ = 2 votos</text><text x="250" y="220" fill="#FFD93D" font-family="Fredoka" font-size="20" text-anchor="middle">5 × 2 = ?</text>`),
+  mat_graf_3: ()=>S(W,H,'#0d1b2a',`<text x="100" y="120" font-size="45" text-anchor="middle">➡️</text><text x="200" y="120" font-size="45" text-anchor="middle">⬆️</text><text x="300" y="120" font-size="45" text-anchor="middle">⬅️</text><text x="400" y="120" font-size="45" text-anchor="middle">⬇️</text><text x="250" y="200" fill="#FFD93D" font-family="Fredoka" font-size="16" text-anchor="middle">Trajeto = caminho com direções!</text><text x="250" y="240" fill="rgba(255,255,255,.3)" font-family="Fredoka" font-size="13" text-anchor="middle">"Vire à direita e ande 3 quadras"</text>`),
+  mat_graf_4: ()=>S(W,H,'#0d1b2a',`<rect x="100" y="60" width="300" height="180" rx="8" fill="none" stroke="rgba(255,255,255,.15)" stroke-width="2"/><line x1="100" y1="100" x2="400" y2="100" stroke="rgba(255,255,255,.1)" stroke-width="1"/><line x1="100" y1="140" x2="400" y2="140" stroke="rgba(255,255,255,.1)" stroke-width="1"/><line x1="100" y1="180" x2="400" y2="180" stroke="rgba(255,255,255,.1)" stroke-width="1"/><line x1="200" y1="60" x2="200" y2="240" stroke="rgba(255,255,255,.1)" stroke-width="1"/><line x1="300" y1="60" x2="300" y2="240" stroke="rgba(255,255,255,.1)" stroke-width="1"/><text x="250" y="160" fill="rgba(255,255,255,.3)" font-family="Fredoka" font-size="14" text-anchor="middle">Tabela organiza informações!</text><text x="250" y="275" fill="#39FF14" font-family="Fredoka" font-size="14" text-anchor="middle">Linhas e colunas 📋</text>`)
+};
+
+// ===================== LESSON ILLUSTRATIONS =====================
+const LILLUS = {
+  reflection: QI.sci_refl_0(),
+  refraction: QI.sci_refr_0(),
+  absorption: QI.sci_abs_1(),
+  transparent: QI.sci_trans_0(),
+  sound: QI.som_0(),
+  generic: S(W,H,'#1a1a2e',`<text x="250" y="140" fill="rgba(255,255,255,.12)" font-size="70" text-anchor="middle">📖</text><text x="250" y="210" fill="rgba(255,255,255,.25)" font-family="Fredoka" font-size="16" text-anchor="middle">Study Time!</text>`)
+};
+
+// ===================== ALL EXAMS DATA =====================
+const EXAMS = [
+  {id:'matematica',date:'28/04',day:'Terça',lang:'pt',name:'Matemática',icon:'🔢',css:'c-matematica',badge:'Português',
+    ref:'<p>📖 Livro Unidade A · Capítulos 1 e 2</p><p>📓 Registros no caderno</p>',
+    topics:[
+      {id:'mat_add',icon:'➕',name:'Adição e Subtração',desc:'Com reserva e com recurso',illus:'generic',
+        lesson:`<h3>Adição e Subtração</h3><p>Na <span class="hl">adição com reserva</span>, quando a soma passa de 9, "reservamos" 1 dezena. Ex: 47+35 → 7+5=12, escreve 2 e leva 1.</p><p>Na <span class="hl">subtração com recurso</span>, pegamos emprestado. Ex: 52−28 → o 2 não tira 8, pega 1 dezena.</p><p>📌 Leia o enunciado: juntar (+) ou tirar (−)!</p>`,
+        quiz:[
+          {q:'Quanto é 47 + 35?',opts:['72','82','92','81'],correct:1,fb:'7+5=12, escreve 2 leva 1. 4+3+1=8 → 82!',img:'mat_add_0'},
+          {q:'Quanto é 63 − 28?',opts:['45','35','25','55'],correct:1,fb:'Pega emprestado: 13−8=5, 5−2=3 → 35!',img:'mat_add_1'},
+          {q:'Maria tem 56 figurinhas e ganhou 27. Quantas?',opts:['73','83','93','82'],correct:1,fb:'56+27=83. Ganhou mais = adição!',img:'mat_add_2'},
+          {q:'Na adição com reserva, o que fazemos quando passa de 9?',opts:['Apagamos','Levamos 1 para a próxima casa','Começamos de novo','Zero'],correct:1,fb:'Reservamos 1 dezena para a casa seguinte!',img:'mat_add_3'},
+          {q:'Pedro tinha 91 cards e deu 45. Quantos ficaram?',opts:['46','56','36','54'],correct:0,fb:'91−45=46. Deu = subtração!',img:'mat_add_4'}
+        ]},
+      {id:'mat_med',icon:'📏',name:'Grandezas e Medidas',desc:'Metro, centímetro, relógios',illus:'generic',
+        lesson:`<h3>Grandezas e Medidas</h3><p>1 metro = 100 cm = 1000 mm</p><p>Régua para pequenos, metro para grandes.</p><p>📌 Relógio: ponteiro pequeno = horas, grande = minutos. No 6 = "e meia".</p>`,
+        quiz:[
+          {q:'Quantos centímetros tem 1 metro?',opts:['10','50','100','1000'],correct:2,fb:'1 metro = 100 centímetros!',img:'mat_med_0'},
+          {q:'Qual instrumento mede o comprimento de um lápis?',opts:['Balança','Régua','Termômetro','Relógio'],correct:1,fb:'A régua mede comprimento em cm!',img:'mat_med_1'},
+          {q:'Ponteiro pequeno no 3 e grande no 12 — que horas são?',opts:['12:03','3:00','3:12','12:30'],correct:1,fb:'Pequeno no 3, grande no 12 = 3:00!',img:'mat_med_2'},
+          {q:'O que é maior: 1 metro ou 80 centímetros?',opts:['80 cm','Iguais','1 metro','Depende'],correct:2,fb:'1 metro = 100 cm > 80 cm!',img:'mat_med_3'},
+          {q:'Para medir a altura de uma porta, usamos:',opts:['Milímetros','Centímetros','Metros','Gramas'],correct:2,fb:'Porta ≈ 2 metros — usamos metros!',img:'mat_med_4'}
+        ]},
+      {id:'mat_graf',icon:'📊',name:'Gráficos e Geometria',desc:'Tabelas, gráficos, trajetos',illus:'generic',
+        lesson:`<h3>Gráficos, Tabelas e Geometria</h3><p>Gráfico de barras: barra mais alta = mais!</p><p>Pictograma: cada figurinha pode valer mais de 1.</p><p>📌 Trajetos: esquerda, direita, frente, atrás.</p>`,
+        quiz:[
+          {q:'Num gráfico de barras, a barra mais alta significa:',opts:['Menos','Mais quantidade','A mesma','Nenhuma'],correct:1,fb:'Mais alta = maior quantidade!',img:'mat_graf_0'},
+          {q:'O que é um pictograma?',opts:['Uma foto','Gráfico com desenhos','Uma conta','Um mapa'],correct:1,fb:'Pictograma usa figurinhas para mostrar dados!',img:'mat_graf_1'},
+          {q:'Cada ⭐ vale 2 votos e um sabor tem 5 estrelas. Quantos votos?',opts:['5','7','10','12'],correct:2,fb:'5×2=10 votos!',img:'mat_graf_2'},
+          {q:'"Vire à direita e ande 3 quadras" é exemplo de:',opts:['Gráfico','Medida','Trajeto','Pictograma'],correct:2,fb:'Trajeto = caminho com direções!',img:'mat_graf_3'},
+          {q:'Uma tabela serve para:',opts:['Desenhar','Organizar informações','Medir','Contar histórias'],correct:1,fb:'Tabelas organizam dados em linhas e colunas!',img:'mat_graf_4'}
+        ]}
+    ]},
+
+  {id:'math',date:'27/04',day:'Monday',lang:'en',name:'Math Test',icon:'🧮',css:'c-math',badge:'English',
+    ref:'<p>📖 Prime Math: pp.20-31 (Add), 37-42 (Sub), 44+ (problems), 123&125 (Graphs), 130-134 (m&cm)</p>',
+    topics:[
+      {id:'math_ops',icon:'➕',name:'Addition & Subtraction',desc:'With and without regrouping',illus:'generic',
+        lesson:`<h3>Addition & Subtraction</h3><p><span class="hl">Regrouping:</span> carry when digits add to >9. 48+36 → 8+6=14, write 4 carry 1!</p><p><span class="hl">Subtraction:</span> borrow when needed. 72−45 → borrow to make 12−5=7.</p><p>📌 "altogether?" = add. "left?" = subtract.</p>`,
+        quiz:[
+          {q:'What is 58 + 37?',opts:['85','95','105','94'],correct:1,fb:'8+7=15, carry 1. 5+3+1=9 → 95!',img:'math_ops_0'},
+          {q:'What is 83 − 46?',opts:['47','37','43','27'],correct:1,fb:'Borrow: 13−6=7, 7−4=3 → 37!',img:'math_ops_1'},
+          {q:'Tom has 45 stickers, gets 28 more. How many?',opts:['63','73','83','72'],correct:1,fb:'45+28=73. Gets more = add!',img:'math_ops_2'},
+          {q:'What does "regrouping" mean?',opts:['Subtracting','Carrying over','Counting back','Dividing'],correct:1,fb:'Regrouping = carrying when digits sum >9!',img:'math_ops_3'},
+          {q:'Sara had 60 candies, gave 24 away. How many left?',opts:['44','36','34','46'],correct:1,fb:'60−24=36. Gave away = subtract!',img:'math_ops_4'}
+        ]},
+      {id:'math_meas',icon:'📏',name:'Measurement',desc:'Meters and centimeters',illus:'generic',
+        lesson:`<h3>Meters & Centimeters</h3><p>1 meter = 100 cm. Rulers for small, tape for big.</p><p>📌 Start at zero on the ruler!</p>`,
+        quiz:[
+          {q:'How many centimeters in 1 meter?',opts:['10','50','100','1000'],correct:2,fb:'1 meter = 100 cm!',img:'math_meas_0'},
+          {q:'What unit for a pencil?',opts:['Meters','Centimeters','Kilometers','Liters'],correct:1,fb:'Pencil = small → centimeters!',img:'math_meas_1'},
+          {q:'Which is longer: 1 meter or 90 cm?',opts:['90 cm','Equal','1 meter','Can\'t tell'],correct:2,fb:'1m=100cm > 90cm!',img:'math_meas_2'},
+          {q:'What tool measures length?',opts:['Scale','Thermometer','Ruler','Clock'],correct:2,fb:'Ruler measures length!',img:'math_meas_3'},
+          {q:'About how long is a classroom?',opts:['5 cm','5 m','50 m','500 m'],correct:1,fb:'A classroom ≈ 5-10 meters!',img:'math_meas_4'}
+        ]},
+      {id:'math_graph',icon:'📊',name:'Graphs & Probability',desc:'Bar graphs, pictographs',illus:'generic',
+        lesson:`<h3>Graphs & Statistics</h3><p>Bar graph: taller = bigger. Pictograph: pictures = data.</p><p>📌 Read title and labels first!</p>`,
+        quiz:[
+          {q:'The tallest bar in a bar graph shows:',opts:['Least popular','Most popular','Nothing','An error'],correct:1,fb:'Tallest bar = biggest quantity!',img:'math_graph_0'},
+          {q:'What is a pictograph?',opts:['A photograph','A graph with pictures','A painting','A formula'],correct:1,fb:'Pictograph = pictures showing data!',img:'math_graph_1'},
+          {q:'If each 🍎 = 3 votes and there are 4 apples, how many votes?',opts:['4','7','12','15'],correct:2,fb:'4×3=12 votes!',img:'math_graph_2'},
+          {q:'What to read first on a graph?',opts:['Biggest bar','Title and labels','Colors','Smallest number'],correct:1,fb:'Always read title & labels first!',img:'math_graph_3'},
+          {q:'A bar graph is best for:',opts:['Stories','Comparing amounts','Drawing','Measuring'],correct:1,fb:'Bar graphs compare amounts!',img:'math_graph_4'}
+        ]}
+    ]},
+
+  {id:'portugues',date:'23/04',day:'Terça',lang:'pt',name:'Língua Portuguesa',icon:'📝',css:'c-portugues',badge:'Português',
+    ref:'<p>📖 Livro Unidade A · Cap 1 e 2</p><p>📓 Registros no caderno</p>',
+    topics:[
+      {id:'pt_genero',icon:'📖',name:'Biografia e Autobiografia',desc:'Gêneros e interpretação',illus:'generic',
+        lesson:`<h3>Biografia e Autobiografia</h3><p><span class="hl">Biografia</span> = outra pessoa escreve (3ª pessoa: ele/ela).</p><p><span class="hl">Autobiografia</span> = a própria pessoa (1ª pessoa: eu).</p><p>📌 Ambas contam fatos reais!</p>`,
+        quiz:[
+          {q:'Quem escreve uma biografia?',opts:['A própria pessoa','Outra pessoa','Um computador','Ninguém'],correct:1,fb:'Biografia = OUTRA pessoa escreve!',img:'pt_genero_0'},
+          {q:'"Eu nasci no Rio de Janeiro" é trecho de:',opts:['Biografia','Autobiografia','Conto de fadas','Poesia'],correct:1,fb:'Usa "eu" → autobiografia!',img:'pt_genero_1'},
+          {q:'Biografias contam fatos:',opts:['Inventados','Reais','De ficção','Do futuro'],correct:1,fb:'Fatos reais da vida de alguém!',img:'pt_genero_2'},
+          {q:'"Ela nasceu em 1990 e se tornou médica" é:',opts:['Autobiografia','Biografia','Fábula','Receita'],correct:1,fb:'"Ela" (3ª pessoa) → biografia!',img:'pt_genero_3'},
+          {q:'Qual informação aparece em biografias?',opts:['Receitas','Data de nascimento','Feitiços','Previsão do tempo'],correct:1,fb:'Nascimento, vida e conquistas reais!',img:'pt_genero_4'}
+        ]},
+      {id:'pt_ling',icon:'🔤',name:'Análise Linguística',desc:'Maiúscula, SS/S/Z, LH/LI, substantivos, adjetivos',illus:'generic',
+        lesson:`<h3>Análise Linguística</h3><p><span class="hl">Maiúscula:</span> início de frases, nomes próprios.</p><p><span class="hl">SS</span> entre vogais = som de S. <span class="hl">S</span> entre vogais = som de Z.</p><p><span class="hl">Substantivo</span> = nome. <span class="hl">Adjetivo</span> = descreve.</p>`,
+        quiz:[
+          {q:'Quando usamos letra maiúscula?',opts:['No meio','Início de frases e nomes','Nunca','Só números'],correct:1,fb:'Maiúscula no início e em nomes próprios!',img:'pt_ling_0'},
+          {q:'Qual palavra usa SS corretamente?',opts:['Caza','Pasaro','Pássaro','Mezo'],correct:2,fb:'Pássaro: SS entre vogais = som de S!',img:'pt_ling_1'},
+          {q:'"O gato bonito dormiu" — qual é o adjetivo?',opts:['gato','bonito','dormiu','O'],correct:1,fb:'Bonito descreve o gato = adjetivo!',img:'pt_ling_2'},
+          {q:'"Escola" é um exemplo de:',opts:['Adjetivo','Verbo','Substantivo','Pronome'],correct:2,fb:'Escola = nome = substantivo!',img:'pt_ling_3'},
+          {q:'S entre duas vogais tem som de:',opts:['S (ss)','Z','X','R'],correct:1,fb:'S entre vogais = som de Z: casa, mesa!',img:'pt_ling_4'}
+        ]}
+    ]},
+
+  {id:'historia',date:'16/04',day:'Quinta',lang:'pt',name:'História e Geografia',icon:'🌍',css:'c-historia',badge:'Português',
+    ref:'<p>📓 Caderno de História e Geografia</p><p>📖 My Projects · pp.35-37</p>',
+    topics:[
+      {id:'hist_cult',icon:'🎭',name:'Cultura e Diversidade',desc:'Influências indígenas, africanas, portuguesas e italianas',illus:'generic',
+        lesson:`<h3>Herança Brasileira — Quem contribuiu?</h3><p>🏹 <span class="hl">Indígenas:</span> mandioca, milho, tapioca, pipoca, rede de dormir, tomar banho todos os dias, andar descalço, brincar de peteca, cesto de palha. Palavras: abacaxi, tatu, jacaré, Iguaçu, Pará.</p><p>🌍 <span class="hl">Africanos:</span> capoeira, samba, congada, maracatu, reisado. Instrumentos: berimbau, agogô, reco-reco, atabaque. Comidas: acarajé, vatapá, inhame, feijoada. Palavras: caçula, dengo, batuque.</p><p>⛵ <span class="hl">Portugueses:</span> língua portuguesa, azulejos, festas juninas, bacalhau, religião católica.</p><p>🇮🇹 <span class="hl">Italianos:</span> macarrão e outras comidas!</p><p>📌 A <span class="hl">diversidade cultural</span> é a mistura dessas influências que faz o Brasil um país tão rico e especial!</p>`,
+        quiz:[
+          {q:'A mandioca, o milho e a tapioca são heranças de qual povo?',opts:['Portugueses','Africanos','Indígenas','Italianos'],correct:2,fb:'Os povos indígenas nos deram mandioca, milho, tapioca, pipoca e muito mais!',img:'hist_cult_0'},
+          {q:'A capoeira tem origem:',opts:['Indígena','Africana','Portuguesa','Italiana'],correct:1,fb:'A capoeira foi criada pelos africanos no Brasil!',img:'hist_cult_1'},
+          {q:'O azulejo é uma contribuição de qual povo?',opts:['Indígenas','Africanos','Portugueses','Italianos'],correct:2,fb:'Os azulejos decorativos são uma herança portuguesa!',img:'hist_cult_2'},
+          {q:'O berimbau, o agogô e o atabaque são instrumentos de origem:',opts:['Indígena','Africana','Portuguesa','Italiana'],correct:1,fb:'São instrumentos musicais de herança africana!',img:'hist_cult_4'},
+          {q:'O macarrão é contribuição de qual povo?',opts:['Indígena','Africano','Português','Italiano'],correct:3,fb:'O macarrão veio dos italianos para a cultura brasileira!',img:'hist_cult_3'},
+          {q:'Tomar banho todos os dias e dormir em redes são hábitos herdados dos:',opts:['Portugueses','Africanos','Indígenas','Italianos'],correct:2,fb:'Os indígenas já tomavam banho diariamente e dormiam em redes!',img:'hist_cult_0'},
+          {q:'O que é diversidade cultural?',opts:['Todos são iguais','Diferentes culturas contribuindo juntas','Só uma cultura existe','Não ter cultura'],correct:1,fb:'Diversidade = diferentes culturas juntas fazem o Brasil rico!',img:'hist_cult_3'}
+        ]}
+    ]},
+
+  {id:'social',date:'15/04',day:'Wednesday',lang:'en',name:'Social Studies',icon:'🗺️',css:'c-social',badge:'English',
+    ref:'<p>📓 Social Studies notebook</p><p>📖 Cornerstone pp.6-7 — Kids\' Stories from around the World</p>',
+    topics:[
+      {id:'soc_cult',icon:'🌎',name:'Cultures & Traditions',desc:'Kids\' stories from around the world, different communities',illus:'generic',
+        lesson:`<h3>Cultures & Traditions — Kids Around the World</h3><p><span class="hl">Culture</span> = how people live: food, music, clothes, language, celebrations!</p><p><span class="hl">Tradition</span> = something passed down from parents to children, repeated again and again.</p><p>📌 <span class="hl">Kids\' Stories:</span></p><p>🇺🇸 <span class="hl">Chris</span> lives in a suburb near a big city in Illinois, USA. He takes a yellow bus to school. Kids play outside in the afternoon.</p><p>🇨🇱 <span class="hl">Lucia</span> lives in a small town in the Andes mountains in Chile. Her school is 30 miles away!</p><p>🇨🇳 <span class="hl">Gen</span> lives in Shanghai, China in a tall apartment building. The city is busy in the morning.</p><p>🇿🇦 <span class="hl">Mandisa</span> lives on a farm in South Africa. Kids get together to walk to school. They grow strawberries.</p><p>📌 Different places, different lives — but all kids go to school, play, and have families! Respect all cultures. 🌈</p>`,
+        quiz:[
+          {q:'What is a "culture"?',opts:['A food type','How a group of people live','A country name','A kind of music'],correct:1,fb:'Culture = food + music + clothes + language + celebrations!',img:'soc_cult_0'},
+          {q:'Where does Chris live?',opts:['A farm in Africa','A suburb in Illinois, USA','Mountains in Chile','A city in China'],correct:1,fb:'Chris lives in a suburb near a big city in Illinois!',img:'soc_cult_1'},
+          {q:'What is special about Lucia\'s school?',opts:['It is very big','It is 30 miles away in another town','It is on a farm','It is in a tall building'],correct:1,fb:'Lucia lives in the Andes in Chile and her school is 30 miles away!',img:'soc_cult_2'},
+          {q:'Where does Gen live?',opts:['A farm','A small town','A tall apartment in Shanghai, China','A suburb'],correct:2,fb:'Gen lives in a tall apartment building in Shanghai, China!',img:'soc_cult_3'},
+          {q:'What does Mandisa\'s family grow on their farm?',opts:['Rice','Corn','Strawberries','Wheat'],correct:2,fb:'Mandisa\'s family grows strawberries on their farm in South Africa!',img:'soc_cult_4'},
+          {q:'What do all these kids have in common?',opts:['They all live in cities','They all go to school','They all live on farms','They all speak English'],correct:1,fb:'Different places, but all kids go to school, play, and have families!',img:'soc_cult_0'},
+          {q:'How should we treat cultures different from ours?',opts:['Ignore them','Make fun','Respect them','Be afraid'],correct:2,fb:'Respect differences — they make the world beautiful!',img:'soc_cult_3'}
+        ]}
+    ]},
+
+  {id:'ciencias_som',date:'14/04',day:'Terça',lang:'pt',name:'Ciências — Som',icon:'🔊',css:'c-ciencias',badge:'Português',
+    ref:'<p>📖 My Projects · pp.95, 96, 99, 100</p><p>📓 Caderno</p>',
+    topics:[
+      {id:'som',icon:'🔊',name:'O Som',desc:'Vibração, propagação, características e experiência',illus:'sound',
+        lesson:`<h3>O que é o Som?</h3><p>Som é uma <span class="hl">vibração</span> que chega aos nossos ouvidos por meio de ondas sonoras.</p><p>📌 <span class="hl">Características do som:</span> Altura (grave/agudo), Intensidade (forte/fraco), Duração (longo/curto) e Timbre (cada instrumento tem o seu!).</p><p>O som viaja pelo ar, pela água e por sólidos. No vácuo (espaço), NÃO tem som!</p><p>🧪 <span class="hl">Experiência:</span> Celular dentro de um pote de vidro coberto com filme PVC e grãos de arroz em cima. Quando o celular toca, o arroz pula! As vibrações do som se propagam pelo pote e transferem para os grãos. 🍚</p><p>📌 Num concerto, ouvimos sons de flautas, violino, piano, tambor, vozes e aplausos — cada um produz vibrações diferentes!</p>`,
+        quiz:[
+          {q:'O som é produzido quando um objeto:',opts:['Fica parado','Vibra','Derrete','Congela'],correct:1,fb:'Som = vibração!',img:'som_0'},
+          {q:'O som pode viajar pelo:',opts:['Ar, água e sólidos','Só ar','Só água','Pelo vácuo'],correct:0,fb:'Ar, água e sólidos — mas não pelo vácuo!',img:'som_1'},
+          {q:'Por que não há som no espaço?',opts:['Muito frio','Sem gravidade','Sem ar (vácuo)','Muito grande'],correct:2,fb:'Sem ar = sem som! O som precisa de um meio para viajar.',img:'som_2'},
+          {q:'Na experiência com o celular no pote, por que o arroz pula?',opts:['O arroz está vivo','As vibrações do som se propagam pelo pote','O vento empurra','O filme esquenta'],correct:1,fb:'As vibrações do celular propagam pelo vidro e transferem para os grãos de arroz!',img:'som_4'},
+          {q:'Som agudo (como um apito) tem vibrações:',opts:['Lentas','Rápidas','Paradas','Invisíveis'],correct:1,fb:'Vibrações rápidas = som agudo! Lentas = grave.',img:'som_3'},
+          {q:'Quando bate num tambor, o que vibra primeiro?',opts:['O ar','A baqueta','A pele do tambor','Seu ouvido'],correct:2,fb:'A pele vibra e faz o ar vibrar, que chega ao ouvido!',img:'som_4'},
+          {q:'Qual NÃO é uma característica do som?',opts:['Altura (grave/agudo)','Cor','Intensidade (forte/fraco)','Timbre'],correct:1,fb:'Cor é da luz! As características do som são: altura, intensidade, duração e timbre.',img:'som_0'}
+        ]}
+    ]},
+
+  {id:'science',date:'13/04',day:'Monday',lang:'en',name:'Science — Light',icon:'💡',css:'c-science',badge:'English',
+    ref:'<p>📖 Science Booklet pp.19-33</p><p>📓 Science Notebook</p>',
+    topics:[
+      {id:'sci_refl',icon:'🪞',name:'Reflection',desc:'Light bouncing off surfaces',illus:'reflection',
+        lesson:`<h3>Reflection</h3><p>Light hits a smooth surface → <span class="hl">bounces back</span> = reflection! Like throwing a ball at a wall — it bounces back to you. 🏀</p><p>When light bounces off a shiny surface like a mirror, it <span class="hl">sends an image of yourself back to your eyes</span>.</p><p>📌 Flat mirrors give a clear image. Curved surfaces (like a <span class="hl">spoon</span>) distort the reflection — the inside of a spoon shows you upside down!</p><p>📌 Same angle in = same angle out!</p>`,
+        quiz:[
+          {q:'What happens when light hits a mirror?',opts:['Absorbed','Reflected','Disappears','Changes color'],correct:1,fb:'Mirrors reflect light back — that\'s why we see our reflection!',img:'sci_refl_0'},
+          {q:'Which reflects light best?',opts:['Black shirt','Smooth mirror','Wood','Eraser'],correct:1,fb:'Smooth + shiny = best reflection!',img:'sci_refl_1'},
+          {q:'Reflection is like throwing a ball at a wall because:',opts:['The ball melts','The ball bounces back','The ball disappears','The wall breaks'],correct:1,fb:'Light bounces back just like a ball off a wall!',img:'sci_refl_2'},
+          {q:'When you look at the INSIDE of a spoon, your reflection is:',opts:['Normal','Upside down','Invisible','Colored'],correct:1,fb:'The curved inside surface flips your image upside down!',img:'sci_refl_3'},
+          {q:'Light reflects at the ___ angle it arrived.',opts:['A bigger','A smaller','The same','A random'],correct:2,fb:'Same angle in = same angle out!',img:'sci_refl_4'}
+        ]},
+      {id:'sci_refr',icon:'🌈',name:'Refraction',desc:'Light bending between materials',illus:'refraction',
+        lesson:`<h3>Refraction</h3><p>Refraction is the <span class="hl">bending of light</span> as it passes from one transparent material to another — like from air into water or glass.</p><p>Light changes speed in different materials, so it <span class="hl">changes direction</span>. A straw in water looks broken because of this! 🥤</p><p>📌 That\'s also why you might miss a fish when spearfishing — the fish isn\'t exactly where it looks!</p><p>📌 Examples: rainbows, eyeglasses, magnifying glasses.</p>`,
+        quiz:[
+          {q:'Refraction is the ___ of light.',opts:['Bouncing','Bending','Breaking','Blocking'],correct:1,fb:'Refraction = bending of light between materials!',img:'sci_refr_0'},
+          {q:'Why does a straw look broken in water?',opts:['Straw bends','Light refracts in water','Glass is curved','Magic'],correct:1,fb:'Light changes speed entering water, bending the image!',img:'sci_refr_1'},
+          {q:'A rainbow is an example of:',opts:['Absorption','Reflection','Refraction','Shadow'],correct:2,fb:'Sunlight refracts through raindrops and splits into colors!',img:'sci_refr_2'},
+          {q:'Why might you miss a fish when spearfishing?',opts:['Fish is too fast','Refraction makes the fish look in a different spot','Water is dark','Fish hides'],correct:1,fb:'Refraction bends the light, so the fish isn\'t where it appears!',img:'sci_refr_3'},
+          {q:'Refraction happens because light changes:',opts:['Color only','Speed between materials','Weight','Temperature'],correct:1,fb:'Speed change → direction change → bending!',img:'sci_refr_4'}
+        ]},
+      {id:'sci_abs',icon:'🖤',name:'Absorption',desc:'Objects absorbing light → heat',illus:'absorption',
+        lesson:`<h3>Absorption</h3><p>When light hits an object and <span class="hl">doesn\'t come back</span>, it\'s been absorbed! The object turns light into heat. 🌡️</p><p>Black absorbs most light. White reflects most light.</p><p>📌 A red apple absorbs all colors except red — that\'s the only color that bounces to your eyes! 🍎</p>`,
+        quiz:[
+          {q:'When an object absorbs light, it:',opts:['Glows','Heats up','Becomes transparent','Reflects all'],correct:1,fb:'Absorbed light → heat!',img:'sci_abs_0'},
+          {q:'Why do black clothes get hotter?',opts:['Heavier','Absorb more light','Reflect more','Different fabric'],correct:1,fb:'Black absorbs almost all light!',img:'sci_abs_1'},
+          {q:'A red apple absorbs which colors?',opts:['Only red','All except red','None','Only green'],correct:1,fb:'Absorbs all, reflects only red to our eyes!',img:'sci_abs_2'},
+          {q:'Which color stays coolest?',opts:['Black','Dark blue','White','Brown'],correct:2,fb:'White reflects most light, absorbing less heat!',img:'sci_abs_3'},
+          {q:'Solar panels work because of:',opts:['Reflection','Refraction','Absorption','Transparency'],correct:2,fb:'Absorb sunlight → turn into electricity!',img:'sci_abs_4'}
+        ]},
+      {id:'sci_trans',icon:'🔍',name:'Transparent, Translucent & Opaque',desc:'How light passes through materials',illus:'transparent',
+        lesson:`<h3>Transparent, Translucent & Opaque</h3><p><span class="hl">Transparent:</span> ALL light passes through — you can see clearly! Examples: glass beaker, clear glass bottle, plastic wrap. 🪟</p><p><span class="hl">Translucent:</span> SOME light passes through, things look blurry. Examples: thin plastic bag, frosted glass, vegetable oil. 🧊</p><p><span class="hl">Opaque:</span> NO light passes through! Examples: wooden table, brick wall, trainers, a penguin! 🧱</p><p>📌 Opaque objects make <span class="hl">shadows</span> because they block light!</p>`,
+        quiz:[
+          {q:'A clear glass bottle is:',opts:['Opaque','Translucent','Transparent','Absorbent'],correct:2,fb:'Clear glass = transparent — all light passes through!',img:'sci_trans_0'},
+          {q:'A thin plastic carrier bag is:',opts:['Transparent','Translucent','Opaque','Reflective'],correct:1,fb:'Some light passes through a plastic bag but things look blurry = translucent!',img:'sci_trans_1'},
+          {q:'A wooden table is:',opts:['Transparent','Translucent','Opaque','See-through'],correct:2,fb:'No light passes through wood = opaque!',img:'sci_trans_2'},
+          {q:'Shadows are made by ___ objects.',opts:['Transparent','Translucent','Opaque','Shiny'],correct:2,fb:'Opaque objects block all light → shadows!',img:'sci_trans_3'},
+          {q:'Which is transparent?',opts:['A penguin','A frosted glass window','A clear glass beaker','Bubble wrap'],correct:2,fb:'Clear glass beaker = transparent — you can see right through!',img:'sci_trans_4'}
+        ]},
+      {id:'sci_light',icon:'💡',name:'Light Sources & Properties',desc:'Natural vs man-made sources, how light travels',illus:'generic',
+        lesson:`<h3>Light Sources & How Light Travels</h3><p>A <span class="hl">light source</span> is something that makes its own light. Light comes from things that make their own light.</p><p>🌿 <span class="hl">Natural sources:</span> the Sun, stars, fire, glowworms, fireflies.</p><p>🔧 <span class="hl">Man-made sources:</span> light bulbs, flashlights, candles, traffic lights, TV screens.</p><p>📌 Light travels in <span class="hl">straight lines</span>. Our <span class="hl">eyes detect light</span> — we see things because light travels from the object into our eyes.</p><p>📌 In the <span class="hl">dark</span>, there is no light source, so we can\'t see!</p>`,
+        quiz:[
+          {q:'Which is a NATURAL source of light?',opts:['Flashlight','Light bulb','The Sun','TV screen'],correct:2,fb:'The Sun is natural — not made by humans!',img:'sci_abs_0'},
+          {q:'Light travels in:',opts:['Curved lines','Zigzag lines','Straight lines','Circles'],correct:2,fb:'Light always travels in straight lines!',img:'sci_refl_0'},
+          {q:'We can see things because light:',opts:['Comes from our eyes','Travels from objects to our eyes','Is invisible','Only works at night'],correct:1,fb:'Light bounces off objects and enters our eyes!',img:'sci_trans_0'},
+          {q:'Which is a man-made light source?',opts:['Star','Firefly','Candle','Glowworm'],correct:2,fb:'A candle is made by humans — man-made source!',img:'som_0'},
+          {q:'Why can\'t we see in the dark?',opts:['Our eyes close','There is no light source','Colors disappear','Air blocks our view'],correct:1,fb:'No light source = no light reaching our eyes = can\'t see!',img:'sci_trans_2'}
+        ]}
+    ]}
+];
+
+// ===================== STATE =====================
+let curExam=null,curTopic=null,curQuiz=[],qIdx=0,score=0;
+function go(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active');window.scrollTo(0,0)}
+
+// ===================== HOME =====================
+function renderHome(){
+  const list=document.getElementById('examList');
+  const sorted=[...EXAMS].sort((a,b)=>{const[da,ma]=a.date.split('/').map(Number);const[db,mb]=b.date.split('/').map(Number);return(ma*100+da)-(mb*100+db)});
+  list.innerHTML=sorted.map(e=>`<div class="exam-card ${e.css}" onclick="openExam('${e.id}')"><div class="exam-icon">${e.icon}</div><div class="exam-info"><div class="exam-name">${e.name}</div><div class="exam-meta"><span class="tag">📅 ${e.date} · ${e.day}</span><span class="tag">${e.badge==='English'?'🇺🇸':'🇧🇷'} ${e.badge}</span></div></div><div class="exam-arrow">›</div></div>`).join('')}
+
+// ===================== TOPICS =====================
+function openExam(id){
+  curExam=EXAMS.find(e=>e.id===id);
+  document.getElementById('topicsTitle').textContent=curExam.name;
+  document.getElementById('topicsBadge').textContent=`${curExam.lang==='en'?'🇺🇸':'🇧🇷'} ${curExam.badge} · 📅 ${curExam.date}`;
+  const c=['var(--cyan)','var(--orange)','var(--pink)','var(--green)'];
+  document.getElementById('topicGrid').innerHTML=curExam.topics.map((t,i)=>`<div class="topic-card" onclick="openTopic('${t.id}')"><div class="topic-icon">${t.icon}</div><div class="topic-name">${t.name}</div><div class="topic-desc">${t.desc}</div></div>`).join('');
+  document.getElementById('studyRef').innerHTML=`<div class="study-ref-title">📚 ${curExam.lang==='pt'?'Instrumentos de Estudo':'Study Tools'}</div>${curExam.ref}`;
+  go('topics')}
+
+function openTopic(id){
+  curTopic=curExam.topics.find(t=>t.id===id);
+  document.getElementById('lessonTitle').textContent=curTopic.name;
+  document.getElementById('lessonIllus').innerHTML=LILLUS[curTopic.illus]||LILLUS.generic;
+  document.getElementById('lessonBody').innerHTML=curTopic.lesson;
+  document.getElementById('quizStartBtn').textContent=curExam.lang==='pt'?'🎮 Começar o Quiz!':'🎮 Start the Quiz!';
+  go('lesson')}
+
+// ===================== QUIZ =====================
+function startQuiz(){curQuiz=[...curTopic.quiz].sort(()=>Math.random()-.5);qIdx=0;score=0;document.getElementById('quizHdrTitle').textContent=curTopic.icon+' Quiz';go('quiz');renderQ()}
+
+function renderQ(){
+  const q=curQuiz[qIdx],total=curQuiz.length,pt=curExam.lang==='pt';
+  document.getElementById('progFill').style.width=(qIdx/total*100)+'%';
+  document.getElementById('qCount').textContent=`${qIdx+1} ${pt?'de':'of'} ${total}`;
+  document.getElementById('qText').textContent=q.q;
+  const imgEl=document.getElementById('qImg');
+  if(q.img&&QI[q.img]){imgEl.innerHTML=QI[q.img]();imgEl.style.display='block'}else{imgEl.style.display='none'}
+  const L=['A','B','C','D'];
+  document.getElementById('optsList').innerHTML=q.opts.map((o,i)=>`<button class="opt" onclick="check(${i})"><span class="opt-l">${L[i]}</span><span>${o}</span></button>`).join('');
+  document.getElementById('fb').style.display='none';document.getElementById('fb').className='fb';document.getElementById('nxtBtn').style.display='none'}
+
+function check(sel){
+  const q=curQuiz[qIdx],pt=curExam.lang==='pt';
+  document.querySelectorAll('.opt').forEach((b,i)=>{b.classList.add('dis');if(i===q.correct)b.classList.add('ok');if(i===sel&&sel!==q.correct)b.classList.add('no')});
+  const fb=document.getElementById('fb');
+  if(sel===q.correct){score++;fb.className='fb fb-ok';fb.innerHTML=`${pt?'✅ Correto!':'✅ Correct!'} ${q.fb}`}
+  else{fb.className='fb fb-no';fb.innerHTML=`${pt?'❌ Ops! Resposta: ':'❌ Oops! Answer: '}<strong>${q.opts[q.correct]}</strong><br>${q.fb}`}
+  fb.style.display='block';
+  const n=document.getElementById('nxtBtn');n.style.display='block';n.textContent=qIdx<curQuiz.length-1?(pt?'Próxima →':'Next →'):(pt?'🏆 Ver resultado':'🏆 See results')}
+
+function nextQ(){qIdx++;if(qIdx<curQuiz.length)renderQ();else showResults()}
+
+function showResults(){
+  const pt=curExam.lang==='pt',total=curQuiz.length,pct=score/total;
+  const tier=pct<.3?0:pct<.5?1:pct<.7?2:pct<1?3:4;
+  go('results');
+  document.getElementById('resEmoji').textContent=['😅','🤔','😊','🤩','🏆'][tier];
+  document.getElementById('resTitle').textContent=(pt?['Tente de novo!','Quase lá!','Muito bom!','Excelente!','Perfeito! 🎉']:['Try again!','Almost there!','Very good!','Excellent!','Perfect! 🎉'])[tier];
+  document.getElementById('resScore').innerHTML=`${score} <span class="tot">/ ${total}</span>`;
+  document.getElementById('resMsg').textContent=(pt?['Continue estudando!','No caminho certo!','Parabéns!','Incrível!','Você é demais! ⭐']:['Keep studying!','On the right track!','Great job!','Amazing!','You\'re a genius! ⭐'])[tier];
+  const sc=Math.ceil(pct*5);
+  document.getElementById('resStars').innerHTML=Array.from({length:5},(_,i)=>`<span style="animation-delay:${i*.12}s;opacity:${i<sc?1:.2}">${i<sc?'⭐':'☆'}</span>`).join('');
+  document.getElementById('btnRetry').textContent=pt?'🔄 Tentar de novo':'🔄 Try again';
+  document.getElementById('progFill').style.width='100%';
+  if(pct>=.7)confetti()}
+
+function confetti(){var c=document.createElement('div');c.className='confetti-c';document.body.appendChild(c);var cols=['#FFD93D','#FF6B35','#FF1493','#00E5FF','#39FF14','#B388FF'];for(var i=0;i<55;i++){var p=document.createElement('div');p.className='conf';p.style.left=Math.random()*100+'%';p.style.background=cols[~~(Math.random()*cols.length)];var dur=(2+Math.random()*2)+'s';p.style.webkitAnimationDuration=dur;p.style.animationDuration=dur;p.style.webkitAnimationDelay=Math.random()*1.5+'s';p.style.animationDelay=Math.random()*1.5+'s';var s=6+Math.random()*8;p.style.width=s+'px';p.style.height=s+'px';p.style.borderRadius=Math.random()>.5?'50%':'2px';c.appendChild(p)}setTimeout(function(){c.remove()},5000)}
+
+// BG particles
+(function(){var c=document.getElementById('particles');var cols=['#FFD93D','#00E5FF','#FF1493','#39FF14','#B388FF'];for(var i=0;i<25;i++){var p=document.createElement('div');p.className='particle';p.style.left=Math.random()*100+'%';p.style.top=Math.random()*100+'%';var s=4+Math.random()*10;p.style.width=s+'px';p.style.height=s+'px';p.style.background=cols[~~(Math.random()*cols.length)];var dur=(8+Math.random()*15)+'s';p.style.webkitAnimationDuration=dur;p.style.animationDuration=dur;p.style.webkitAnimationDelay=Math.random()*5+'s';p.style.animationDelay=Math.random()*5+'s';c.appendChild(p)}})();
+
+renderHome();
+</script>
+</body>
+</html>
