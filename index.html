@@ -44,7 +44,7 @@ body{font-family:'Quicksand','Trebuchet MS',Verdana,sans-serif;background:linear
 .exam-meta>*+*{margin-left:8px}
 .exam-meta .tag{background:rgba(255,255,255,.08);padding:2px 8px;border-radius:8px;display:inline-block}
 .exam-arrow{font-size:16px;color:rgba(255,255,255,.3)}
-.dedication{position:fixed;top:0;left:0;right:0;text-align:center;font-size:11px;color:rgba(255,255,255,.45);font-style:italic;pointer-events:none;z-index:50;letter-spacing:.2px;padding:6px 16px;padding-top:calc(6px + env(safe-area-inset-top,0px));background:rgba(11,14,45,.85)}
+.dedication{position:fixed;top:0;left:0;right:0;text-align:center;font-size:12px;color:rgba(255,255,255,.65);font-style:italic;pointer-events:none;z-index:50;letter-spacing:.3px;padding:7px 16px;padding-top:calc(7px + env(safe-area-inset-top,0px));background:rgba(11,14,45,.9);border-bottom:1px solid rgba(255,255,255,.08)}
 .c-science::before{background:-webkit-linear-gradient(#00E5FF,#39FF14);background:linear-gradient(#00E5FF,#39FF14)}
 .c-ciencias::before{background:-webkit-linear-gradient(#39FF14,#FFD93D);background:linear-gradient(#39FF14,#FFD93D)}
 .c-social::before{background:-webkit-linear-gradient(#FF6B35,#FFD93D);background:linear-gradient(#FF6B35,#FFD93D)}
@@ -52,6 +52,7 @@ body{font-family:'Quicksand','Trebuchet MS',Verdana,sans-serif;background:linear
 .c-portugues::before{background:-webkit-linear-gradient(#B388FF,#FF1493);background:linear-gradient(#B388FF,#FF1493)}
 .c-math::before{background:-webkit-linear-gradient(#00E5FF,#B388FF);background:linear-gradient(#00E5FF,#B388FF)}
 .c-matematica::before{background:-webkit-linear-gradient(#FFD93D,#FF6B35);background:linear-gradient(#FFD93D,#FF6B35)}
+.c-langarts::before{background:-webkit-linear-gradient(#00E5FF,#FFD93D);background:linear-gradient(#00E5FF,#FFD93D)}
 #topics{z-index:1}
 .topic-grid{display:-webkit-box;display:flex;-webkit-box-orient:vertical;flex-direction:column;gap:12px;width:100%;max-width:420px}
 .topic-grid>*+*{margin-top:12px}
@@ -546,55 +547,165 @@ const EXAMS = [
   {id:'math',date:'27/04',day:'Monday',lang:'en',name:'Math Test',icon:'🧮',css:'c-math',badge:'English',
     ref:'<p>📖 Prime Math: pp.20-31 (Add), 37-42 (Sub), 44+ (problems), 123&125 (Graphs), 130-134 (m&cm)</p>',
     topics:[
-      {id:'math_ops',icon:'➕',name:'Addition & Subtraction',desc:'With and without regrouping',illus:'generic',
-        lesson:`<h3>Addition & Subtraction</h3><p><span class="hl">Regrouping:</span> carry when digits add to >9. 48+36 → 8+6=14, write 4 carry 1!</p><p><span class="hl">Subtraction:</span> borrow when needed. 72−45 → borrow to make 12−5=7.</p><p>📌 "altogether?" = add. "left?" = subtract.</p>`,
+      {id:'math_ops',icon:'➕',name:'Addition & Subtraction',desc:'Adding and taking away numbers',illus:'generic',
+        lesson:`<h3>Addition & Subtraction</h3><p><span class="hl">Regrouping:</span> When numbers add up to more than 9, we carry 1 to the next place. Example: 48+36 → 8+6=14, write 4, carry 1!</p><p><span class="hl">Subtraction:</span> When you can't take away, borrow from the next column. Example: 72−45 → borrow to make 12−5=7.</p><p>📌 "How many in all?" = add. "How many are left?" = take away.</p>`,
         quiz:[
-          {q:'What is 58 + 37?',opts:['85','95','105','94'],correct:1,fb:'8+7=15, carry 1. 5+3+1=9 → 95!',img:'math_ops_0'},
+          {q:'What is 58 + 37?',opts:['85','95','105','94'],correct:1,fb:'8+7=15, write 5, carry 1. 5+3+1=9 → 95!',img:'math_ops_0'},
           {q:'What is 83 − 46?',opts:['47','37','43','27'],correct:1,fb:'Borrow: 13−6=7, 7−4=3 → 37!',img:'math_ops_1'},
-          {q:'Tom has 45 stickers, gets 28 more. How many?',opts:['63','73','83','72'],correct:1,fb:'45+28=73. Gets more = add!',img:'math_ops_2'},
-          {q:'What does "regrouping" mean?',opts:['Subtracting','Carrying over','Counting back','Dividing'],correct:1,fb:'Regrouping = carrying when digits sum >9!',img:'math_ops_3'},
-          {q:'Sara had 60 candies, gave 24 away. How many left?',opts:['44','36','34','46'],correct:1,fb:'60−24=36. Gave away = subtract!',img:'math_ops_4'}
+          {q:'Tom has 45 stickers. He gets 28 more. How many in all?',opts:['63','73','83','72'],correct:1,fb:'45+28=73. He gets more, so we add!',img:'math_ops_2'},
+          {q:'What does "regrouping" mean in math?',opts:['Taking away','Carrying to the next place','Counting back','Cutting in half'],correct:1,fb:'Regrouping means carrying 1 when numbers add up to more than 9!',img:'math_ops_3'},
+          {q:'Sara had 60 candies. She gave 24 away. How many are left?',opts:['44','36','34','46'],correct:1,fb:'60−24=36. She gave away, so we take away!',img:'math_ops_4'}
         ]},
       {id:'math_meas',icon:'📏',name:'Measurement',desc:'Meters and centimeters',illus:'generic',
-        lesson:`<h3>Meters & Centimeters</h3><p>1 meter = 100 cm. Rulers for small, tape for big.</p><p>📌 Start at zero on the ruler!</p>`,
+        lesson:`<h3>Meters & Centimeters</h3><p>A <span class="hl">meter (m)</span> is about the size of a big step. A <span class="hl">centimeter (cm)</span> is very small — like the tip of your finger!</p><p>1 meter = 100 centimeters.</p><p>We use a <span class="hl">ruler</span> for small things and a <span class="hl">tape measure</span> for big things.</p><p>📌 Always start at zero on the ruler!</p>`,
         quiz:[
-          {q:'How many centimeters in 1 meter?',opts:['10','50','100','1000'],correct:2,fb:'1 meter = 100 cm!',img:'math_meas_0'},
-          {q:'What unit for a pencil?',opts:['Meters','Centimeters','Kilometers','Liters'],correct:1,fb:'Pencil = small → centimeters!',img:'math_meas_1'},
-          {q:'Which is longer: 1 meter or 90 cm?',opts:['90 cm','Equal','1 meter','Can\'t tell'],correct:2,fb:'1m=100cm > 90cm!',img:'math_meas_2'},
-          {q:'What tool measures length?',opts:['Scale','Thermometer','Ruler','Clock'],correct:2,fb:'Ruler measures length!',img:'math_meas_3'},
-          {q:'About how long is a classroom?',opts:['5 cm','5 m','50 m','500 m'],correct:1,fb:'A classroom ≈ 5-10 meters!',img:'math_meas_4'}
+          {q:'How many centimeters are in 1 meter?',opts:['10','50','100','1000'],correct:2,fb:'1 meter = 100 centimeters!',img:'math_meas_0'},
+          {q:'What do we use to measure a pencil?',opts:['Meters','Centimeters','Kilometers','Liters'],correct:1,fb:'A pencil is small — we use centimeters!',img:'math_meas_1'},
+          {q:'Which is longer: 1 meter or 90 cm?',opts:['90 cm','They are the same','1 meter','We don\'t know'],correct:2,fb:'1 meter = 100 cm, and 100 is more than 90!',img:'math_meas_2'},
+          {q:'What tool do we use to measure how long something is?',opts:['A scale','A clock','A ruler','A cup'],correct:2,fb:'We use a ruler to measure length!',img:'math_meas_3'},
+          {q:'About how long is a classroom?',opts:['5 cm','5 meters','50 meters','500 meters'],correct:1,fb:'A classroom is about 5 to 10 meters long!',img:'math_meas_4'}
         ]},
-      {id:'math_graph',icon:'📊',name:'Graphs & Probability',desc:'Bar graphs, pictographs',illus:'generic',
-        lesson:`<h3>Graphs & Statistics</h3><p>Bar graph: taller = bigger. Pictograph: pictures = data.</p><p>📌 Read title and labels first!</p>`,
+      {id:'math_graph',icon:'📊',name:'Graphs',desc:'Bar graphs and pictographs',illus:'generic',
+        lesson:`<h3>Graphs</h3><p>A <span class="hl">bar graph</span> uses bars to show numbers. The taller the bar, the bigger the number!</p><p>A <span class="hl">pictograph</span> uses little pictures to show numbers. Each picture can mean 1 or more.</p><p>📌 Always read the <span class="hl">title</span> first to know what the graph is about!</p>`,
         quiz:[
-          {q:'The tallest bar in a bar graph shows:',opts:['Least popular','Most popular','Nothing','An error'],correct:1,fb:'Tallest bar = biggest quantity!',img:'math_graph_0'},
-          {q:'What is a pictograph?',opts:['A photograph','A graph with pictures','A painting','A formula'],correct:1,fb:'Pictograph = pictures showing data!',img:'math_graph_1'},
-          {q:'If each 🍎 = 3 votes and there are 4 apples, how many votes?',opts:['4','7','12','15'],correct:2,fb:'4×3=12 votes!',img:'math_graph_2'},
-          {q:'What to read first on a graph?',opts:['Biggest bar','Title and labels','Colors','Smallest number'],correct:1,fb:'Always read title & labels first!',img:'math_graph_3'},
-          {q:'A bar graph is best for:',opts:['Stories','Comparing amounts','Drawing','Measuring'],correct:1,fb:'Bar graphs compare amounts!',img:'math_graph_4'}
+          {q:'In a bar graph, the tallest bar means:',opts:['The smallest number','The biggest number','Nothing','A mistake'],correct:1,fb:'The taller the bar, the bigger the number!',img:'math_graph_0'},
+          {q:'What is a pictograph?',opts:['A photo','A graph that uses little pictures','A painting','A math problem'],correct:1,fb:'A pictograph uses pictures to show numbers!',img:'math_graph_1'},
+          {q:'If each 🍎 = 3 votes and there are 4 apples, how many votes?',opts:['4','7','12','15'],correct:2,fb:'4 apples × 3 votes each = 12 votes!',img:'math_graph_2'},
+          {q:'What should you read first on a graph?',opts:['The biggest bar','The title','The colors','The smallest number'],correct:1,fb:'Always read the title first to know what the graph shows!',img:'math_graph_3'},
+          {q:'Bar graphs are good for:',opts:['Telling stories','Comparing numbers','Drawing','Measuring things'],correct:1,fb:'Bar graphs help us compare numbers side by side!',img:'math_graph_4'}
         ]}
     ]},
 
   {id:'portugues',date:'23/04',day:'Terça',lang:'pt',name:'Língua Portuguesa',icon:'📝',css:'c-portugues',badge:'Português',
-    ref:'<p>📖 Livro Unidade A · Cap 1 e 2</p><p>📓 Registros no caderno</p>',
+    ref:'<p>📖 Livro Unidade A · Capítulos 1 e 2</p><p>📓 Registros no caderno</p>',
     topics:[
-      {id:'pt_genero',icon:'📖',name:'Biografia e Autobiografia',desc:'Gêneros e interpretação',illus:'generic',
-        lesson:`<h3>Biografia e Autobiografia</h3><p><span class="hl">Biografia</span> = outra pessoa escreve (3ª pessoa: ele/ela).</p><p><span class="hl">Autobiografia</span> = a própria pessoa (1ª pessoa: eu).</p><p>📌 Ambas contam fatos reais!</p>`,
+      {id:'pt_bio',icon:'📖',name:'Biografia e Autobiografia',desc:'Quem escreve? Em qual pessoa?',illus:'generic',
+        lesson:`<h3>Biografia e Autobiografia</h3><p>A palavra <span class="hl">biografia</span> vem do grego: <span class="hl">bio</span> = vida + <span class="hl">grafia</span> = escrita. Ou seja, "vida escrita"!</p><p><span class="hl">Biografia</span> = OUTRA pessoa conta a história de alguém. Usa a 3ª pessoa: ele, ela, seu, sua.</p><p><span class="hl">Autobiografia</span> = a PRÓPRIA pessoa conta sua história. Usa a 1ª pessoa: eu, meu, minha.</p><p>📌 Ambas contam <span class="hl">fatos reais</span>: nascimento, infância, conquistas!</p><p>📌 Uma fábula é diferente — é uma história inventada com animais que ensina uma lição (a moral). Ex: "O Sapo e o Boi" — moral: seja sempre você mesmo!</p>`,
         quiz:[
-          {q:'Quem escreve uma biografia?',opts:['A própria pessoa','Outra pessoa','Um computador','Ninguém'],correct:1,fb:'Biografia = OUTRA pessoa escreve!',img:'pt_genero_0'},
-          {q:'"Eu nasci no Rio de Janeiro" é trecho de:',opts:['Biografia','Autobiografia','Conto de fadas','Poesia'],correct:1,fb:'Usa "eu" → autobiografia!',img:'pt_genero_1'},
-          {q:'Biografias contam fatos:',opts:['Inventados','Reais','De ficção','Do futuro'],correct:1,fb:'Fatos reais da vida de alguém!',img:'pt_genero_2'},
-          {q:'"Ela nasceu em 1990 e se tornou médica" é:',opts:['Autobiografia','Biografia','Fábula','Receita'],correct:1,fb:'"Ela" (3ª pessoa) → biografia!',img:'pt_genero_3'},
-          {q:'Qual informação aparece em biografias?',opts:['Receitas','Data de nascimento','Feitiços','Previsão do tempo'],correct:1,fb:'Nascimento, vida e conquistas reais!',img:'pt_genero_4'}
+          {q:'O que significa a palavra "biografia"?',opts:['Livro de receitas','Vida escrita','História inventada','Desenho bonito'],correct:1,fb:'Bio = vida, grafia = escrita → biografia = vida escrita!',img:'pt_genero_0'},
+          {q:'Quem escreve uma biografia?',opts:['A própria pessoa','Outra pessoa','Um robô','Ninguém'],correct:1,fb:'Na biografia, OUTRA pessoa conta a história de alguém!',img:'pt_genero_0'},
+          {q:'"Eu nasci no Rio de Janeiro e adorava ler" é trecho de:',opts:['Biografia','Autobiografia','Fábula','Receita'],correct:1,fb:'Usa "eu" (1ª pessoa) → é autobiografia!',img:'pt_genero_1'},
+          {q:'"Ela nasceu em 1990 e se tornou médica" é trecho de:',opts:['Autobiografia','Biografia','Fábula','Poesia'],correct:1,fb:'Usa "ela" (3ª pessoa) → outra pessoa escreveu → biografia!',img:'pt_genero_3'},
+          {q:'Biografias e autobiografias contam fatos:',opts:['Inventados','Reais','Mágicos','Do futuro'],correct:1,fb:'Sempre fatos reais da vida de alguém!',img:'pt_genero_2'},
+          {q:'Uma fábula é uma história que:',opts:['Conta a vida de alguém','Usa animais e ensina uma lição','É sempre triste','Não tem final'],correct:1,fb:'Fábulas usam animais e ensinam uma moral!',img:'pt_genero_4'},
+          {q:'Qual é a moral da fábula "O Sapo e o Boi"?',opts:['Corra sempre','Seja sempre você mesmo','Coma bastante','Durma cedo'],correct:1,fb:'O sapo tentou imitar o boi e se deu mal — seja você mesmo!',img:'pt_genero_2'}
         ]},
-      {id:'pt_ling',icon:'🔤',name:'Análise Linguística',desc:'Maiúscula, SS/S/Z, LH/LI, substantivos, adjetivos',illus:'generic',
-        lesson:`<h3>Análise Linguística</h3><p><span class="hl">Maiúscula:</span> início de frases, nomes próprios.</p><p><span class="hl">SS</span> entre vogais = som de S. <span class="hl">S</span> entre vogais = som de Z.</p><p><span class="hl">Substantivo</span> = nome. <span class="hl">Adjetivo</span> = descreve.</p>`,
+      {id:'pt_subst',icon:'📦',name:'Substantivos',desc:'Comuns, próprios, primitivos e derivados',illus:'generic',
+        lesson:`<h3>Substantivos</h3><p><span class="hl">Substantivo</span> é a palavra que dá nome a objetos, seres, sentimentos e lugares.</p><p>📌 <span class="hl">Substantivo comum</span> = nome geral, escrito com letra <span class="hl">minúscula</span>: escola, país, gato, tristeza, rio, computador.</p><p>📌 <span class="hl">Substantivo próprio</span> = nome específico, SEMPRE com letra <span class="hl">maiúscula</span>: Brasil, São Paulo, Pueri Domus, Nintendo, Rio Amazonas.</p><p>📌 <span class="hl">Primitivo</span> = palavra original (limão, jornal). <span class="hl">Derivado</span> = palavra que vem de outra usando um <span class="hl">sufixo</span>: limão → limo<span class="hl">eiro</span>, jornal → jornal<span class="hl">eiro</span>, casa → cas<span class="hl">inha</span>, livro → livr<span class="hl">ão</span>, dente → dent<span class="hl">inho</span>, motor → motor<span class="hl">ista</span>.</p>`,
         quiz:[
-          {q:'Quando usamos letra maiúscula?',opts:['No meio','Início de frases e nomes','Nunca','Só números'],correct:1,fb:'Maiúscula no início e em nomes próprios!',img:'pt_ling_0'},
-          {q:'Qual palavra usa SS corretamente?',opts:['Caza','Pasaro','Pássaro','Mezo'],correct:2,fb:'Pássaro: SS entre vogais = som de S!',img:'pt_ling_1'},
-          {q:'"O gato bonito dormiu" — qual é o adjetivo?',opts:['gato','bonito','dormiu','O'],correct:1,fb:'Bonito descreve o gato = adjetivo!',img:'pt_ling_2'},
-          {q:'"Escola" é um exemplo de:',opts:['Adjetivo','Verbo','Substantivo','Pronome'],correct:2,fb:'Escola = nome = substantivo!',img:'pt_ling_3'},
-          {q:'S entre duas vogais tem som de:',opts:['S (ss)','Z','X','R'],correct:1,fb:'S entre vogais = som de Z: casa, mesa!',img:'pt_ling_4'}
+          {q:'O que é um substantivo?',opts:['Uma ação','Palavra que dá nome a coisas','Uma cor','Um número'],correct:1,fb:'Substantivo dá nome a objetos, seres, sentimentos e lugares!',img:'pt_ling_3'},
+          {q:'Qual destes é um substantivo próprio?',opts:['escola','gato','Brasil','tristeza'],correct:2,fb:'Brasil é nome específico de um país → substantivo próprio, com maiúscula!',img:'pt_ling_0'},
+          {q:'Substantivos próprios são escritos com:',opts:['Letra minúscula','Letra maiúscula','Números','Símbolos'],correct:1,fb:'Substantivos próprios SEMPRE com letra maiúscula!',img:'pt_ling_0'},
+          {q:'"Rio" é substantivo comum. E "Rio Amazonas"?',opts:['Comum','Próprio','Adjetivo','Verbo'],correct:1,fb:'Rio Amazonas é o nome específico de um rio → substantivo próprio!',img:'pt_ling_3'},
+          {q:'A palavra "limoeiro" é derivada de:',opts:['Limeira','Limão','Limonada','Lima'],correct:1,fb:'Limão + sufixo -eiro = limoeiro! É um substantivo derivado.',img:'pt_ling_1'},
+          {q:'Qual é o sufixo na palavra "casinha"?',opts:['-casa','-inha','-sinha','-asin'],correct:1,fb:'Casa + -inha = casinha. O sufixo -inha indica tamanho pequeno!',img:'pt_ling_3'},
+          {q:'"Motorista" vem de qual palavra primitiva?',opts:['Moto','Motor','Motora','Motorismo'],correct:1,fb:'Motor + sufixo -ista = motorista!',img:'pt_ling_1'},
+          {q:'Qual destes é um substantivo COMUM?',opts:['Vanessa','São Paulo','cachorro','Nintendo'],correct:2,fb:'Cachorro é nome geral de um animal → substantivo comum, com minúscula!',img:'pt_ling_3'},
+          {q:'O sufixo -ão na palavra "livrão" indica:',opts:['Tamanho pequeno','Tamanho grande','Uma cor','Uma pessoa'],correct:1,fb:'Livrão = livro grande! O sufixo -ão indica aumento (aumentativo).',img:'pt_ling_1'},
+          {q:'"Bananeira" é um substantivo derivado de:',opts:['Bana','Banana','Banano','Banho'],correct:1,fb:'Banana + sufixo -eira = bananeira!',img:'pt_ling_3'}
+        ]},
+      {id:'pt_adj',icon:'🎨',name:'Adjetivos',desc:'Descrevendo coisas e adjetivos pátrios (-ês/-esa)',illus:'generic',
+        lesson:`<h3>Adjetivos</h3><p><span class="hl">Adjetivo</span> é a palavra que dá <span class="hl">característica</span> ao substantivo. Ex: "O cachorro é <span class="hl">bravo</span>." / "A casa é <span class="hl">grande</span>."</p><p>📌 Podemos descrever coisas pela: <span class="hl">Textura</span> (macio, duro, crocante), <span class="hl">Forma</span> (redondo, quadrado, oval), <span class="hl">Cor</span> (vermelho, amarelo, rosa), <span class="hl">Gosto</span> (doce, salgado, azedo).</p><p>📌 <span class="hl">Adjetivos pátrios</span> indicam de onde a pessoa vem. Usam os sufixos <span class="hl">-ÊS</span> (masculino) e <span class="hl">-ESA</span> (feminino):</p><p>Portugal → português / portuguesa<br>França → francês / francesa<br>China → chinês / chinesa<br>Japão → japonês / japonesa<br>Holanda → holandês / holandesa</p>`,
+        quiz:[
+          {q:'O que é um adjetivo?',opts:['Nome de coisa','Palavra que descreve o substantivo','Uma ação','Um lugar'],correct:1,fb:'Adjetivo dá característica ao substantivo!',img:'pt_ling_2'},
+          {q:'Na frase "O gato bonito dormiu", qual é o adjetivo?',opts:['gato','bonito','dormiu','O'],correct:1,fb:'Bonito descreve o gato → é o adjetivo!',img:'pt_ling_2'},
+          {q:'"Doce", "salgado" e "azedo" são adjetivos de:',opts:['Cor','Forma','Textura','Gosto'],correct:3,fb:'Doce, salgado e azedo descrevem o gosto!',img:'pt_ling_2'},
+          {q:'Uma pessoa que nasceu na França é:',opts:['Francesa','Franciosa','Franciana','Franção'],correct:0,fb:'França + -esa = francesa! É um adjetivo pátrio.',img:'pt_ling_0'},
+          {q:'Qual é o masculino de "japonesa"?',opts:['Japoneiro','Japonês','Japônico','Japanês'],correct:1,fb:'Japonesa → japonês! Sufixo -ÊS no masculino.',img:'pt_ling_0'},
+          {q:'"Redondo", "quadrado" e "oval" são adjetivos de:',opts:['Gosto','Cor','Forma','Textura'],correct:2,fb:'Eles descrevem a forma das coisas!',img:'pt_ling_2'},
+          {q:'Uma comida "crocante" e "macia" está sendo descrita pela:',opts:['Cor','Forma','Textura','Tamanho'],correct:2,fb:'Crocante e macia descrevem a textura!',img:'pt_ling_2'},
+          {q:'Na frase "A bola vermelha caiu", qual é o adjetivo?',opts:['bola','vermelha','caiu','A'],correct:1,fb:'Vermelha descreve a bola → é o adjetivo!',img:'pt_ling_2'},
+          {q:'Uma pessoa que nasceu na China é:',opts:['Chinesa','Chineira','Chiniosa','Chinalesa'],correct:0,fb:'China + -esa = chinesa! Adjetivo pátrio.',img:'pt_ling_0'},
+          {q:'Qual é o feminino de "holandês"?',opts:['Holandeira','Holandesa','Holandisa','Holandosa'],correct:1,fb:'Holandês → holandesa! Masculino -ÊS, feminino -ESA.',img:'pt_ling_0'}
+        ]},
+      {id:'pt_ss',icon:'🔤',name:'Ortografia S/SS',desc:'Quando usar S ou SS entre vogais',illus:'generic',
+        lesson:`<h3>Uso do S e SS</h3><p>📌 <span class="hl">S no início da palavra</span> = som de S: <span class="hl">s</span>apo, <span class="hl">s</span>opa, <span class="hl">s</span>ol.</p><p>📌 <span class="hl">S entre duas vogais</span> = som de <span class="hl">Z</span>: ca<span class="hl">s</span>a, me<span class="hl">s</span>a, ro<span class="hl">s</span>a, Bra<span class="hl">s</span>il, de<span class="hl">s</span>ejo.</p><p>📌 <span class="hl">SS entre duas vogais</span> = som de <span class="hl">S</span>: pa<span class="hl">ss</span>arinho, gira<span class="hl">ss</span>ol, pá<span class="hl">ss</span>aro, a<span class="hl">ss</span>ombrada, carro<span class="hl">ss</span>el.</p><p>⚠️ <span class="hl">Nenhuma palavra começa com SS!</span></p><p>📌 Dica rápida: se o som é de Z entre vogais → um S só. Se o som é de S entre vogais → dois SS.</p>`,
+        quiz:[
+          {q:'A letra S entre duas vogais tem som de:',opts:['S','Z','X','R'],correct:1,fb:'S entre vogais soa como Z: casa, mesa, rosa!',img:'pt_ling_1'},
+          {q:'Qual é a escrita correta?',opts:['Ssapo','Sapo','Ssapu','Çapo'],correct:1,fb:'Nenhuma palavra começa com SS! O correto é sapo.',img:'pt_ling_1'},
+          {q:'A palavra "pássaro" usa SS porque:',opts:['Começa com P','O SS entre vogais tem som de S','Tem duas sílabas','É nome de animal'],correct:1,fb:'SS entre vogais tem som de S → pássaro!',img:'pt_ling_1'},
+          {q:'Na palavra "casa", o S tem som de:',opts:['S','Z','X','Não tem som'],correct:1,fb:'Ca-S-a → S entre vogais = som de Z!',img:'pt_ling_4'},
+          {q:'Qual está escrito corretamente?',opts:['Cassa','Casa','Caza','Kasa'],correct:1,fb:'Casa tem S entre vogais (som de Z). Se fosse SS, seria "cassa" com som de S!',img:'pt_ling_4'},
+          {q:'"Girassol" e "passarinho" usam SS porque:',opts:['São palavras grandes','O SS entre vogais faz som de S','Começam com G e P','São nomes próprios'],correct:1,fb:'SS entre vogais = som de S!',img:'pt_ling_1'},
+          {q:'Qual regra está CERTA?',opts:['Palavras podem começar com SS','S entre vogais tem som de S','SS entre vogais tem som de S','SS entre vogais tem som de Z'],correct:2,fb:'SS entre vogais = som de S. E nenhuma palavra começa com SS!',img:'pt_ling_4'},
+          {q:'Na palavra "mesa", o S tem som de:',opts:['S','Z','X','Não tem som'],correct:1,fb:'Me-S-a → S entre vogais = som de Z!',img:'pt_ling_4'},
+          {q:'Qual palavra tem SS entre vogais?',opts:['Rosa','Brasil','Passeio','Desejo'],correct:2,fb:'Pa-SS-eio! O SS entre vogais faz som de S.',img:'pt_ling_1'},
+          {q:'"Dinossauro" ou "dinosauro"?',opts:['Dinosauro','Dinossauro','Dinossauru','Dinosauru'],correct:1,fb:'DinoSSauro — SS entre vogais com som de S!',img:'pt_ling_1'}
+        ]},
+      {id:'pt_lh',icon:'✏️',name:'Ortografia LHA/LHO/LIA/LIO',desc:'Palavras terminadas em LHA, LHO, LIA e LIO',illus:'generic',
+        lesson:`<h3>LHA / LHO / LIA / LIO</h3><p>Muitas palavras terminam com sons parecidos, mas a escrita é diferente!</p><p>📌 Palavras com <span class="hl">LHO</span>: coe<span class="hl">lho</span>, repo<span class="hl">lho</span>, mi<span class="hl">lho</span>, joe<span class="hl">lho</span>, choca<span class="hl">lho</span>, espe<span class="hl">lho</span>.</p><p>📌 Palavras com <span class="hl">LHA</span>: mura<span class="hl">lha</span>, fo<span class="hl">lha</span>, toa<span class="hl">lha</span>, sobrance<span class="hl">lha</span>, ervi<span class="hl">lha</span>, miga<span class="hl">lha</span>.</p><p>📌 Palavras com <span class="hl">LIA</span>: famí<span class="hl">lia</span>, mobi<span class="hl">lia</span>, Emí<span class="hl">lia</span>, sandá<span class="hl">lia</span>.</p><p>📌 Palavras com <span class="hl">LIO</span>: cí<span class="hl">lio</span>, domicí<span class="hl">lio</span>, utensí<span class="hl">lio</span>.</p><p>⚠️ Dica: LHA/LHO tem o som do "LH" (como em "filho"). LIA/LIO tem som de "LI" separado (como em "Júlia").</p>`,
+        quiz:[
+          {q:'Qual palavra é escrita com LHO?',opts:['Famílio','Coelho','Mobílio','Cílio'],correct:1,fb:'Coelho se escreve com LHO!',img:'pt_ling_1'},
+          {q:'"Família" se escreve com:',opts:['LHA','LHO','LIA','LIO'],correct:2,fb:'Família termina com LIA!',img:'pt_ling_3'},
+          {q:'Qual palavra usa LHA?',opts:['Cílio','Família','Folha','Joelho'],correct:2,fb:'Folha termina com LHA!',img:'pt_ling_3'},
+          {q:'"Toalha" se escreve com:',opts:['LIA','LHO','LHA','LIO'],correct:2,fb:'Toalha termina com LHA!',img:'pt_ling_3'},
+          {q:'Qual palavra é escrita com LIO?',opts:['Folha','Milho','Domicílio','Ervilha'],correct:2,fb:'Domicílio termina com LIO!',img:'pt_ling_1'},
+          {q:'"Sobrancelha" termina com:',opts:['LIA','LHO','LHA','LIO'],correct:2,fb:'Sobrancelha termina com LHA!',img:'pt_ling_3'},
+          {q:'"Joelho" termina com:',opts:['LHA','LHO','LIA','LIO'],correct:1,fb:'Joelho termina com LHO!',img:'pt_ling_1'},
+          {q:'"Sandália" termina com:',opts:['LHA','LHO','LIA','LIO'],correct:2,fb:'Sandália termina com LIA!',img:'pt_ling_3'},
+          {q:'Qual palavra termina com LHO?',opts:['Ervilha','Espelho','Família','Cílio'],correct:1,fb:'Espelho termina com LHO!',img:'pt_ling_1'},
+          {q:'"Mobília" termina com:',opts:['LHA','LHO','LIA','LIO'],correct:2,fb:'Mobília termina com LIA!',img:'pt_ling_3'}
+        ]},
+      {id:'pt_mn',icon:'🔡',name:'Ortografia M/N antes de consoantes',desc:'Quando usar M ou N antes de outras letras',illus:'generic',
+        lesson:`<h3>M ou N antes de consoantes?</h3><p>📌 Antes de <span class="hl">P</span> e <span class="hl">B</span> → sempre <span class="hl">M</span>:</p><p>bo<span class="hl">mb</span>eiro, la<span class="hl">mp</span>arina, ta<span class="hl">mb</span>or, co<span class="hl">mp</span>utador, so<span class="hl">mb</span>rinha, lâ<span class="hl">mp</span>ada, ca<span class="hl">mp</span>o.</p><p>📌 Antes de <span class="hl">outras consoantes</span> (T, D, G, Q, C...) → sempre <span class="hl">N</span>:</p><p>bri<span class="hl">n</span>quedo, ca<span class="hl">n</span>tiga, po<span class="hl">n</span>te, de<span class="hl">n</span>te, li<span class="hl">n</span>do, ba<span class="hl">n</span>co.</p><p>⚠️ Erro comum: escrever "brimquedo" (errado!) em vez de "brinquedo" (certo!). Q não é P nem B, então usa N!</p><p>📌 Dica fácil: veja a letra que vem DEPOIS. Se for P ou B → M. Se for qualquer outra → N.</p>`,
+        quiz:[
+          {q:'Antes de P e B, usamos:',opts:['N','M','S','L'],correct:1,fb:'Antes de P e B → sempre M! Exemplo: tambor, computador.',img:'pt_ling_0'},
+          {q:'Qual é a escrita correta?',opts:['Brinquedo','Brimquedo','Brinqedo','Brincedo'],correct:0,fb:'Brinquedo! Antes de Q → usa N (não é P nem B).',img:'pt_ling_0'},
+          {q:'"Lamparina" usa M antes do P porque:',opts:['Começa com L','Antes de P sempre vai M','É uma palavra grande','Tem três sílabas'],correct:1,fb:'Antes de P → M! LaM-Pa-ri-na.',img:'pt_ling_1'},
+          {q:'"Computador" se escreve com M ou N antes do P?',opts:['N','M','Nenhum','Os dois'],correct:1,fb:'CoMPutador → antes de P = M!',img:'pt_ling_0'},
+          {q:'Qual é a escrita correta?',opts:['Tanpor','Tambor','Tanbor','Tampor'],correct:1,fb:'TaMBor → antes de B = M!',img:'pt_ling_0'},
+          {q:'"Sombrinha" — por que tem M antes do B?',opts:['Porque começa com S','Porque antes de B sempre vai M','Porque é pequena','Porque tem acento'],correct:1,fb:'SoMBrinha → antes de B = M! Regra: M antes de P e B.',img:'pt_ling_0'},
+          {q:'Qual está escrito ERRADO?',opts:['Bombeiro','Cantiga','Lanpada','Sombra'],correct:2,fb:'O correto é lâMPada! Antes de P → M, não N.',img:'pt_ling_1'},
+          {q:'"Ponte" se escreve com M ou N antes do T?',opts:['M','N','Nenhum','Os dois'],correct:1,fb:'PoNTe → T não é P nem B, então usa N!',img:'pt_ling_0'},
+          {q:'Qual é a escrita correta?',opts:['Campo','Canpo','Campu','Canpu'],correct:0,fb:'CaMPo → antes de P = M!',img:'pt_ling_1'},
+          {q:'"Banco" se escreve com M ou N antes do C?',opts:['M','N','Nenhum','Os dois'],correct:1,fb:'BaNCo → C não é P nem B, então usa N!',img:'pt_ling_0'}
+        ]},
+      {id:'pt_mai',icon:'🔠',name:'Letra Maiúscula e Interpretação',desc:'Quando usar maiúscula e entender textos',illus:'generic',
+        lesson:`<h3>Letra Maiúscula e Interpretação de Texto</h3><p>📌 Usamos <span class="hl">letra maiúscula</span>:</p><p>• No <span class="hl">início de frases</span>: "O menino correu."</p><p>• Em <span class="hl">nomes próprios</span> de pessoas: Benício, Vanessa</p><p>• Em nomes de <span class="hl">lugares</span>: Brasil, São Paulo, Rio Amazonas</p><p>• Em nomes de <span class="hl">marcas</span>: Nintendo, Faber Castel</p><p>📌 <span class="hl">Interpretação de texto</span>: ao ler um texto, preste atenção em:</p><p>• <span class="hl">Quem?</span> (personagens)</p><p>• <span class="hl">O quê?</span> (o que aconteceu)</p><p>• <span class="hl">Onde?</span> (lugar)</p><p>• <span class="hl">Quando?</span> (tempo)</p><p>• <span class="hl">Por quê?</span> (motivo)</p>`,
+        quiz:[
+          {q:'Quando usamos letra maiúscula?',opts:['No meio das palavras','No início de frases e nomes próprios','Nunca','Só em números'],correct:1,fb:'Maiúscula no início de frases e em nomes próprios!',img:'pt_ling_0'},
+          {q:'Qual frase está escrita corretamente?',opts:['o Brasil é grande.','O brasil é grande.','O Brasil é grande.','o brasil é grande.'],correct:2,fb:'O (início de frase) e Brasil (nome próprio) com maiúscula!',img:'pt_ling_0'},
+          {q:'Por que "São Paulo" é escrito com maiúscula?',opts:['É uma palavra bonita','É nome próprio de um lugar','Tem duas palavras','Começa com S'],correct:1,fb:'São Paulo é nome próprio de uma cidade → maiúscula!',img:'pt_ling_3'},
+          {q:'Ao ler um texto, "Quem?" nos ajuda a encontrar:',opts:['O lugar','Os personagens','O tempo','A moral'],correct:1,fb:'Quem = os personagens da história!',img:'pt_genero_4'},
+          {q:'Na fábula do rato do campo, "Onde?" a história acontece?',opts:['Na escola','No campo e na cidade','No espaço','No mar'],correct:1,fb:'A história acontece no campo e na cidade!',img:'pt_genero_2'},
+          {q:'Qual destas palavras NÃO precisa de maiúscula?',opts:['Benício','Nintendo','escola','São Paulo'],correct:2,fb:'Escola é substantivo comum → minúscula! Os outros são próprios.',img:'pt_ling_3'}
+        ]}
+    ]},
+
+  {id:'langarts',date:'29/04',day:'Wednesday',lang:'en',name:'Language Arts',icon:'📖',css:'c-langarts',badge:'English',
+    ref:'<p>📖 Language Arts Booklet pp.5-7, 9-10, 13-15</p><p>📖 Cornerstone pp.18-19, 34-35</p>',
+    topics:[
+      {id:'la_present',icon:'⏰',name:'Simple Present Tense',desc:'Adding -s, -es and -ies to verbs',illus:'generic',
+        lesson:`<h3>Simple Present Tense</h3><p>When we talk about things that happen every day or are always true, we use the <span class="hl">simple present</span>.</p><p>📌 With <span class="hl">he, she, it</span> we add something to the verb:</p><p>Most verbs → add <span class="hl">-s</span>: he play<span class="hl">s</span>, she read<span class="hl">s</span>, it rain<span class="hl">s</span></p><p>Verbs ending in s, sh, ch, x, o → add <span class="hl">-es</span>: she wash<span class="hl">es</span>, he watch<span class="hl">es</span>, it go<span class="hl">es</span></p><p>Verbs ending in consonant + y → change y to <span class="hl">-ies</span>: she carr<span class="hl">ies</span>, he stud<span class="hl">ies</span>, it fl<span class="hl">ies</span></p><p>📌 With <span class="hl">I, you, we, they</span> → the verb stays the same: I play, they read, we go.</p>`,
+        quiz:[
+          {q:'She ___ to school every day.',opts:['go','goes','gos','going'],correct:1,fb:'She + go → goes! (ends in O → add -es)',img:'pt_ling_0'},
+          {q:'He ___ TV after dinner.',opts:['watch','watchs','watches','watching'],correct:2,fb:'He + watch → watches! (ends in CH → add -es)',img:'pt_ling_3'},
+          {q:'My cat ___ milk every morning.',opts:['drink','drinks','drinkes','drinkies'],correct:1,fb:'It (my cat) + drink → drinks! (most verbs → add -s)',img:'pt_ling_2'},
+          {q:'She ___ her homework every day.',opts:['study','studys','studies','studyes'],correct:2,fb:'She + study → studies! (consonant + Y → change to -ies)',img:'pt_ling_1'},
+          {q:'They ___ soccer on Saturdays.',opts:['plays','play','playes','plais'],correct:1,fb:'They + play → play! (with they, the verb stays the same)',img:'pt_ling_0'},
+          {q:'He ___ his teeth before bed.',opts:['brush','brushs','brushes','brushies'],correct:2,fb:'He + brush → brushes! (ends in SH → add -es)',img:'pt_ling_1'},
+          {q:'The baby ___ a lot.',opts:['cry','crys','cries','cryes'],correct:2,fb:'It (the baby) + cry → cries! (consonant + Y → -ies)',img:'pt_ling_2'}
+        ]},
+      {id:'la_wh',icon:'❓',name:'Wh- Questions',desc:'What, Where, Who, When, Why',illus:'generic',
+        lesson:`<h3>Wh- Questions</h3><p>We use question words to ask for information:</p><p>📌 <span class="hl">What</span> = asks about a thing or action. "What is your name?"</p><p>📌 <span class="hl">Where</span> = asks about a place. "Where do you live?"</p><p>📌 <span class="hl">Who</span> = asks about a person. "Who is your teacher?"</p><p>📌 <span class="hl">When</span> = asks about time. "When is your birthday?"</p><p>📌 <span class="hl">Why</span> = asks about a reason. "Why are you happy?"</p><p>📌 <span class="hl">How</span> = asks about the way something happens. "How do you go to school?"</p>`,
+        quiz:[
+          {q:'___ is your name? My name is Ben.',opts:['Where','What','When','Who'],correct:1,fb:'What asks about a thing → What is your name?',img:'pt_ling_3'},
+          {q:'___ do you live? I live in São Paulo.',opts:['What','Who','Where','When'],correct:2,fb:'Where asks about a place!',img:'pt_ling_0'},
+          {q:'___ is your best friend? It is Tom.',opts:['Where','When','What','Who'],correct:3,fb:'Who asks about a person!',img:'pt_ling_2'},
+          {q:'___ is your birthday? It is in March.',opts:['Who','What','Where','When'],correct:3,fb:'When asks about time!',img:'pt_ling_1'},
+          {q:'___ are you sad? Because I lost my toy.',opts:['What','Where','When','Why'],correct:3,fb:'Why asks about a reason!',img:'pt_ling_3'},
+          {q:'___ do you go to school? I go by bus.',opts:['Why','What','How','Who'],correct:2,fb:'How asks about the way something happens!',img:'pt_ling_0'},
+          {q:'___ do you eat for lunch? I eat rice and beans.',opts:['Who','What','When','Where'],correct:1,fb:'What asks about a thing → What do you eat?',img:'pt_ling_2'}
+        ]},
+      {id:'la_read',icon:'📚',name:'Reading & Writing',desc:'Finding information and writing complete sentences',illus:'generic',
+        lesson:`<h3>Reading & Writing</h3><p>📌 When you read a text, look for the <span class="hl">key details</span>:</p><p><span class="hl">Who</span> is in the story?</p><p><span class="hl">What</span> happens?</p><p><span class="hl">When</span> does it happen?</p><p><span class="hl">Where</span> does it happen?</p><p><span class="hl">Why</span> does it happen?</p><p>📌 When you write, make <span class="hl">complete sentences</span>:</p><p>✅ Good: "<span class="hl">The cat sleeps on the bed.</span>" (has a subject + verb + details)</p><p>❌ Not complete: "Sleeps on the bed." (who sleeps?)</p><p>❌ Not complete: "The cat." (what does the cat do?)</p><p>📌 Always stay on the <span class="hl">topic</span> — write about what was asked!</p>`,
+        quiz:[
+          {q:'Which is a COMPLETE sentence?',opts:['The big dog.','Runs very fast.','The big dog runs fast.','Fast dog big.'],correct:2,fb:'A complete sentence needs WHO + WHAT THEY DO!',img:'pt_ling_3'},
+          {q:'When reading a story, "Who?" helps you find:',opts:['The place','The people in the story','The time','The reason'],correct:1,fb:'Who = the people or characters in the story!',img:'pt_genero_4'},
+          {q:'Which sentence stays on the topic "My Pet"?',opts:['I like math.','My dog is brown and playful.','The sky is blue.','Pizza is good.'],correct:1,fb:'Only "My dog is brown and playful" is about the pet!',img:'pt_ling_2'},
+          {q:'"Where?" helps you find:',opts:['The people','The time','The place','The reason'],correct:2,fb:'Where = the place where things happen!',img:'pt_ling_0'},
+          {q:'What is missing? "Eats a banana every morning."',opts:['A place','A verb','A subject (who?)','A time'],correct:2,fb:'Who eats? We need a subject! Example: "She eats a banana."',img:'pt_ling_1'},
+          {q:'Which is NOT a complete sentence?',opts:['I go to school.','She likes ice cream.','The tall tree.','We play soccer.'],correct:2,fb:'"The tall tree" — what about it? It needs a verb!',img:'pt_ling_3'}
         ]}
     ]},
 
@@ -617,16 +728,16 @@ const EXAMS = [
   {id:'social',date:'15/04',day:'Wednesday',lang:'en',name:'Social Studies',icon:'🗺️',css:'c-social',badge:'English',
     ref:'<p>📓 Social Studies notebook</p><p>📖 Cornerstone pp.6-7 — Kids\' Stories from around the World</p>',
     topics:[
-      {id:'soc_cult',icon:'🌎',name:'Cultures & Traditions',desc:'Different cultures, communities and traditions around the world',illus:'generic',
-        lesson:`<h3>Cultures & Traditions Around the World</h3><p><span class="hl">Culture</span> = how a group of people live: their food, music, clothes, language, and celebrations!</p><p><span class="hl">Tradition</span> = something people do again and again, passed from parents to children. Like celebrating holidays every year!</p><p>📌 <span class="hl">Communities</span> can be very different:</p><p>🏘️ A <span class="hl">suburb</span> has many houses near a big city. Kids might take a bus to school.</p><p>🏔️ A <span class="hl">small town</span> in the mountains might be far from school.</p><p>🏙️ A <span class="hl">big city</span> has tall buildings and busy streets.</p><p>🌾 A <span class="hl">farm</span> is in the countryside. Families grow food and kids help out.</p><p>📌 Kids everywhere go to school, play, and have families — even if their lives look very different! We should <span class="hl">respect</span> all cultures. 🌈</p>`,
+      {id:'soc_cult',icon:'🌎',name:'Cultures & Traditions',desc:'How people live around the world',illus:'generic',
+        lesson:`<h3>Cultures & Traditions</h3><p><span class="hl">Culture</span> = how a group of people live: their food, music, clothes, language, and parties!</p><p><span class="hl">Tradition</span> = something families do again and again, like celebrating a holiday every year. Parents teach traditions to their children!</p><p>📌 <span class="hl">People live in different places:</span></p><p>🏘️ A <span class="hl">suburb</span> has many houses near a big city.</p><p>🏔️ A <span class="hl">small town</span> can be far from the city, sometimes in the mountains.</p><p>🏙️ A <span class="hl">big city</span> has tall buildings and many people.</p><p>🌾 A <span class="hl">farm</span> is in the countryside. Families grow food there.</p><p>📌 Kids everywhere go to school, play, and have families — even if they live in very different places! We should <span class="hl">respect</span> all cultures. 🌈</p>`,
         quiz:[
-          {q:'What is a "culture"?',opts:['A type of food','How a group of people live','A country name','A kind of dance'],correct:1,fb:'Culture includes everything: food, music, clothes, language, celebrations!',img:'soc_cult_0'},
-          {q:'What is a "tradition"?',opts:['Something brand new','Something done only once','Something passed down from parents to children','A type of art'],correct:2,fb:'Traditions are passed from generation to generation — like celebrating holidays!',img:'soc_cult_1'},
-          {q:'A community with many houses near a big city is called a:',opts:['Farm','Suburb','Mountain village','Island'],correct:1,fb:'A suburb is a community of houses near a big city!',img:'soc_cult_2'},
-          {q:'How should we treat cultures that are different from ours?',opts:['Ignore them','Make fun of them','Respect them','Be afraid of them'],correct:2,fb:'We should respect all cultures — differences make the world beautiful!',img:'soc_cult_3'},
-          {q:'What do kids around the world have in common?',opts:['They all live in cities','They all go to school and have families','They all eat the same food','They all speak English'],correct:1,fb:'No matter where they live, kids go to school, play, and have families!',img:'soc_cult_4'},
-          {q:'Which is an example of a tradition?',opts:['Doing homework today','Celebrating Christmas every year','Watching a new movie','Playing a new game'],correct:1,fb:'Traditions repeat year after year, passed from parents to children!',img:'soc_cult_0'},
-          {q:'A family that grows food and lives in the countryside probably lives on a:',opts:['Suburb','Skyscraper','Farm','Shopping mall'],correct:2,fb:'Farms are in the countryside where families grow food!',img:'soc_cult_4'}
+          {q:'What is a "culture"?',opts:['A kind of food','How a group of people live','The name of a country','A type of dance'],correct:1,fb:'Culture is how people live: food, music, clothes, language, and parties!',img:'soc_cult_0'},
+          {q:'What is a "tradition"?',opts:['Something new','Something you do only one time','Something families do again and again','A type of drawing'],correct:2,fb:'A tradition is something families repeat — like celebrating a holiday every year!',img:'soc_cult_1'},
+          {q:'A place with many houses near a big city is called a:',opts:['Farm','Suburb','Mountain','Island'],correct:1,fb:'A suburb has many houses and is close to a big city!',img:'soc_cult_2'},
+          {q:'How should we treat people from different cultures?',opts:['Laugh at them','Be afraid','Respect them','Ignore them'],correct:2,fb:'We should respect all cultures — being different is what makes the world beautiful!',img:'soc_cult_3'},
+          {q:'What do all kids around the world have in common?',opts:['They live in the same place','They go to school and have families','They eat the same food','They speak the same language'],correct:1,fb:'All kids go to school, play, and have families — no matter where they live!',img:'soc_cult_4'},
+          {q:'Which one is a tradition?',opts:['Doing homework today','Celebrating Christmas every year','Watching a new movie','Playing a new game'],correct:1,fb:'Christmas is celebrated every year — that is a tradition!',img:'soc_cult_0'},
+          {q:'A family that grows food in the countryside lives on a:',opts:['Suburb','Tall building','Farm','Shopping mall'],correct:2,fb:'Farms are in the countryside where families grow food!',img:'soc_cult_4'}
         ]}
     ]},
 
@@ -649,50 +760,50 @@ const EXAMS = [
   {id:'science',date:'13/04',day:'Monday',lang:'en',name:'Science — Light',icon:'💡',css:'c-science',badge:'English',
     ref:'<p>📖 Science Booklet pp.19-33</p><p>📓 Science Notebook</p>',
     topics:[
-      {id:'sci_refl',icon:'🪞',name:'Reflection',desc:'Light bouncing off surfaces',illus:'reflection',
-        lesson:`<h3>Reflection</h3><p>Light hits a smooth surface → <span class="hl">bounces back</span> = reflection! Like throwing a ball at a wall — it bounces back to you. 🏀</p><p>When light bounces off a shiny surface like a mirror, it <span class="hl">sends an image of yourself back to your eyes</span>.</p><p>📌 Flat mirrors give a clear image. Curved surfaces (like a <span class="hl">spoon</span>) distort the reflection — the inside of a spoon shows you upside down!</p><p>📌 Same angle in = same angle out!</p>`,
+      {id:'sci_refl',icon:'🪞',name:'Reflection',desc:'When light bounces back',illus:'reflection',
+        lesson:`<h3>Reflection</h3><p>When light hits something smooth and shiny, it <span class="hl">bounces back</span>. This is called <span class="hl">reflection</span>!</p><p>It is like throwing a ball at a wall — the ball comes back to you! 🏀</p><p>When light bounces off a mirror, it sends a picture of you back to your eyes. That is why you can see yourself!</p><p>📌 A flat mirror shows you normally. But a curved surface (like the inside of a <span class="hl">spoon</span>) shows you upside down!</p>`,
         quiz:[
-          {q:'What happens when light hits a mirror?',opts:['Absorbed','Reflected','Disappears','Changes color'],correct:1,fb:'Mirrors reflect light back — that\'s why we see our reflection!',img:'sci_refl_0'},
-          {q:'Which reflects light best?',opts:['Black shirt','Smooth mirror','Wood','Eraser'],correct:1,fb:'Smooth + shiny = best reflection!',img:'sci_refl_1'},
-          {q:'Reflection is like throwing a ball at a wall because:',opts:['The ball melts','The ball bounces back','The ball disappears','The wall breaks'],correct:1,fb:'Light bounces back just like a ball off a wall!',img:'sci_refl_2'},
-          {q:'When you look at the INSIDE of a spoon, your reflection is:',opts:['Normal','Upside down','Invisible','Colored'],correct:1,fb:'The curved inside surface flips your image upside down!',img:'sci_refl_3'},
-          {q:'Light reflects at the ___ angle it arrived.',opts:['A bigger','A smaller','The same','A random'],correct:2,fb:'Same angle in = same angle out!',img:'sci_refl_4'}
+          {q:'What happens when light hits a mirror?',opts:['It is absorbed','It is reflected','It stops','It changes color'],correct:1,fb:'Light is reflected — it bounces back from the mirror!',img:'sci_refl_0'},
+          {q:'Which one reflects light the best?',opts:['A black shirt','A smooth mirror','A piece of wood','An eraser'],correct:1,fb:'Smooth and shiny things reflect light the best!',img:'sci_refl_1'},
+          {q:'Reflection is like throwing a ball at a wall because:',opts:['The ball melts','The ball bounces back','The ball goes away','The wall breaks'],correct:1,fb:'Light bounces back like a ball bouncing off a wall!',img:'sci_refl_2'},
+          {q:'When you look at the INSIDE of a spoon, you look:',opts:['Normal','Upside down','Very big','Very small'],correct:1,fb:'The curved inside of a spoon flips your reflection upside down!',img:'sci_refl_3'},
+          {q:'Light reflects at the ___ angle it came in.',opts:['A bigger','A smaller','The same','Any'],correct:2,fb:'Light always reflects at the same angle!',img:'sci_refl_4'}
         ]},
-      {id:'sci_refr',icon:'🌈',name:'Refraction',desc:'Light bending between materials',illus:'refraction',
-        lesson:`<h3>Refraction</h3><p>Refraction is the <span class="hl">bending of light</span> as it passes from one transparent material to another — like from air into water or glass.</p><p>Light changes speed in different materials, so it <span class="hl">changes direction</span>. A straw in water looks broken because of this! 🥤</p><p>📌 That\'s also why you might miss a fish when spearfishing — the fish isn\'t exactly where it looks!</p><p>📌 Examples: rainbows, eyeglasses, magnifying glasses.</p>`,
+      {id:'sci_refr',icon:'🌈',name:'Refraction',desc:'When light bends',illus:'refraction',
+        lesson:`<h3>Refraction</h3><p>When light goes from one thing into another (like from air into water), it <span class="hl">bends</span>. This is called <span class="hl">refraction</span>!</p><p>That is why a straw in a glass of water looks broken — but it is not really broken! The light bends when it goes into the water. 🥤</p><p>📌 This is also why you might miss a fish when trying to catch it — the fish is not really where you see it!</p><p>📌 A <span class="hl">rainbow</span> happens when sunlight bends inside rain drops and splits into many colors! 🌈</p>`,
         quiz:[
-          {q:'Refraction is the ___ of light.',opts:['Bouncing','Bending','Breaking','Blocking'],correct:1,fb:'Refraction = bending of light between materials!',img:'sci_refr_0'},
-          {q:'Why does a straw look broken in water?',opts:['Straw bends','Light refracts in water','Glass is curved','Magic'],correct:1,fb:'Light changes speed entering water, bending the image!',img:'sci_refr_1'},
-          {q:'A rainbow is an example of:',opts:['Absorption','Reflection','Refraction','Shadow'],correct:2,fb:'Sunlight refracts through raindrops and splits into colors!',img:'sci_refr_2'},
-          {q:'Why might you miss a fish when spearfishing?',opts:['Fish is too fast','Refraction makes the fish look in a different spot','Water is dark','Fish hides'],correct:1,fb:'Refraction bends the light, so the fish isn\'t where it appears!',img:'sci_refr_3'},
-          {q:'Refraction happens because light changes:',opts:['Color only','Speed between materials','Weight','Temperature'],correct:1,fb:'Speed change → direction change → bending!',img:'sci_refr_4'}
+          {q:'Refraction means light:',opts:['Bounces back','Bends','Breaks things','Gets lost'],correct:1,fb:'Refraction is when light bends!',img:'sci_refr_0'},
+          {q:'Why does a straw look broken in water?',opts:['The straw really breaks','Light is refracted in water','The glass is broken','It is magic'],correct:1,fb:'Light is refracted (it bends) when it goes into water!',img:'sci_refr_1'},
+          {q:'A rainbow is an example of:',opts:['Absorption','Reflection','Refraction','A shadow'],correct:2,fb:'Sunlight is refracted inside rain drops and splits into colors!',img:'sci_refr_2'},
+          {q:'Why might you miss a fish in water?',opts:['Fish is too fast','Refraction makes the fish look in a different place','Water is too dark','Fish can fly'],correct:1,fb:'Refraction bends the light, so the fish is not where you see it!',img:'sci_refr_3'},
+          {q:'Refraction happens because light changes ___ in water.',opts:['Color','Speed','Size','Shape'],correct:1,fb:'Light changes speed in water, and that makes it bend!',img:'sci_refr_4'}
         ]},
-      {id:'sci_abs',icon:'🖤',name:'Absorption',desc:'Objects absorbing light → heat',illus:'absorption',
-        lesson:`<h3>Absorption</h3><p>When light hits an object and <span class="hl">doesn\'t come back</span>, it\'s been absorbed! The object turns light into heat. 🌡️</p><p>Black absorbs most light. White reflects most light.</p><p>📌 A red apple absorbs all colors except red — that\'s the only color that bounces to your eyes! 🍎</p>`,
+      {id:'sci_abs',icon:'🖤',name:'Absorption',desc:'When things take in light',illus:'absorption',
+        lesson:`<h3>Absorption</h3><p>When light hits something and <span class="hl">does not bounce back</span>, it is <span class="hl">absorbed</span>. The light turns into <span class="hl">heat</span>! 🌡️</p><p>That is why <span class="hl">black clothes feel hotter</span> in the sun — black absorbs almost all light!</p><p><span class="hl">White clothes feel cooler</span> because white reflects most light back.</p><p>📌 A red apple absorbs all colors of light except red. Red is the only color that bounces to your eyes! 🍎</p>`,
         quiz:[
-          {q:'When an object absorbs light, it:',opts:['Glows','Heats up','Becomes transparent','Reflects all'],correct:1,fb:'Absorbed light → heat!',img:'sci_abs_0'},
-          {q:'Why do black clothes get hotter?',opts:['Heavier','Absorb more light','Reflect more','Different fabric'],correct:1,fb:'Black absorbs almost all light!',img:'sci_abs_1'},
-          {q:'A red apple absorbs which colors?',opts:['Only red','All except red','None','Only green'],correct:1,fb:'Absorbs all, reflects only red to our eyes!',img:'sci_abs_2'},
-          {q:'Which color stays coolest?',opts:['Black','Dark blue','White','Brown'],correct:2,fb:'White reflects most light, absorbing less heat!',img:'sci_abs_3'},
-          {q:'Solar panels work because of:',opts:['Reflection','Refraction','Absorption','Transparency'],correct:2,fb:'Absorb sunlight → turn into electricity!',img:'sci_abs_4'}
+          {q:'When something absorbs light, it gets:',opts:['Colder','Warmer','Smaller','Louder'],correct:1,fb:'Absorbed light turns into heat — so things get warmer!',img:'sci_abs_0'},
+          {q:'Why do black clothes feel hotter in the sun?',opts:['They are heavier','They absorb more light','They reflect more light','They are thicker'],correct:1,fb:'Black absorbs almost all light and turns it into heat!',img:'sci_abs_1'},
+          {q:'A red apple absorbs which colors of light?',opts:['Only red','All colors except red','No colors','Only green'],correct:1,fb:'It absorbs all colors and only reflects red to our eyes!',img:'sci_abs_2'},
+          {q:'Which color keeps you coolest in the sun?',opts:['Black','Dark blue','White','Brown'],correct:2,fb:'White reflects most light, so less absorption and less heat!',img:'sci_abs_3'},
+          {q:'Solar panels work because of:',opts:['Reflection','Refraction','Absorption','Shadows'],correct:2,fb:'Solar panels absorb sunlight and turn it into energy!',img:'sci_abs_4'}
         ]},
-      {id:'sci_trans',icon:'🔍',name:'Transparent, Translucent & Opaque',desc:'How light passes through materials',illus:'transparent',
-        lesson:`<h3>Transparent, Translucent & Opaque</h3><p><span class="hl">Transparent:</span> ALL light passes through — you can see clearly! Examples: glass beaker, clear glass bottle, plastic wrap. 🪟</p><p><span class="hl">Translucent:</span> SOME light passes through, things look blurry. Examples: thin plastic bag, frosted glass, vegetable oil. 🧊</p><p><span class="hl">Opaque:</span> NO light passes through! Examples: wooden table, brick wall, trainers, a penguin! 🧱</p><p>📌 Opaque objects make <span class="hl">shadows</span> because they block light!</p>`,
+      {id:'sci_trans',icon:'🔍',name:'Transparent, Translucent & Opaque',desc:'Can light go through it?',illus:'transparent',
+        lesson:`<h3>Transparent, Translucent & Opaque</h3><p><span class="hl">Transparent:</span> ALL light goes through — you can see clearly! Like a clean window or a glass bottle. 🪟</p><p><span class="hl">Translucent:</span> SOME light goes through, but things look blurry. Like a thin plastic bag or frosted glass. 🧊</p><p><span class="hl">Opaque:</span> NO light goes through at all! Like a wall, a book, or a wooden table. 🧱</p><p>📌 Opaque things make <span class="hl">shadows</span> because they block all light!</p>`,
         quiz:[
-          {q:'A clear glass bottle is:',opts:['Opaque','Translucent','Transparent','Absorbent'],correct:2,fb:'Clear glass = transparent — all light passes through!',img:'sci_trans_0'},
-          {q:'A thin plastic carrier bag is:',opts:['Transparent','Translucent','Opaque','Reflective'],correct:1,fb:'Some light passes through a plastic bag but things look blurry = translucent!',img:'sci_trans_1'},
-          {q:'A wooden table is:',opts:['Transparent','Translucent','Opaque','See-through'],correct:2,fb:'No light passes through wood = opaque!',img:'sci_trans_2'},
-          {q:'Shadows are made by ___ objects.',opts:['Transparent','Translucent','Opaque','Shiny'],correct:2,fb:'Opaque objects block all light → shadows!',img:'sci_trans_3'},
-          {q:'Which is transparent?',opts:['A penguin','A frosted glass window','A clear glass beaker','Bubble wrap'],correct:2,fb:'Clear glass beaker = transparent — you can see right through!',img:'sci_trans_4'}
+          {q:'A clear glass bottle is:',opts:['Opaque','Translucent','Transparent','Dark'],correct:2,fb:'Clear glass is transparent — all light goes through!',img:'sci_trans_0'},
+          {q:'A thin plastic bag is:',opts:['Transparent','Translucent','Opaque','Shiny'],correct:1,fb:'Some light goes through but things look blurry = translucent!',img:'sci_trans_1'},
+          {q:'A wooden table is:',opts:['Transparent','Translucent','Opaque','See-through'],correct:2,fb:'No light goes through wood = opaque!',img:'sci_trans_2'},
+          {q:'Shadows are made by ___ things.',opts:['Transparent','Translucent','Opaque','Small'],correct:2,fb:'Opaque things block all light and make shadows!',img:'sci_trans_3'},
+          {q:'Which one is transparent?',opts:['A shoe','A frosted window','A clear glass cup','A thick book'],correct:2,fb:'A clear glass cup is transparent — you can see right through it!',img:'sci_trans_4'}
         ]},
-      {id:'sci_light',icon:'💡',name:'Light Sources & Properties',desc:'Natural vs man-made sources, how light travels',illus:'generic',
-        lesson:`<h3>Light Sources & How Light Travels</h3><p>A <span class="hl">light source</span> is something that makes its own light. Light comes from things that make their own light.</p><p>🌿 <span class="hl">Natural sources:</span> the Sun, stars, fire, glowworms, fireflies.</p><p>🔧 <span class="hl">Man-made sources:</span> light bulbs, flashlights, candles, traffic lights, TV screens.</p><p>📌 Light travels in <span class="hl">straight lines</span>. Our <span class="hl">eyes detect light</span> — we see things because light travels from the object into our eyes.</p><p>📌 In the <span class="hl">dark</span>, there is no light source, so we can\'t see!</p>`,
+      {id:'sci_light',icon:'💡',name:'Light Sources',desc:'Where does light come from?',illus:'generic',
+        lesson:`<h3>Where Does Light Come From?</h3><p>A <span class="hl">light source</span> is something that makes its own light.</p><p>🌿 <span class="hl">From nature:</span> the Sun, stars, fire, fireflies.</p><p>🔧 <span class="hl">Made by people:</span> light bulbs, flashlights, candles, TV screens.</p><p>📌 Light goes in <span class="hl">straight lines</span>.</p><p>📌 We see things because light goes from things into our <span class="hl">eyes</span>.</p><p>📌 In the <span class="hl">dark</span>, there is no light, so we can not see!</p>`,
         quiz:[
-          {q:'Which is a NATURAL source of light?',opts:['Flashlight','Light bulb','The Sun','TV screen'],correct:2,fb:'The Sun is natural — not made by humans!',img:'sci_abs_0'},
-          {q:'Light travels in:',opts:['Curved lines','Zigzag lines','Straight lines','Circles'],correct:2,fb:'Light always travels in straight lines!',img:'sci_refl_0'},
-          {q:'We can see things because light:',opts:['Comes from our eyes','Travels from objects to our eyes','Is invisible','Only works at night'],correct:1,fb:'Light bounces off objects and enters our eyes!',img:'sci_trans_0'},
-          {q:'Which is a man-made light source?',opts:['Star','Firefly','Candle','Glowworm'],correct:2,fb:'A candle is made by humans — man-made source!',img:'som_0'},
-          {q:'Why can\'t we see in the dark?',opts:['Our eyes close','There is no light source','Colors disappear','Air blocks our view'],correct:1,fb:'No light source = no light reaching our eyes = can\'t see!',img:'sci_trans_2'}
+          {q:'Which one is a light source from nature?',opts:['A flashlight','A light bulb','The Sun','A TV screen'],correct:2,fb:'The Sun makes its own light — it is from nature!',img:'sci_abs_0'},
+          {q:'Light goes in:',opts:['Curved lines','Zigzag lines','Straight lines','Circles'],correct:2,fb:'Light always goes in straight lines!',img:'sci_refl_0'},
+          {q:'We can see things because light:',opts:['Comes from our eyes','Goes from things into our eyes','Is invisible','Only works at night'],correct:1,fb:'Light bounces off things and goes into our eyes!',img:'sci_trans_0'},
+          {q:'Which one is a light source made by people?',opts:['A star','A firefly','A candle','Lightning'],correct:2,fb:'A candle is made by people!',img:'som_0'},
+          {q:'Why can we not see in the dark?',opts:['Our eyes close','There is no light','Colors go away','Air blocks the way'],correct:1,fb:'No light = nothing for our eyes to see!',img:'sci_trans_2'}
         ]}
     ]}
 ];
