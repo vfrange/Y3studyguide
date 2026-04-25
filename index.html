@@ -11,7 +11,9 @@
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;-webkit-text-size-adjust:100%}
 :root{--bg1:#0B0E2D;--bg2:#141852;--bg3:#1B1F6A;--yellow:#FFD93D;--orange:#FF6B35;--pink:#FF1493;--cyan:#00E5FF;--green:#39FF14;--purple:#B388FF;--red:#FF4444;--card:rgba(255,255,255,0.06);--card-solid:#1c1f5a;--border:rgba(255,255,255,0.1);--r:18px}
 html{height:100%;-webkit-overflow-scrolling:touch}
-body{font-family:'Quicksand','Trebuchet MS',Verdana,sans-serif;background:linear-gradient(160deg,#0B0E2D,#141852,#1B1F6A);background-attachment:fixed;color:#fff;min-height:100vh;min-height:100dvh;overflow-x:hidden;-webkit-font-smoothing:antialiased}
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
+body{font-family:'Quicksand','Trebuchet MS',Verdana,sans-serif;background:linear-gradient(160deg,#0B0E2D,#141852,#1B1F6A);background-attachment:fixed;color:#fff;min-height:100vh;min-height:100dvh;overflow-x:hidden;-webkit-font-smoothing:antialiased;-webkit-overflow-scrolling:touch;overscroll-behavior-y:contain;margin:0}
+button,input{font-family:inherit;-webkit-tap-highlight-color:transparent}
 .screen{display:none;min-height:100vh;padding:20px;padding-top:36px;padding-top:calc(36px + env(safe-area-inset-top,0px));padding-bottom:80px;padding-bottom:calc(80px + env(safe-area-inset-bottom,0px));position:relative;-webkit-box-orient:vertical;-webkit-box-direction:normal;flex-direction:column;-webkit-box-align:center;align-items:center}
 .screen.active{display:-webkit-box;display:flex}
 .particles{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:0;overflow:hidden}
@@ -96,6 +98,9 @@ body{font-family:'Quicksand','Trebuchet MS',Verdana,sans-serif;background:linear
 @keyframes su{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
 .fb.fb-ok{background:rgba(57,255,20,.08);border:1px solid rgba(57,255,20,.25)}
 .fb.fb-no{background:rgba(255,68,68,.08);border:1px solid rgba(255,68,68,.25)}
+.fb-visual-label{margin-top:12px;font-size:12px;font-weight:700;color:#FFD93D;text-align:center;text-transform:uppercase;letter-spacing:.5px}
+.fb-visual{margin-top:6px;width:100%;border-radius:12px;overflow:hidden;background:#fcfaf2;padding:4px}
+.fb-visual svg{display:block;width:100%;height:auto;max-height:240px}
 .num-wrap{width:100%;max-width:420px;display:flex;flex-direction:column;gap:14px;align-items:center}
 .num-prompt{font-size:14px;color:rgba(255,255,255,.7);text-align:center}
 .num-input{width:180px;height:64px;background:#1c1f5a;border:2px solid rgba(255,255,255,.15);border-radius:16px;color:#FFD93D;font-family:'Fredoka','Trebuchet MS',sans-serif;font-size:34px;font-weight:700;text-align:center;outline:none;-webkit-appearance:none;appearance:none;-moz-appearance:textfield}
@@ -177,6 +182,28 @@ body{font-family:'Quicksand','Trebuchet MS',Verdana,sans-serif;background:linear
 .login-lockout{font-size:13px;color:#FF6B35;min-height:20px}
 .login-attempts{font-size:11px;color:rgba(255,255,255,.25);min-height:16px}
 .login-dedication{font-size:11px;color:rgba(255,255,255,.3);font-style:italic;margin-top:10px}
+/* Mobile small screens (iPhone SE, older Androids) */
+@media (max-width: 380px){
+  .screen{padding:16px;padding-top:36px;padding-top:calc(36px + env(safe-area-inset-top,0px));padding-bottom:60px;padding-bottom:calc(60px + env(safe-area-inset-bottom,0px))}
+  .q-card{padding:16px}
+  .q-text{font-size:15px}
+  .opt{padding:12px 14px;font-size:14px}
+  .num-key{font-size:20px;padding:12px 0}
+  .num-keys{max-width:100%}
+  .dd-chip{padding:12px 18px;font-size:16px;min-width:48px;min-height:44px}
+  .dd-target{padding:8px 10px;font-size:14px;min-width:60px}
+  .fb{padding:14px;font-size:13px}
+  .nxt{padding:13px;font-size:16px}
+  .exam-card,.topic-card{padding:14px}
+  .num-input{font-size:30px;padding:10px}
+}
+/* Touch targets - ensure all interactive elements have min 44x44px (Apple HIG) */
+.opt,.dd-chip,.dd-target,.num-key,.nxt,.skip-btn,.exam-card,.topic-card,.quiz-start,.num-submit,#ddSubmit{min-height:44px}
+/* Prevent text selection on tap (annoying on mobile) */
+.opt,.dd-chip,.dd-target,.num-key,.nxt,.skip-btn,.exam-card,.topic-card{-webkit-user-select:none;user-select:none}
+/* Better number input on iOS - prevent zoom on focus */
+.num-input{font-size:32px}
+@media (max-width: 380px){.num-input{font-size:28px}}
 </style>
 </head>
 <body>
@@ -244,7 +271,7 @@ const W=400,H=240;
 // rows: array of array-of-strings (each cell content), '' for empty, or HTML-escapable strings
 // reservas/empréstimos: reserva is small carry digit above a cell; cross is for borrow
 function mvtTable(opts){
-  const cols=opts.cols, rows=opts.rows, w=opts.w||340, x0=opts.x||30, y0=opts.y||10;
+  const cols=opts.cols, rows=opts.rows, w=opts.w||340, x0=opts.x!==undefined?opts.x:30, y0=opts.y!==undefined?opts.y:10;
   const colW=w/cols.length;
   const rowH=opts.rowH||40, headH=32;
   // Default colors for C/D/U (yellow/blue/green) and CM/DM/UM (purple/orange/red), English H/T/O matches C/D/U
@@ -296,44 +323,48 @@ function mvtTable(opts){
 function vstack(opts){
   const a=String(opts.a), b=String(opts.b), op=opts.op||'+';
   const showAns=opts.showAns!==false, ans=opts.ans!==undefined?String(opts.ans):'';
-  const carries=opts.carries||{}; // {colIdx: '1'} for carry above col
-  const borrows=opts.borrows||{}; // {colIdx: {newTop:'13', oldTop:'14'}} 
-  const w=opts.w||220, x0=opts.x||90, y0=opts.y||20;
-  // align right
+  // carries: {colIdx: '1'} — small red 1 above column. colIdx is RIGHT-to-LEFT (0=units, 1=tens, 2=hundreds)
+  const carries=opts.carries||{};
+  // borrows: {colIdx: {newTop:'13', oldTop:'3'}} — colIdx RIGHT-to-LEFT. crosses out oldTop, shows newTop above
+  // Optionally {colIdx: {wasLent:true}} — for the col that lent (just gets crossed out + new value)
+  const borrows=opts.borrows||{};
+  const w=opts.w||220, x0=opts.x||90, y0=opts.y||30;
   const maxLen=Math.max(a.length, b.length, ans.length);
-  const cellW=42, cellH=44;
+  const cellW=42;
   const gridW=cellW*maxLen;
   const startX=x0+(w-gridW)/2;
   let s=`<g transform="translate(${startX},${y0})">`;
-  // Carries row (above top number)
+  // Carries row (small red digits ABOVE top number)
+  // colIdx is right-to-left, so column 0 = unit (rightmost)
+  // visual position from left: pos = maxLen-1-colIdx
   Object.keys(carries).forEach(k=>{
-    const idx=parseInt(k);
-    s+=`<text x="${idx*cellW+cellW/2}" y="20" fill="#E53935" font-family="Caveat,Comic Sans MS,cursive" font-size="20" font-weight="700" text-anchor="middle">${carries[k]}</text>`;
+    const colIdx=parseInt(k);
+    const pos=maxLen-1-colIdx;
+    s+=`<text x="${pos*cellW+cellW/2}" y="14" fill="#E53935" font-family="Caveat,Comic Sans MS,cursive" font-size="22" font-weight="700" text-anchor="middle">${carries[k]}</text>`;
   });
-  // Top number row (with possible borrow strikes)
+  // Top number row
   const topY=50;
   for(let i=0;i<maxLen;i++){
-    const colIdx=i; // left-to-right index
-    // pad a from the left
     const aDigit=a.length-maxLen+i>=0?a[a.length-maxLen+i]:'';
     if(aDigit){
-      const borrow=borrows[colIdx];
-      const isOld=borrow&&borrow.replaceTop;
-      s+=`<text x="${i*cellW+cellW/2}" y="${topY}" fill="${isOld?'#999':'#222'}" font-family="Caveat,Comic Sans MS,cursive" font-size="32" font-weight="700" text-anchor="middle">${aDigit}</text>`;
-      if(isOld){
-        s+=`<line x1="${i*cellW+cellW/2-15}" y1="${topY-15}" x2="${i*cellW+cellW/2+15}" y2="${topY+5}" stroke="#E53935" stroke-width="2"/>`;
-        // new value above (written small)
-        s+=`<text x="${i*cellW+cellW/2+18}" y="${topY-12}" fill="#E53935" font-family="Caveat,Comic Sans MS,cursive" font-size="18" font-weight="700">${borrow.replaceTop}</text>`;
-      }
-      if(borrow&&borrow.borrowedShows){
-        // small digit indicating ones became 13
-        s+=`<text x="${i*cellW+8}" y="${topY-10}" fill="#E53935" font-family="Caveat,Comic Sans MS,cursive" font-size="14" font-weight="700">${borrow.borrowedShows}</text>`;
+      // Borrow logic: column colIdx (right-to-left) = i becomes (maxLen-1-i)
+      const colIdxR=maxLen-1-i;
+      const borrow=borrows[colIdxR];
+      if(borrow){
+        // Strike out original digit
+        s+=`<text x="${i*cellW+cellW/2}" y="${topY}" fill="#999" font-family="Caveat,Comic Sans MS,cursive" font-size="32" font-weight="700" text-anchor="middle">${aDigit}</text>`;
+        s+=`<line x1="${i*cellW+cellW/2-13}" y1="${topY-12}" x2="${i*cellW+cellW/2+13}" y2="${topY+5}" stroke="#E53935" stroke-width="2"/>`;
+        // New value (small red, ABOVE-RIGHT of cell)
+        if(borrow.newTop){
+          s+=`<text x="${i*cellW+cellW/2}" y="${topY-18}" fill="#E53935" font-family="Caveat,Comic Sans MS,cursive" font-size="20" font-weight="700" text-anchor="middle">${borrow.newTop}</text>`;
+        }
+      } else {
+        s+=`<text x="${i*cellW+cellW/2}" y="${topY}" fill="#222" font-family="Caveat,Comic Sans MS,cursive" font-size="32" font-weight="700" text-anchor="middle">${aDigit}</text>`;
       }
     }
   }
   // Operator and bottom number row
   const botY=topY+38;
-  // operator on the left of bottom row
   s+=`<text x="-22" y="${botY}" fill="#1E88E5" font-family="Fredoka,sans-serif" font-size="28" font-weight="700" text-anchor="middle">${op}</text>`;
   for(let i=0;i<maxLen;i++){
     const bDigit=b.length-maxLen+i>=0?b[b.length-maxLen+i]:'';
@@ -355,7 +386,6 @@ function vstack(opts){
         }
       }
     } else {
-      // show "?" prominently
       s+=`<text x="${gridW/2}" y="${ansY}" fill="#FF6B35" font-family="Fredoka,sans-serif" font-size="36" font-weight="700" text-anchor="middle">?</text>`;
     }
   }
@@ -700,20 +730,32 @@ const QI = {
 
   // === Adição vertical (livro-style) ===
   mat_add_47_35:()=>paperSvg(vstack({a:'47',b:'35',op:'+',ans:''})),
+  mat_add_47_35_solved:()=>paperSvg(vstack({a:'47',b:'35',op:'+',ans:'82',carries:{1:'1'}})),
   mat_add_356_95:()=>paperSvg(vstack({a:'356',b:'95',op:'+',ans:''})),
+  mat_add_356_95_solved:()=>paperSvg(vstack({a:'356',b:'95',op:'+',ans:'451',carries:{1:'1',2:'1'}})),
   mat_add_138_685:()=>paperSvg(vstack({a:'138',b:'685',op:'+',ans:''})),
+  mat_add_138_685_solved:()=>paperSvg(vstack({a:'138',b:'685',op:'+',ans:'823',carries:{1:'1',2:'1'}})),
   mat_add_821_191:()=>paperSvg(vstack({a:'821',b:'191',op:'+',ans:''})),
+  mat_add_821_191_solved:()=>paperSvg(vstack({a:'821',b:'191',op:'+',ans:'1012',carries:{2:'1'}})),
   mat_add_124_86:()=>paperSvg(vstack({a:'124',b:'86',op:'+',ans:''})),
+  mat_add_124_86_solved:()=>paperSvg(vstack({a:'124',b:'86',op:'+',ans:'210',carries:{1:'1',2:'1'}})),
   mat_add_quadro1:()=>paperSvg(mvtTable({cols:[{label:'C'},{label:'D'},{label:'U'}],rows:[[{v:'5'},{v:'4'},{v:'3'}],[{v:'1'},{v:'8'},{v:'2'}],[{v:'?',color:'#FF6B35'},{v:'?',color:'#FF6B35'},{v:'?',color:'#FF6B35'}]],x:50,y:50,w:300,boldLast:true})+`<text x="200" y="35" fill="#1E88E5" font-family="Fredoka" font-size="13" font-weight="700" text-anchor="middle">543 + 182 = ?</text>`),
+  mat_add_quadro1_solved:()=>paperSvg(mvtTable({cols:[{label:'C'},{label:'D'},{label:'U'}],rows:[[{v:'5',carry:'1'},{v:'4'},{v:'3'}],[{v:'1'},{v:'8'},{v:'2'}],[{v:'7'},{v:'2'},{v:'5'}]],x:50,y:60,w:300,boldLast:true})+`<text x="200" y="40" fill="#1E88E5" font-family="Fredoka" font-size="13" font-weight="700" text-anchor="middle">543 + 182 = 725</text>`),
 
   // === Subtração vertical (livro-style) ===
   mat_sub_63_28:()=>paperSvg(vstack({a:'63',b:'28',op:'−',ans:''})),
+  mat_sub_63_28_solved:()=>paperSvg(vstack({a:'63',b:'28',op:'−',ans:'35',borrows:{0:{newTop:'13'},1:{newTop:'5'}}})),
   mat_sub_256_28:()=>paperSvg(vstack({a:'256',b:'28',op:'−',ans:''})),
+  mat_sub_256_28_solved:()=>paperSvg(vstack({a:'256',b:'28',op:'−',ans:'228',borrows:{0:{newTop:'16'},1:{newTop:'4'}}})),
   mat_sub_564_18:()=>paperSvg(vstack({a:'564',b:'18',op:'−',ans:''})),
+  mat_sub_564_18_solved:()=>paperSvg(vstack({a:'564',b:'18',op:'−',ans:'546',borrows:{0:{newTop:'14'},1:{newTop:'5'}}})),
   mat_sub_415_3:()=>paperSvg(vstack({a:'415',b:'3',op:'−',ans:''})),
   mat_sub_91_45:()=>paperSvg(vstack({a:'91',b:'45',op:'−',ans:''})),
+  mat_sub_91_45_solved:()=>paperSvg(vstack({a:'91',b:'45',op:'−',ans:'46',borrows:{0:{newTop:'11'},1:{newTop:'8'}}})),
   mat_sub_800_178:()=>paperSvg(vstack({a:'800',b:'178',op:'−',ans:''})),
+  mat_sub_800_178_solved:()=>paperSvg(vstack({a:'800',b:'178',op:'−',ans:'622',borrows:{0:{newTop:'10'},1:{newTop:'9'},2:{newTop:'7'}}})),
   mat_sub_quadro1:()=>paperSvg(mvtTable({cols:[{label:'C'},{label:'D'},{label:'U'}],rows:[[{v:'5'},{v:'4'},{v:'3'}],[{v:'2'},{v:'1'},{v:'8'}],[{v:'?',color:'#FF6B35'},{v:'?',color:'#FF6B35'},{v:'?',color:'#FF6B35'}]],x:50,y:50,w:300,boldLast:true})+`<text x="200" y="35" fill="#1E88E5" font-family="Fredoka" font-size="13" font-weight="700" text-anchor="middle">543 − 218 = ?</text>`),
+  mat_sub_quadro1_solved:()=>paperSvg(mvtTable({cols:[{label:'C'},{label:'D'},{label:'U'}],rows:[[{v:'5'},{v:'4',cross:true,replace:'3'},{v:'3',cross:true,replace:'13'}],[{v:'2'},{v:'1'},{v:'8'}],[{v:'3'},{v:'2'},{v:'5'}]],x:50,y:60,w:300,boldLast:true})+`<text x="200" y="40" fill="#1E88E5" font-family="Fredoka" font-size="13" font-weight="700" text-anchor="middle">543 − 218 = 325</text>`),
 
   // === Cálculo mental (reta numérica) ===
   mat_mental_80_100:()=>paperSvg(numberLine({x:30,y:120,w:340,min:0,max:200,step:50,marks:[{value:80,label:'80',color:'#FF1493'},{value:100,label:'100?',color:'#388E3C'}]})+`<text x="200" y="50" fill="#222" font-family="Fredoka" font-size="16" font-weight="700" text-anchor="middle">80 + ? = 100</text>`),
@@ -745,23 +787,35 @@ const QI = {
   math_pv_423:()=>paperSvg(mvtTable({cols:[{label:'H'},{label:'T'},{label:'O'}],rows:[[{v:'4'},{v:'2'},{v:'3'}]],x:50,y:60,w:300,rowH:54,bigDigits:true})+`<text x="200" y="40" fill="#1E88E5" font-family="Fredoka" font-size="14" font-weight="700" text-anchor="middle">PLACE VALUE TABLE</text>`),
   math_pv_557:()=>paperSvg(mvtTable({cols:[{label:'H'},{label:'T'},{label:'O'}],rows:[[{v:'5'},{v:'5'},{v:'7'}]],x:50,y:60,w:300,rowH:54,bigDigits:true})+`<text x="200" y="40" fill="#1E88E5" font-family="Fredoka" font-size="14" font-weight="700" text-anchor="middle">PLACE VALUE TABLE</text>`),
   math_pv_256_blank:()=>paperSvg(mvtTable({cols:[{label:'H'},{label:'T'},{label:'O'}],rows:[[{v:'?'},{v:'?'},{v:'?'}]],x:50,y:60,w:300,rowH:54,bigDigits:true})+`<text x="200" y="40" fill="#1E88E5" font-family="Fredoka" font-size="14" font-weight="700" text-anchor="middle">Drag the digits of 256!</text>`),
-  math_pv_compare:()=>paperSvg(`<g transform="translate(40,60)">${mvtTable({cols:[{label:'H'},{label:'T'},{label:'O'}],rows:[[{v:'7'},{v:'2'},{v:'5'}]],x:0,y:0,w:140,rowH:48,bigDigits:true})}</g><text x="195" y="115" fill="#1E88E5" font-family="Fredoka" font-size="28" font-weight="700" text-anchor="middle">vs</text><g transform="translate(220,60)">${mvtTable({cols:[{label:'H'},{label:'T'},{label:'O'}],rows:[[{v:'5'},{v:'2'},{v:'1'}]],x:0,y:0,w:140,rowH:48,bigDigits:true})}</g>`),
+  math_pv_compare:()=>paperSvg(`<text x="200" y="38" fill="#1E88E5" font-family="Fredoka" font-size="14" font-weight="700" text-anchor="middle">Which number is greater?</text><g transform="translate(30,55)">${mvtTable({cols:[{label:'H'},{label:'T'},{label:'O'}],rows:[[{v:'7'},{v:'2'},{v:'5'}]],x:0,y:0,w:135,rowH:48,bigDigits:true})}</g><text x="200" y="115" fill="#FF6B35" font-family="Fredoka" font-size="22" font-weight="700" text-anchor="middle">vs</text><g transform="translate(235,55)">${mvtTable({cols:[{label:'H'},{label:'T'},{label:'O'}],rows:[[{v:'5'},{v:'2'},{v:'1'}]],x:0,y:0,w:135,rowH:48,bigDigits:true})}</g>`),
   math_money_100:()=>paperSvg(`<text x="200" y="40" fill="#1E88E5" font-family="Fredoka" font-size="14" font-weight="700" text-anchor="middle">How many tens make 1 hundred?</text><g transform="translate(60,70)">${[0,1,2].map(i=>`<rect x="${i*60}" y="0" width="50" height="38" rx="6" fill="#FFE082" stroke="#F57C00" stroke-width="2"/><text x="${i*60+25}" y="24" fill="#333" font-family="Fredoka" font-size="16" font-weight="700" text-anchor="middle">10</text>`).join('')}<text x="195" y="24" fill="#1E88E5" font-family="Fredoka" font-size="22" font-weight="700">...?</text></g><g transform="translate(60,140)"><rect x="0" y="0" width="60" height="42" rx="6" fill="#A5D6A7" stroke="#388E3C" stroke-width="2"/><text x="30" y="27" fill="#333" font-family="Fredoka" font-size="18" font-weight="700" text-anchor="middle">100</text><text x="80" y="27" fill="#1E88E5" font-family="Fredoka" font-size="16" font-weight="700">=</text><text x="115" y="27" fill="#FF6B35" font-family="Fredoka" font-size="22" font-weight="700">?</text><text x="145" y="27" fill="#1E88E5" font-family="Fredoka" font-size="16" font-weight="700">tens</text></g>`),
 
   math_add_423_316:()=>paperSvg(vstack({a:'423',b:'316',op:'+',ans:''})),
+  math_add_423_316_solved:()=>paperSvg(vstack({a:'423',b:'316',op:'+',ans:'739'})),
   math_add_58_37:()=>paperSvg(vstack({a:'58',b:'37',op:'+',ans:''})),
+  math_add_58_37_solved:()=>paperSvg(vstack({a:'58',b:'37',op:'+',ans:'95',carries:{1:'1'}})),
   math_add_147_85:()=>paperSvg(vstack({a:'147',b:'85',op:'+',ans:''})),
+  math_add_147_85_solved:()=>paperSvg(vstack({a:'147',b:'85',op:'+',ans:'232',carries:{1:'1',2:'1'}})),
   math_add_276_12:()=>paperSvg(vstack({a:'276',b:'12',op:'+',ans:''})),
+  math_add_276_12_solved:()=>paperSvg(vstack({a:'276',b:'12',op:'+',ans:'288'})),
   math_add_246_656:()=>paperSvg(vstack({a:'246',b:'656',op:'+',ans:''})),
+  math_add_246_656_solved:()=>paperSvg(vstack({a:'246',b:'656',op:'+',ans:'902',carries:{1:'1',2:'1'}})),
   math_add_45_28:()=>paperSvg(vstack({a:'45',b:'28',op:'+',ans:''})),
+  math_add_45_28_solved:()=>paperSvg(vstack({a:'45',b:'28',op:'+',ans:'73',carries:{1:'1'}})),
 
   math_sub_557_315:()=>paperSvg(vstack({a:'557',b:'315',op:'−',ans:''})),
+  math_sub_557_315_solved:()=>paperSvg(vstack({a:'557',b:'315',op:'−',ans:'242'})),
   math_sub_162_7:()=>paperSvg(vstack({a:'162',b:'7',op:'−',ans:''})),
+  math_sub_162_7_solved:()=>paperSvg(vstack({a:'162',b:'7',op:'−',ans:'155',borrows:{0:{newTop:'12'},1:{newTop:'5'}}})),
   math_sub_256_28:()=>paperSvg(vstack({a:'256',b:'28',op:'−',ans:''})),
+  math_sub_256_28_solved:()=>paperSvg(vstack({a:'256',b:'28',op:'−',ans:'228',borrows:{0:{newTop:'16'},1:{newTop:'4'}}})),
   math_sub_564_18:()=>paperSvg(vstack({a:'564',b:'18',op:'−',ans:''})),
+  math_sub_564_18_solved:()=>paperSvg(vstack({a:'564',b:'18',op:'−',ans:'546',borrows:{0:{newTop:'14'},1:{newTop:'5'}}})),
   math_sub_415_3:()=>paperSvg(vstack({a:'415',b:'3',op:'−',ans:''})),
   math_sub_60_24:()=>paperSvg(vstack({a:'60',b:'24',op:'−',ans:''})),
+  math_sub_60_24_solved:()=>paperSvg(vstack({a:'60',b:'24',op:'−',ans:'36',borrows:{0:{newTop:'10'},1:{newTop:'5'}}})),
   math_sub_800_178:()=>paperSvg(vstack({a:'800',b:'178',op:'−',ans:''})),
+  math_sub_800_178_solved:()=>paperSvg(vstack({a:'800',b:'178',op:'−',ans:'622',borrows:{0:{newTop:'10'},1:{newTop:'9'},2:{newTop:'7'}}})),
 
   math_ruler_6:()=>paperSvg(ruler({x:30,y:130,cmPx:22,maxCm:15,segments:[{from:0,to:6,label:'AB',color:'#FF1493'}]})+`<text x="200" y="50" fill="#222" font-family="Fredoka" font-size="14" font-weight="700" text-anchor="middle">Start at zero!</text>`),
   math_ruler_pq:()=>paperSvg(ruler({x:30,y:130,cmPx:22,maxCm:15,segments:[{from:0,to:5,label:'PQ',color:'#FF1493'}]})),
@@ -804,24 +858,24 @@ const EXAMS = [
       {id:'mat_add',icon:'➕',name:'Adição com Reserva',desc:'Como no quadro do caderno',illus:'generic',
         lesson:`<h3>Adição com Reserva</h3><p>Quando somamos e o resultado de uma casa <span class="hl">passa de 9</span>, escrevemos só a unidade e <span class="hl">"reservamos"</span> 1 para a próxima casa (à esquerda).</p><p>Exemplo passo a passo (47 + 35):</p><p>1) Unidades: 7 + 5 = 12. Escreve 2, reserva 1.<br>2) Dezenas: 4 + 3 + 1 = 8.<br>3) Resultado: <strong>82</strong>.</p><p>📌 No caderno, escrevemos a reserva pequena, em vermelho, em cima da próxima casa!</p>`,
         quiz:[
-          {q:'Resolva esta adição:',type:'num',answer:82,fb:'7+5=12 (escreve 2, reserva 1). 4+3+1=8. → 82.',img:'mat_add_47_35',whyWrong:(u)=>{if(u===72)return 'Você esqueceu de RESERVAR o 1 da soma 7+5=12.';if(u===712)return 'Você escreveu o 12 inteiro. Só escreve o 2 e reserva 1.';return null;}},
-          {q:'Resolva esta adição:',type:'num',answer:451,fb:'6+5=11 (reserva 1). 5+9+1=15 (reserva 1). 3+0+1=4. → 451.',img:'mat_add_356_95',whyWrong:(u)=>{if(u===441)return 'Quase! Você esqueceu uma reserva. As DUAS casas reservam.';if(u===341)return 'Você esqueceu as duas reservas.';return null;}},
-          {q:'Resolva esta adição:',type:'num',answer:823,fb:'8+5=13 (reserva 1). 3+8+1=12 (reserva 1). 1+6+1=8. → 823.',img:'mat_add_138_685',whyWrong:(u)=>{if(u===713)return 'Faltou reserva. As duas casas precisam.';return null;}},
-          {q:'Olhe o quadro. Qual é a soma? (CDU)',type:'num',answer:725,fb:'543 + 182 = 725. A reserva da unidade (3+2=5, sem reserva!), depois 4+8=12 (reserva 1), 5+1+1=7.',img:'mat_add_quadro1',whyWrong:(u)=>{if(u===625)return 'Faltou somar a reserva da dezena na centena.';return null;}},
+          {q:'Resolva esta adição:',type:'num',answer:82,fb:'7+5=12 (escreve 2, reserva 1). 4+3+1=8. → 82.',img:'mat_add_47_35',imgWrong:'mat_add_47_35_solved',whyWrong:(u)=>{if(u===72)return 'Você esqueceu de RESERVAR o 1 da soma 7+5=12.';if(u===712)return 'Você escreveu o 12 inteiro. Só escreve o 2 e reserva 1.';return null;}},
+          {q:'Resolva esta adição:',type:'num',answer:451,fb:'6+5=11 (reserva 1). 5+9+1=15 (reserva 1). 3+0+1=4. → 451.',img:'mat_add_356_95',imgWrong:'mat_add_356_95_solved',whyWrong:(u)=>{if(u===441)return 'Quase! Você esqueceu uma reserva. As DUAS casas reservam.';if(u===341)return 'Você esqueceu as duas reservas.';return null;}},
+          {q:'Resolva esta adição:',type:'num',answer:823,fb:'8+5=13 (reserva 1). 3+8+1=12 (reserva 1). 1+6+1=8. → 823.',img:'mat_add_138_685',imgWrong:'mat_add_138_685_solved',whyWrong:(u)=>{if(u===713)return 'Faltou reserva. As duas casas precisam.';return null;}},
+          {q:'Olhe o quadro. Qual é a soma? (CDU)',type:'num',answer:725,fb:'543 + 182 = 725. A reserva da unidade (3+2=5, sem reserva!), depois 4+8=12 (reserva 1), 5+1+1=7.',img:'mat_add_quadro1',imgWrong:'mat_add_quadro1_solved',whyWrong:(u)=>{if(u===625)return 'Faltou somar a reserva da dezena na centena.';return null;}},
           {q:'Em uma adição, 7 + 5 = 12. O que escrevo nessa casa?',opts:['12','7','2 e reservo 1','5 e reservo 7'],correct:2,fb:'Escreve a unidade (2) e RESERVA a dezena (1) para a próxima casa.',whyWrong:{0:'Não cabe 12 numa casa só! Cada casa só guarda um algarismo.',1:'7 era um dos números somados, não a resposta.',3:'Reserva-se a DEZENA do resultado (1), não 7.'}},
-          {q:'Resolva esta adição:',type:'num',answer:1012,fb:'1+1=2. 2+9=11 (reserva 1). 8+1+1=10. → 1.012 (a centena virou milhar!)',img:'mat_add_821_191',whyWrong:(u)=>{if(u===912)return 'A soma das centenas passou de 9 — virou milhar!';if(u===1002)return 'Reveja a soma das dezenas: 2+9=11.';return null;}},
-          {q:'Lara tinha 124 figurinhas. Ganhou 86. Com quantas ela ficou?',type:'num',answer:210,fb:'124 + 86 = 210. "Ganhou" significa adição.',img:'mat_add_124_86',whyWrong:(u)=>{if(u===200)return 'Você esqueceu uma reserva. 4+6=10 (escreve 0, reserva 1).';if(u===38)return 'Isso seria 124 − 86. Mas "ganhou" é adição!';return null;}}
+          {q:'Resolva esta adição:',type:'num',answer:1012,fb:'1+1=2. 2+9=11 (reserva 1). 8+1+1=10. → 1.012 (a centena virou milhar!)',img:'mat_add_821_191',imgWrong:'mat_add_821_191_solved',whyWrong:(u)=>{if(u===912)return 'A soma das centenas passou de 9 — virou milhar!';if(u===1002)return 'Reveja a soma das dezenas: 2+9=11.';return null;}},
+          {q:'Lara tinha 124 figurinhas. Ganhou 86. Com quantas ela ficou?',type:'num',answer:210,fb:'124 + 86 = 210. "Ganhou" significa adição.',img:'mat_add_124_86',imgWrong:'mat_add_124_86_solved',whyWrong:(u)=>{if(u===200)return 'Você esqueceu uma reserva. 4+6=10 (escreve 0, reserva 1).';if(u===38)return 'Isso seria 124 − 86. Mas "ganhou" é adição!';return null;}}
         ]},
       {id:'mat_sub',icon:'➖',name:'Subtração com Recurso',desc:'Pegar emprestado da próxima casa',illus:'generic',
         lesson:`<h3>Subtração com Recurso (Empréstimo)</h3><p>Quando o algarismo de cima é <span class="hl">menor</span> que o de baixo, pegamos <span class="hl">emprestado</span> da próxima casa à esquerda.</p><p>Exemplo (63 − 28):</p><p>1) Unidades: 3 não tira 8! Pega 1 dezena emprestada → vira 13.<br>2) 13 − 8 = 5. (A dezena que era 6 ficou 5.)<br>3) Dezenas: 5 − 2 = 3.<br>4) Resultado: <strong>35</strong>.</p><p>📌 No caderno, riscamos a dezena que emprestou e escrevemos o novo valor!</p>`,
         quiz:[
-          {q:'Resolva esta subtração:',type:'num',answer:35,fb:'3 não tira 8 → vira 13. 13−8=5. Dezena 6 vira 5: 5−2=3. → 35.',img:'mat_sub_63_28',whyWrong:(u)=>{if(u===45)return 'Você esqueceu de DIMINUIR a dezena. Ela era 6 e virou 5.';if(u===25)return 'Você diminuiu a dezena em 2. Empresta só 1!';return null;}},
-          {q:'Resolva esta subtração:',type:'num',answer:228,fb:'6−8 não dá → vira 16. 16−8=8. Dezena 5 vira 4: 4−2=2. Centena 2 desce. → 228.',img:'mat_sub_256_28',whyWrong:(u)=>{if(u===238)return 'Você não diminuiu a dezena depois do empréstimo.';if(u===232)return 'Reveja: 16−8=8.';return null;}},
-          {q:'Resolva esta subtração:',type:'num',answer:546,fb:'4−8 não dá → vira 14. 14−8=6. Dezena 6 vira 5: 5−1=4. Centena 5 desce. → 546.',img:'mat_sub_564_18'},
+          {q:'Resolva esta subtração:',type:'num',answer:35,fb:'3 não tira 8 → vira 13. 13−8=5. Dezena 6 vira 5: 5−2=3. → 35.',img:'mat_sub_63_28',imgWrong:'mat_sub_63_28_solved',whyWrong:(u)=>{if(u===45)return 'Você esqueceu de DIMINUIR a dezena. Ela era 6 e virou 5.';if(u===25)return 'Você diminuiu a dezena em 2. Empresta só 1!';return null;}},
+          {q:'Resolva esta subtração:',type:'num',answer:228,fb:'6−8 não dá → vira 16. 16−8=8. Dezena 5 vira 4: 4−2=2. Centena 2 desce. → 228.',img:'mat_sub_256_28',imgWrong:'mat_sub_256_28_solved',whyWrong:(u)=>{if(u===238)return 'Você não diminuiu a dezena depois do empréstimo.';if(u===232)return 'Reveja: 16−8=8.';return null;}},
+          {q:'Resolva esta subtração:',type:'num',answer:546,fb:'4−8 não dá → vira 14. 14−8=6. Dezena 6 vira 5: 5−1=4. Centena 5 desce. → 546.',img:'mat_sub_564_18',imgWrong:'mat_sub_564_18_solved'},
           {q:'Em 415 − 3, precisamos pegar emprestado?',opts:['Sim, da dezena','Não, é só subtrair direto','Sim, da centena','Sim, das duas casas'],correct:1,fb:'5 − 3 = 2 direto, sem precisar emprestar!',img:'mat_sub_415_3',whyWrong:{0:'Só pega emprestado quando o de cima é MENOR. 5 já é maior que 3.',2:'Aqui não precisa nada disso.',3:'5−3=2 direto.'}},
-          {q:'Olhe o quadro. Qual é a subtração? (CDU)',type:'num',answer:325,fb:'543 − 218 = 325. Na unidade: 3 não tira 8, pega emprestado (vira 13). 13−8=5. Dezena 4 vira 3: 3−1=2. Centena 5−2=3. → 325.',img:'mat_sub_quadro1',whyWrong:(u)=>{if(u===335)return 'Você esqueceu de DIMINUIR a dezena depois de emprestar.';if(u===335)return null;if(u===225)return 'Reveja a centena: 5−2=3.';return null;}},
-          {q:'Pedro tinha 91 cards. Deu 45 para o irmão. Com quantos ele ficou?',type:'num',answer:46,fb:'91 − 45 = 46. "Deu" significa tirar.',img:'mat_sub_91_45',whyWrong:(u)=>{if(u===136)return 'Você somou. Mas "deu" é subtração!';if(u===54)return 'Reveja: 1−5 vira 11−5=6 (emprestou). Dezena 9 vira 8: 8−4=4 → 46.';return null;}},
-          {q:'Resolva esta subtração:',type:'num',answer:622,fb:'Empréstimo passa pelo zero! 0−8 não dá; dezena também é 0; pega da centena (8 vira 7). → 622.',img:'mat_sub_800_178',whyWrong:(u)=>{if(u===722)return 'Você não emprestou de uma das casas com 0.';if(u===632)return 'A centena ficou 7 depois dos empréstimos. 7−1=6.';return null;}}
+          {q:'Olhe o quadro. Qual é a subtração? (CDU)',type:'num',answer:325,fb:'543 − 218 = 325. Na unidade: 3 não tira 8, pega emprestado (vira 13). 13−8=5. Dezena 4 vira 3: 3−1=2. Centena 5−2=3. → 325.',img:'mat_sub_quadro1',imgWrong:'mat_sub_quadro1_solved',whyWrong:(u)=>{if(u===335)return 'Você esqueceu de DIMINUIR a dezena depois de emprestar.';if(u===335)return null;if(u===225)return 'Reveja a centena: 5−2=3.';return null;}},
+          {q:'Pedro tinha 91 cards. Deu 45 para o irmão. Com quantos ele ficou?',type:'num',answer:46,fb:'91 − 45 = 46. "Deu" significa tirar.',img:'mat_sub_91_45',imgWrong:'mat_sub_91_45_solved',whyWrong:(u)=>{if(u===136)return 'Você somou. Mas "deu" é subtração!';if(u===54)return 'Reveja: 1−5 vira 11−5=6 (emprestou). Dezena 9 vira 8: 8−4=4 → 46.';return null;}},
+          {q:'Resolva esta subtração:',type:'num',answer:622,fb:'Empréstimo passa pelo zero! 0−8 não dá; dezena também é 0; pega da centena (8 vira 7). → 622.',img:'mat_sub_800_178',imgWrong:'mat_sub_800_178_solved',whyWrong:(u)=>{if(u===722)return 'Você não emprestou de uma das casas com 0.';if(u===632)return 'A centena ficou 7 depois dos empréstimos. 7−1=6.';return null;}}
         ]},
       {id:'mat_mental',icon:'🧠',name:'Cálculo Mental',desc:'Estratégias rápidas: ±10, ±100',illus:'generic',
         lesson:`<h3>Cálculo Mental</h3><p>Cálculo mental é fazer contas <span class="hl">sem precisar armar</span>. Estratégias:</p><p><strong>+10 ou −10:</strong> só muda a casa da DEZENA. Ex: 237 + 10 = 247.</p><p><strong>+100 ou −100:</strong> só muda a casa da CENTENA. Ex: 392 + 100 = 492.</p><p><strong>Completar 100 ou 1.000:</strong> 80 + 20 = 100. 350 + 650 = 1.000.</p><p><strong>Aproximação:</strong> arredondar para a centena mais próxima. Se a dezena é 0–4, vai pra baixo; se é 5–9, vai pra cima.</p>`,
@@ -879,26 +933,26 @@ const EXAMS = [
       {id:'math_add',icon:'➕',name:'Addition',desc:'With and without regrouping',illus:'generic',
         lesson:`<h3>Addition</h3><p><strong>Without regrouping:</strong> add column by column. Example: 423 + 316 = 739.</p><p><strong>With regrouping (carry):</strong> when a column adds up to MORE than 9, write the ones digit and <span class="hl">carry 1</span> to the next column.</p><p>Example: 47 + 35<br>1) Ones: 7 + 5 = 12. Write 2, carry 1.<br>2) Tens: 4 + 3 + 1 = 8.<br>Result: <strong>82</strong>.</p><p>📌 We write the carry as a small red 1 above the next column!</p>`,
         quiz:[
-          {q:'Solve this addition:',type:'num',answer:739,fb:'3+6=9, 2+1=3, 4+3=7 → 739. (No regrouping needed.)',img:'math_add_423_316',whyWrong:(u)=>{if(u===749)return 'Recheck the tens: 2+1=3, not 4.';if(u===839)return 'Recheck the hundreds: 4+3=7, not 8.';return null;}},
-          {q:'Solve this addition:',type:'num',answer:95,fb:'8+7=15, write 5, carry 1. 5+3+1=9 → 95.',img:'math_add_58_37',whyWrong:(u)=>{if(u===85)return 'You forgot to CARRY the 1 from 8+7=15.';if(u===815)return 'You wrote the 15 in one column. Write only 5 and carry 1.';return null;}},
-          {q:'Solve this addition:',type:'num',answer:232,fb:'7+5=12 (carry 1). 4+8+1=13 (carry 1). 1+1=2. → 232.',img:'math_add_147_85',whyWrong:(u)=>{if(u===222)return 'You forgot one of the carries. Both columns carry here.';if(u===132)return 'You carried only once. Both ones AND tens regroup here.';return null;}},
-          {q:'Solve this addition:',type:'num',answer:288,fb:'6+2=8, 7+1=8, 2+0=2 → 288. (No regrouping.)',img:'math_add_276_12'},
-          {q:'Solve this addition:',type:'num',answer:902,fb:'6+6=12 (carry 1). 4+5+1=10 (carry 1). 2+6+1=9. → 902.',img:'math_add_246_656',whyWrong:(u)=>{if(u===892)return 'You missed a carry in the tens column.';return null;}},
+          {q:'Solve this addition:',type:'num',answer:739,fb:'3+6=9, 2+1=3, 4+3=7 → 739. (No regrouping needed.)',img:'math_add_423_316',imgWrong:'math_add_423_316_solved',whyWrong:(u)=>{if(u===749)return 'Recheck the tens: 2+1=3, not 4.';if(u===839)return 'Recheck the hundreds: 4+3=7, not 8.';return null;}},
+          {q:'Solve this addition:',type:'num',answer:95,fb:'8+7=15, write 5, carry 1. 5+3+1=9 → 95.',img:'math_add_58_37',imgWrong:'math_add_58_37_solved',whyWrong:(u)=>{if(u===85)return 'You forgot to CARRY the 1 from 8+7=15.';if(u===815)return 'You wrote the 15 in one column. Write only 5 and carry 1.';return null;}},
+          {q:'Solve this addition:',type:'num',answer:232,fb:'7+5=12 (carry 1). 4+8+1=13 (carry 1). 1+1=2. → 232.',img:'math_add_147_85',imgWrong:'math_add_147_85_solved',whyWrong:(u)=>{if(u===222)return 'You forgot one of the carries. Both columns carry here.';if(u===132)return 'You carried only once. Both ones AND tens regroup here.';return null;}},
+          {q:'Solve this addition:',type:'num',answer:288,fb:'6+2=8, 7+1=8, 2+0=2 → 288. (No regrouping.)',img:'math_add_276_12',imgWrong:'math_add_276_12_solved'},
+          {q:'Solve this addition:',type:'num',answer:902,fb:'6+6=12 (carry 1). 4+5+1=10 (carry 1). 2+6+1=9. → 902.',img:'math_add_246_656',imgWrong:'math_add_246_656_solved',whyWrong:(u)=>{if(u===892)return 'You missed a carry in the tens column.';return null;}},
           {q:'When 7 + 5 = 12, what do we write in that column?',opts:['12','7','2 and carry 1','5 and carry 7'],correct:2,fb:'Write the ones (2) and carry the tens (1) to the next column.',whyWrong:{0:'12 cannot fit in one column.',1:'7 was a number we added, not the answer.',3:'We carry the tens digit (1), not 7.'}},
-          {q:'Tom has 45 stickers. He gets 28 more. How many in all?',type:'num',answer:73,fb:'45 + 28 = 73. "How many in all" means add!',img:'math_add_45_28',whyWrong:(u)=>{if(u===17)return 'You subtracted (45−28). But "in all" means add!';if(u===63)return '5+8=13 (carry 1). 4+2+1=7 → 73.';return null;}},
+          {q:'Tom has 45 stickers. He gets 28 more. How many in all?',type:'num',answer:73,fb:'45 + 28 = 73. "How many in all" means add!',img:'math_add_45_28',imgWrong:'math_add_45_28_solved',whyWrong:(u)=>{if(u===17)return 'You subtracted (45−28). But "in all" means add!';if(u===63)return '5+8=13 (carry 1). 4+2+1=7 → 73.';return null;}},
           {q:'When you carry a 1 in addition, where does it go?',opts:['On the next column to the LEFT','At the end of the answer','On the same column','Below the line'],correct:0,fb:'The carry goes ON TOP of the next column to the LEFT.',whyWrong:{1:'The carry must be added in the next column.',2:'The same column already has its answer.',3:'Below the line is where the answer goes.'}}
         ]},
       {id:'math_sub',icon:'➖',name:'Subtraction',desc:'With and without regrouping',illus:'generic',
         lesson:`<h3>Subtraction</h3><p><strong>Without regrouping:</strong> subtract column by column. Example: 557 − 315 = 242.</p><p><strong>With regrouping (borrow):</strong> when the top digit is <span class="hl">smaller</span> than the bottom, we <span class="hl">borrow</span> 1 from the next column.</p><p>Example: 63 − 28<br>1) Ones: 3 − 8? No! Borrow 1 ten → ones become 13. 13 − 8 = 5.<br>2) The tens digit was 6, now it is 5. 5 − 2 = 3.<br>Result: <strong>35</strong>.</p><p>📌 We cross out the digit that lent and write the new value above!</p>`,
         quiz:[
-          {q:'Solve this subtraction:',type:'num',answer:242,fb:'7−5=2, 5−1=4, 5−3=2 → 242. (No borrowing.)',img:'math_sub_557_315'},
-          {q:'Solve this subtraction:',type:'num',answer:155,fb:'2 cannot take 7 → borrow 1 ten (becomes 12). 12−7=5. Tens 6 becomes 5. → 155.',img:'math_sub_162_7',whyWrong:(u)=>{if(u===165)return 'You added instead of subtracting.';if(u===145)return 'After borrowing, the tens 6 becomes 5, not 4.';return null;}},
-          {q:'Solve this subtraction:',type:'num',answer:228,fb:'6−8 not enough → borrow (becomes 16). 16−8=8. Tens 5 becomes 4. 4−2=2. → 228.',img:'math_sub_256_28',whyWrong:(u)=>{if(u===238)return 'You forgot to lower the tens after borrowing.';if(u===232)return 'Recheck: 16−8=8.';return null;}},
-          {q:'Solve this subtraction:',type:'num',answer:546,fb:'4−8 not enough → 14−8=6. Tens 6 becomes 5. 5−1=4. → 546.',img:'math_sub_564_18',whyWrong:(u)=>{if(u===556)return 'You did not lower the tens after borrowing.';return null;}},
+          {q:'Solve this subtraction:',type:'num',answer:242,fb:'7−5=2, 5−1=4, 5−3=2 → 242. (No borrowing.)',img:'math_sub_557_315',imgWrong:'math_sub_557_315_solved'},
+          {q:'Solve this subtraction:',type:'num',answer:155,fb:'2 cannot take 7 → borrow 1 ten (becomes 12). 12−7=5. Tens 6 becomes 5. → 155.',img:'math_sub_162_7',imgWrong:'math_sub_162_7_solved',whyWrong:(u)=>{if(u===165)return 'You added instead of subtracting.';if(u===145)return 'After borrowing, the tens 6 becomes 5, not 4.';return null;}},
+          {q:'Solve this subtraction:',type:'num',answer:228,fb:'6−8 not enough → borrow (becomes 16). 16−8=8. Tens 5 becomes 4. 4−2=2. → 228.',img:'math_sub_256_28',imgWrong:'math_sub_256_28_solved',whyWrong:(u)=>{if(u===238)return 'You forgot to lower the tens after borrowing.';if(u===232)return 'Recheck: 16−8=8.';return null;}},
+          {q:'Solve this subtraction:',type:'num',answer:546,fb:'4−8 not enough → 14−8=6. Tens 6 becomes 5. 5−1=4. → 546.',img:'math_sub_564_18',imgWrong:'math_sub_564_18_solved',whyWrong:(u)=>{if(u===556)return 'You did not lower the tens after borrowing.';return null;}},
           {q:'In 415 − 3, do we need to borrow?',opts:['Yes, from the tens','No, just subtract','Yes, from the hundreds','Yes, from both'],correct:1,fb:'5 − 3 = 2 directly. No borrowing needed!',img:'math_sub_415_3',whyWrong:{0:'We borrow only when the TOP is SMALLER. 5 is bigger than 3.',2:'No borrowing needed at all.',3:'Just a simple subtraction in the ones place.'}},
-          {q:'Sara had 60 candies. She gave 24 away. How many are left?',type:'num',answer:36,fb:'60 − 24 = 36. "Gave away" means subtract.',img:'math_sub_60_24',whyWrong:(u)=>{if(u===84)return 'You added. "Gave away" means take away.';if(u===46)return 'Recheck: 0−4 needs borrow → 10−4=6, then 5−2=3 → 36.';return null;}},
-          {q:'Solve this subtraction:',type:'num',answer:622,fb:'Borrow chain through the zero! 0−8 needs help. Tens is also 0, so we borrow from hundreds. → 622.',img:'math_sub_800_178',whyWrong:(u)=>{if(u===722)return 'You did not borrow from one of the zeros.';if(u===978)return 'You added instead of subtracting.';return null;}},
-          {q:'In 256 − 28, after borrowing, what does the tens digit (5) become?',type:'num',answer:4,fb:'It gave 1 to the ones, so it goes from 5 to 4.',img:'math_sub_256_28',whyWrong:(u)=>{if(u===5)return 'It LENT 1 to the ones, so it must go DOWN by 1.';if(u===6)return 'It went down, not up.';return null;}}
+          {q:'Sara had 60 candies. She gave 24 away. How many are left?',type:'num',answer:36,fb:'60 − 24 = 36. "Gave away" means subtract.',img:'math_sub_60_24',imgWrong:'math_sub_60_24_solved',whyWrong:(u)=>{if(u===84)return 'You added. "Gave away" means take away.';if(u===46)return 'Recheck: 0−4 needs borrow → 10−4=6, then 5−2=3 → 36.';return null;}},
+          {q:'Solve this subtraction:',type:'num',answer:622,fb:'Borrow chain through the zero! 0−8 needs help. Tens is also 0, so we borrow from hundreds. → 622.',img:'math_sub_800_178',imgWrong:'math_sub_800_178_solved',whyWrong:(u)=>{if(u===722)return 'You did not borrow from one of the zeros.';if(u===978)return 'You added instead of subtracting.';return null;}},
+          {q:'In 256 − 28, after borrowing, what does the tens digit (5) become?',type:'num',answer:4,fb:'It gave 1 to the ones, so it goes from 5 to 4.',img:'math_sub_256_28',imgWrong:'math_sub_256_28_solved',whyWrong:(u)=>{if(u===5)return 'It LENT 1 to the ones, so it must go DOWN by 1.';if(u===6)return 'It went down, not up.';return null;}}
         ]},
       {id:'math_word',icon:'📖',name:'Word Problems',desc:'Understand · Plan · Answer · Check',illus:'generic',
         lesson:`<h3>Word Problems</h3><p>Use 4 steps:</p><p><strong>1. Understand:</strong> What do we know? What do we need to find?</p><p><strong>2. Plan:</strong> "How many in all", "altogether", "more" → ADD. "How many left", "fewer", "give away" → SUBTRACT.</p><p><strong>3. Answer:</strong> do the math.</p><p><strong>4. Check:</strong> does the answer make sense?</p>`,
@@ -1388,7 +1442,13 @@ function showFb(ok,q,pt,user,wrongList){
     }
     const head=pt?'❌ Ops!':'❌ Oops!';
     const ansLbl=pt?'Resposta certa:':'Correct answer:';
-    fb.innerHTML=`<strong>${head}</strong> ${ansLbl} ${correctTxt}<br>${mistake?mistake+'<br>':''}<em style="opacity:.85">${q.fb||''}</em>`;
+    // Render visual of correct solution if available
+    let visualHTML='';
+    if(q.imgWrong&&typeof QI!=='undefined'&&QI[q.imgWrong]){
+      const lbl=pt?'Veja como fica certo:':'Here is the correct solution:';
+      visualHTML=`<div class="fb-visual-label">${lbl}</div><div class="fb-visual">${QI[q.imgWrong]()}</div>`;
+    }
+    fb.innerHTML=`<strong>${head}</strong> ${ansLbl} ${correctTxt}<br>${mistake?mistake+'<br>':''}<em style="opacity:.85">${q.fb||''}</em>${visualHTML}`;
   }
   fb.style.display='block';
   const n=document.getElementById('nxtBtn');n.style.display='block';
@@ -1413,7 +1473,12 @@ function check(sel){
     fb.className='fb fb-no';
     let mistake='';
     if(q.whyWrong&&q.whyWrong[sel]){mistake=q.whyWrong[sel]+'<br>';}
-    fb.innerHTML=`<strong>${pt?'❌ Ops!':'❌ Oops!'}</strong> ${pt?'Resposta certa:':'Correct answer:'} <strong>${q.opts[q.correct]}</strong><br>${mistake}<em style="opacity:.85">${q.fb||''}</em>`;
+    let visualHTML='';
+    if(q.imgWrong&&typeof QI!=='undefined'&&QI[q.imgWrong]){
+      const lbl=pt?'Veja como fica certo:':'Here is the correct solution:';
+      visualHTML=`<div class="fb-visual-label">${lbl}</div><div class="fb-visual">${QI[q.imgWrong]()}</div>`;
+    }
+    fb.innerHTML=`<strong>${pt?'❌ Ops!':'❌ Oops!'}</strong> ${pt?'Resposta certa:':'Correct answer:'} <strong>${q.opts[q.correct]}</strong><br>${mistake}<em style="opacity:.85">${q.fb||''}</em>${visualHTML}`;
   }
   fb.style.display='block';
   const n=document.getElementById('nxtBtn');n.style.display='block';
