@@ -96,6 +96,36 @@ body{font-family:'Quicksand','Trebuchet MS',Verdana,sans-serif;background:linear
 @keyframes su{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
 .fb.fb-ok{background:rgba(57,255,20,.08);border:1px solid rgba(57,255,20,.25)}
 .fb.fb-no{background:rgba(255,68,68,.08);border:1px solid rgba(255,68,68,.25)}
+.num-wrap{width:100%;max-width:420px;display:flex;flex-direction:column;gap:14px;align-items:center}
+.num-prompt{font-size:14px;color:rgba(255,255,255,.7);text-align:center}
+.num-input{width:180px;height:64px;background:#1c1f5a;border:2px solid rgba(255,255,255,.15);border-radius:16px;color:#FFD93D;font-family:'Fredoka','Trebuchet MS',sans-serif;font-size:34px;font-weight:700;text-align:center;outline:none;-webkit-appearance:none;appearance:none;-moz-appearance:textfield}
+.num-input::-webkit-outer-spin-button,.num-input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+.num-input:focus{border-color:#FFD93D}
+.num-input.ok{border-color:#39FF14;background:rgba(57,255,20,.1);color:#39FF14}
+.num-input.no{border-color:#FF4444;background:rgba(255,68,68,.1);color:#FF4444}
+.num-keys{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;width:100%;max-width:280px}
+.num-keys>*+*{margin:0}
+.num-key{background:#1c1f5a;border:1px solid rgba(255,255,255,.1);border-radius:14px;color:#fff;font-family:'Fredoka','Trebuchet MS',sans-serif;font-size:22px;font-weight:600;padding:14px 0;cursor:pointer;-webkit-transition:all .15s;transition:all .15s}
+.num-key:active{-webkit-transform:scale(.92);transform:scale(.92);background:#2a2e7a}
+.num-key.act{background:#FF6B35;border-color:#FF6B35}
+.num-submit{width:100%;max-width:280px;background:linear-gradient(135deg,#39FF14,#00E5FF);border:none;border-radius:14px;padding:14px;color:#000;font-family:'Fredoka','Trebuchet MS',sans-serif;font-size:18px;font-weight:700;cursor:pointer;-webkit-transition:all .2s;transition:all .2s}
+.num-submit:active:not(:disabled){-webkit-transform:scale(.97);transform:scale(.97)}
+.num-submit:disabled{opacity:.4;cursor:not-allowed}
+.dd-wrap{width:100%;max-width:420px;display:flex;flex-direction:column;gap:18px}
+.dd-prompt{font-size:14px;color:rgba(255,255,255,.7);text-align:center}
+.dd-targets{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;padding:12px;background:rgba(255,255,255,.04);border:1px dashed rgba(255,255,255,.15);border-radius:14px;min-height:64px;align-items:center}
+.dd-targets>*+*{margin:0}
+.dd-target{background:#1c1f5a;border:2px dashed rgba(255,217,61,.4);border-radius:12px;padding:10px 14px;color:#FFD93D;font-family:'Fredoka','Trebuchet MS',sans-serif;font-size:16px;font-weight:600;min-width:70px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:4px}
+.dd-target .dd-tlabel{font-size:11px;color:rgba(255,255,255,.5);font-weight:500}
+.dd-target.filled{border-style:solid;border-color:#B388FF;background:rgba(179,136,255,.15)}
+.dd-target.ok{border-color:#39FF14;background:rgba(57,255,20,.15);color:#39FF14}
+.dd-target.no{border-color:#FF4444;background:rgba(255,68,68,.15);color:#FF4444}
+.dd-pool{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;padding:8px}
+.dd-pool>*+*{margin:0}
+.dd-chip{background:linear-gradient(135deg,#FF6B35,#FF1493);border:none;border-radius:12px;padding:10px 16px;color:#fff;font-family:'Fredoka','Trebuchet MS',sans-serif;font-size:16px;font-weight:600;cursor:pointer;-webkit-transition:all .2s;transition:all .2s;box-shadow:0 4px 12px rgba(255,107,53,.25)}
+.dd-chip:active{-webkit-transform:scale(.92);transform:scale(.92)}
+.dd-chip.used{opacity:.25;pointer-events:none}
+.dd-chip.sel{outline:3px solid #FFD93D}
 .nxt{width:100%;max-width:420px;background:-webkit-linear-gradient(315deg,#B388FF,#FF1493);background:linear-gradient(135deg,#B388FF,#FF1493);border:none;border-radius:18px;padding:15px;color:#fff;font-family:'Fredoka','Trebuchet MS',sans-serif;font-size:17px;font-weight:600;cursor:pointer;margin-top:8px;display:none;-webkit-animation:su .3s;animation:su .3s;-webkit-transition:-webkit-transform .2s;transition:transform .2s}
 .nxt:active{-webkit-transform:scale(.97);transform:scale(.97)}
 #results{-webkit-box-pack:center;justify-content:center;gap:20px;text-align:center;z-index:1}
@@ -181,6 +211,8 @@ body{font-family:'Quicksand','Trebuchet MS',Verdana,sans-serif;background:linear
   <div class="q-count" id="qCount"></div>
   <div class="q-card"><div class="q-text" id="qText"></div><div class="q-img" id="qImg"></div></div>
   <div class="opts" id="optsList"></div>
+  <div class="num-wrap" id="numWrap" style="display:none"></div>
+  <div class="dd-wrap" id="ddWrap" style="display:none"></div>
   <div class="fb" id="fb"></div>
   <button class="nxt" id="nxtBtn" onclick="nextQ()"></button>
 </div>
@@ -328,66 +360,157 @@ const LILLUS = {
 // ===================== ALL EXAMS DATA =====================
 const EXAMS = [
   {id:'matematica',date:'28/04',day:'Terça',lang:'pt',name:'Matemática',icon:'🔢',css:'c-matematica',badge:'Português',
-    ref:'<p>📖 Livro Unidade A · Capítulos 1 e 2</p><p>📓 Registros no caderno</p>',
+    ref:'<p>📖 Livro Unidade A · Capítulos 1 e 2 · Páginas 18, 20, 26, 27, 28, 30, 32, 43, 44, 56, 67, 68, 71, 78, 80–82</p><p>📓 Registros no caderno</p>',
     topics:[
-      {id:'mat_add',icon:'➕',name:'Adição e Subtração',desc:'Com reserva e com recurso',illus:'generic',
-        lesson:`<h3>Adição e Subtração</h3><p>Na <span class="hl">adição com reserva</span>, quando a soma passa de 9, "reservamos" 1 dezena. Ex: 47+35 → 7+5=12, escreve 2 e leva 1.</p><p>Na <span class="hl">subtração com recurso</span>, pegamos emprestado. Ex: 52−28 → o 2 não tira 8, pega 1 dezena.</p><p>📌 Leia o enunciado: juntar (+) ou tirar (−)!</p>`,
+      {id:'mat_decomp',icon:'🧩',name:'Decomposição e Valor de Lugar',desc:'CM · DM · UM · C · D · U',illus:'generic',
+        lesson:`<h3>Decomposição e Valor de Lugar</h3><p>Cada algarismo de um número tem um <span class="hl">valor de lugar</span>. Da direita para a esquerda:</p><p><strong>U</strong> = Unidade · <strong>D</strong> = Dezena · <strong>C</strong> = Centena · <strong>UM</strong> = Unidade de Milhar · <strong>DM</strong> = Dezena de Milhar · <strong>CM</strong> = Centena de Milhar.</p><p><span class="hl">Decompor</span> é separar o número em ordens. Exemplos:</p><p>134 = 100 + 30 + 4<br>4.071 = 4.000 + 0 + 70 + 1<br>1.205 = 1.000 + 200 + 0 + 5</p><p>📌 Dica: 10 notas de 10 = 1 nota de 100. 10 notas de 100 = 1 nota de 1.000!</p>`,
         quiz:[
-          {q:'Quanto é 47 + 35?',opts:['72','82','92','81'],correct:1,fb:'7+5=12, escreve 2 leva 1. 4+3+1=8 → 82!',img:'mat_add_0'},
-          {q:'Quanto é 63 − 28?',opts:['45','35','25','55'],correct:1,fb:'Pega emprestado: 13−8=5, 5−2=3 → 35!',img:'mat_add_1'},
-          {q:'Maria tem 56 figurinhas e ganhou 27. Quantas?',opts:['73','83','93','82'],correct:1,fb:'56+27=83. Ganhou mais = adição!',img:'mat_add_2'},
-          {q:'Na adição com reserva, o que fazemos quando passa de 9?',opts:['Apagamos','Levamos 1 para a próxima casa','Começamos de novo','Zero'],correct:1,fb:'Reservamos 1 dezena para a casa seguinte!',img:'mat_add_3'},
-          {q:'Pedro tinha 91 cards e deu 45. Quantos ficaram?',opts:['46','56','36','54'],correct:0,fb:'91−45=46. Deu = subtração!',img:'mat_add_4'}
+          {q:'Decomponha o número 542. Qual é a centena?',type:'num',answer:500,fb:'542 = 500 + 40 + 2. A centena é 500.',whyWrong:(u)=>{if(u===5)return 'O algarismo é 5, mas o VALOR é 500 — porque ele está na casa das centenas.';if(u===54)return 'Você juntou centena e dezena. Só a centena é 500.';if(u===40)return '40 é a dezena. A centena é 500.';return null;}},
+          {q:'316 = 300 + ___ + 6. Qual número falta?',type:'num',answer:10,fb:'316 = 300 + 10 + 6. A dezena vale 10.',whyWrong:(u)=>{if(u===1)return 'O algarismo do meio é 1, mas o VALOR de lugar é 10 (uma dezena).';if(u===100)return '100 é centena. A casa do meio é a dezena.';return null;}},
+          {q:'No número 4.071, qual algarismo está na casa da UM (unidade de milhar)?',opts:['0','7','1','4'],correct:3,fb:'4.071 → o 4 está na casa do milhar.',whyWrong:{0:'O 0 está na casa das centenas (4.071).',1:'O 7 está na casa das dezenas.',2:'O 1 está na casa das unidades.'}},
+          {q:'Quantas notas de 10 são iguais a 1 nota de 100?',type:'num',answer:10,fb:'10 × 10 = 100. Dez notas de 10 formam 100!',whyWrong:(u)=>{if(u===100)return '100 é o valor total, não a quantidade de notas. São 10 notas de 10.';if(u===1)return '1 nota só de 10 vale apenas 10. Precisamos de 10 notas.';return null;}},
+          {q:'Decomponha: 729 = 700 + 20 + ___',type:'num',answer:9,fb:'729 → centena 700, dezena 20, unidade 9.',whyWrong:(u)=>{if(u===7)return 'O 7 já apareceu em 700 (centena). Falta a unidade.';if(u===2)return 'O 2 já apareceu em 20 (dezena). Falta a unidade.';return null;}},
+          {q:'Arraste cada parte para a casa correta. Decomponha 1.205.',type:'dd',pool:['1.000','200','0','5'],targets:[{label:'UM',answer:0,placeholder:'?'},{label:'C',answer:1,placeholder:'?'},{label:'D',answer:2,placeholder:'?'},{label:'U',answer:3,placeholder:'?'}],fb:'1.205 = 1.000 + 200 + 0 + 5. Não tem dezena, então a casa D é 0!'},
+          {q:'Usando os algarismos 1, 2, 3 e 0, qual é o MAIOR número de 4 ordens que dá pra formar?',type:'num',answer:3210,fb:'O maior tem que começar pelo maior algarismo: 3, depois 2, depois 1, depois 0 → 3.210.',whyWrong:(u)=>{if(u===123)return 'Você fez o menor possível, não o maior. O maior começa pelo MAIOR algarismo.';if(u===321)return 'Faltou usar todos os 4 algarismos. Use também o 0.';if(u===3201)return 'Quase! Depois do 3, tem que vir o 2, depois o 1, depois o 0.';return null;}},
+          {q:'Qual destes números é MENOR?',opts:['1.250','725','1.000','999'],correct:1,fb:'725 tem só 3 ordens, os outros têm 4 ordens (milhar). Por isso é o menor!',whyWrong:{0:'1.250 tem milhar, é grande.',2:'1.000 tem milhar, é maior que 725.',3:'999 é maior que 725 (999 > 725).'}},
+          {q:'Quantas notas de 1 são iguais a 1 nota de 1.000?',type:'num',answer:1000,fb:'Mil notas de 1 = 1.000. Cada nota de 1 vale 1, então precisa de 1.000 notas!',whyWrong:(u)=>{if(u===100)return '100 notas de 1 = 100, não 1.000.';if(u===10)return '10 notas de 1 = 10. Muito pouco!';return null;}},
+          {q:'Escreva 1.432 decomposto. Qual é a UM?',type:'num',answer:1000,fb:'1.432 = 1.000 + 400 + 30 + 2. A unidade de milhar vale 1.000.',whyWrong:(u)=>{if(u===1)return 'O ALGARISMO é 1, mas o VALOR de lugar é 1.000.';if(u===1432)return 'Esse é o número inteiro. Só a UM é 1.000.';return null;}}
         ]},
-      {id:'mat_med',icon:'📏',name:'Grandezas e Medidas',desc:'Metro, centímetro, relógios',illus:'generic',
-        lesson:`<h3>Grandezas e Medidas</h3><p>1 metro = 100 cm = 1000 mm</p><p>Régua para pequenos, metro para grandes.</p><p>📌 Relógio: ponteiro pequeno = horas, grande = minutos. No 6 = "e meia".</p>`,
+      {id:'mat_add',icon:'➕',name:'Adição com Reserva',desc:'Quando passa de 9, vai 1 pra próxima',illus:'generic',
+        lesson:`<h3>Adição com Reserva</h3><p>Quando somamos e o resultado de uma casa <span class="hl">passa de 9</span>, escrevemos só a unidade e <span class="hl">"reservamos"</span> 1 para a próxima casa. Por isso chama "com reserva".</p><p>Exemplo passo a passo: 47 + 35</p><p>1) Unidades: 7 + 5 = 12. Escreve 2, reserva 1.<br>2) Dezenas: 4 + 3 + 1 (reservado) = 8.<br>3) Resultado: <strong>82</strong>.</p><p>Outro exemplo: 821 + 191 = 1.012 (a centena também pode reservar para a UM!).</p>`,
         quiz:[
-          {q:'Quantos centímetros tem 1 metro?',opts:['10','50','100','1000'],correct:2,fb:'1 metro = 100 centímetros!',img:'mat_med_0'},
-          {q:'Qual instrumento mede o comprimento de um lápis?',opts:['Balança','Régua','Termômetro','Relógio'],correct:1,fb:'A régua mede comprimento em cm!',img:'mat_med_1'},
-          {q:'Ponteiro pequeno no 3 e grande no 12 — que horas são?',opts:['12:03','3:00','3:12','12:30'],correct:1,fb:'Pequeno no 3, grande no 12 = 3:00!',img:'mat_med_2'},
-          {q:'O que é maior: 1 metro ou 80 centímetros?',opts:['80 cm','Iguais','1 metro','Depende'],correct:2,fb:'1 metro = 100 cm > 80 cm!',img:'mat_med_3'},
-          {q:'Para medir a altura de uma porta, usamos:',opts:['Milímetros','Centímetros','Metros','Gramas'],correct:2,fb:'Porta ≈ 2 metros — usamos metros!',img:'mat_med_4'}
+          {q:'Quanto é 47 + 35?',type:'num',answer:82,fb:'7+5=12, escreve 2 e reserva 1. 4+3+1=8 → 82.',whyWrong:(u)=>{if(u===72)return 'Você esqueceu de RESERVAR o 1 da soma 7+5=12.';if(u===712)return 'Você escreveu o 12 inteiro. O certo é só o 2 e reservar o 1.';if(u===92)return 'Você reservou 2 em vez de 1. 7+5=12 → reserva só 1.';return null;}},
+          {q:'Quanto é 138 + 685?',type:'num',answer:823,fb:'8+5=13 (reserva 1). 3+8+1=12 (reserva 1). 1+6+1=8. → 823.',whyWrong:(u)=>{if(u===713)return 'Você esqueceu de reservar nas dezenas.';if(u===723)return 'Você reservou só 1 vez. As DUAS casas precisam de reserva.';return null;}},
+          {q:'Resolva: 356 + 95 = ?',type:'num',answer:451,fb:'6+5=11 (reserva 1). 5+9+1=15 (reserva 1). 3+0+1=4. → 451.',whyWrong:(u)=>{if(u===441)return 'Quase! Faltou reservar 1 vez.';if(u===351)return 'Você somou só as casas, sem reservar.';return null;}},
+          {q:'Em uma adição, 7 + 5 = 12. O que escrevo nessa casa?',opts:['12','7','2 e reservo 1','5 e reservo 7'],correct:2,fb:'Escreve a unidade (2) e RESERVA a dezena (1) para a próxima casa.',whyWrong:{0:'Não cabe 12 numa casa só! Cada casa só guarda um algarismo.',1:'7 era um dos números somados, não a resposta.',3:'Reserva-se a DEZENA do resultado (1), não 7.'}},
+          {q:'Lara tinha 124 figurinhas. Ganhou 86. Com quantas ficou?',type:'num',answer:210,fb:'124 + 86 = 210. Ganhou MAIS, então é adição.',whyWrong:(u)=>{if(u===200)return 'Quase! Você esqueceu de levar a reserva da soma 4+6=10.';if(u===38)return 'Isso seria 124 − 86 (subtração). Mas ganhou = soma.';return null;}},
+          {q:'Resolva: 821 + 191 = ?',type:'num',answer:1012,fb:'1+1=2. 2+9=11 (reserva 1). 8+1+1=10. → 1.012 (a centena virou milhar!).',whyWrong:(u)=>{if(u===912)return 'Faltou ver que a soma das centenas passou de 9 — virou milhar!';if(u===1002)return 'Quase! Reveja a soma das dezenas: 2+9=11.';return null;}},
+          {q:'Numa adição com reserva, a reserva é colocada onde?',opts:['Em cima da próxima casa à esquerda','No fim do número','Em cima da mesma casa','Embaixo do número'],correct:0,fb:'A reserva (geralmente um pequeno 1) vai em cima da próxima casa à ESQUERDA, para somar junto.',whyWrong:{1:'A reserva tem que ser usada na PRÓXIMA casa, não no fim.',2:'Na mesma casa não — ela já tem o resultado escrito.',3:'Embaixo é onde escrevemos o resultado, não a reserva.'}}
         ]},
-      {id:'mat_graf',icon:'📊',name:'Gráficos e Geometria',desc:'Tabelas, gráficos, trajetos',illus:'generic',
-        lesson:`<h3>Gráficos, Tabelas e Geometria</h3><p>Gráfico de barras: barra mais alta = mais!</p><p>Pictograma: cada figurinha pode valer mais de 1.</p><p>📌 Trajetos: esquerda, direita, frente, atrás.</p>`,
+      {id:'mat_sub',icon:'➖',name:'Subtração com Recurso',desc:'Pegar emprestado da próxima casa',illus:'generic',
+        lesson:`<h3>Subtração com Recurso (Empréstimo)</h3><p>Quando o algarismo de cima é <span class="hl">menor</span> que o de baixo, pegamos <span class="hl">emprestado</span> da próxima casa à esquerda. Também chamamos de "recurso".</p><p>Exemplo: 63 − 28</p><p>1) Unidades: 3 não tira 8! Pega 1 dezena emprestada → vira 13.<br>2) 13 − 8 = 5. (A dezena que era 6 virou 5.)<br>3) Dezenas: 5 − 2 = 3.<br>4) Resultado: <strong>35</strong>.</p><p>Em 256 − 28: pega da dezena, depois desce normal nas centenas.</p>`,
         quiz:[
-          {q:'Num gráfico de barras, a barra mais alta significa:',opts:['Menos','Mais quantidade','A mesma','Nenhuma'],correct:1,fb:'Mais alta = maior quantidade!',img:'mat_graf_0'},
-          {q:'O que é um pictograma?',opts:['Uma foto','Gráfico com desenhos','Uma conta','Um mapa'],correct:1,fb:'Pictograma usa figurinhas para mostrar dados!',img:'mat_graf_1'},
-          {q:'Cada ⭐ vale 2 votos e um sabor tem 5 estrelas. Quantos votos?',opts:['5','7','10','12'],correct:2,fb:'5×2=10 votos!',img:'mat_graf_2'},
-          {q:'"Vire à direita e ande 3 quadras" é exemplo de:',opts:['Gráfico','Medida','Trajeto','Pictograma'],correct:2,fb:'Trajeto = caminho com direções!',img:'mat_graf_3'},
-          {q:'Uma tabela serve para:',opts:['Desenhar','Organizar informações','Medir','Contar histórias'],correct:1,fb:'Tabelas organizam dados em linhas e colunas!',img:'mat_graf_4'}
+          {q:'Quanto é 63 − 28?',type:'num',answer:35,fb:'3 não tira 8 → pega 1 dezena (vira 13). 13−8=5. Dezena vira 5: 5−2=3. → 35.',whyWrong:(u)=>{if(u===45)return 'Você esqueceu de DIMINUIR a dezena depois de pegar emprestado. Ela era 6 e virou 5.';if(u===25)return 'Você diminuiu 2 a dezena em vez de 1. Empresta só 1!';if(u===47)return 'Você fez 8−3 em vez de 13−8. Quando empresta, faz 13−8.';return null;}},
+          {q:'Quanto é 256 − 28?',type:'num',answer:228,fb:'6 não tira 8 → vira 16. 16−8=8. Dezena vira 4: 4−2=2. Centena 2 desce. → 228.',whyWrong:(u)=>{if(u===238)return 'Você esqueceu de diminuir a dezena ao pegar emprestado.';if(u===232)return 'Reveja a soma das unidades: 16−8 = 8.';return null;}},
+          {q:'Em 415 − 3, precisa pegar emprestado?',opts:['Sim, pega da dezena','Não, é só subtrair direto','Sim, pega da centena','Sim, pega das duas casas'],correct:1,fb:'5 − 3 = 2 direto, sem precisar pegar emprestado!',whyWrong:{0:'Só pega emprestado quando o de cima é MENOR. 5 já é maior que 3.',2:'Centena nem é necessário aqui — a unidade resolve sozinha.',3:'Não há recurso aqui. 415−3=412 direto.'}},
+          {q:'Resolva: 564 − 18 = ?',type:'num',answer:546,fb:'4 não tira 8 → vira 14. 14−8=6. Dezena 6 vira 5: 5−1=4. Centena 5 desce. → 546.',whyWrong:(u)=>{if(u===556)return 'Você não diminuiu a dezena depois do empréstimo.';if(u===546)return null;return null;}},
+          {q:'Pedro tinha 91 cards. Deu 45. Com quantos ficou?',type:'num',answer:46,fb:'91 − 45 = 46. "Deu" significa tirar (subtração).',whyWrong:(u)=>{if(u===136)return 'Você somou (91+45). Mas "deu" significa tirar!';if(u===54)return 'Quase. 91−45: 1 não tira 5, vira 11. 11−5=6. Dezena 9 vira 8: 8−4=4. → 46.';return null;}},
+          {q:'Em 813 − 158, depois de pegar emprestado nas unidades, a dezena (que era 1) vira:',opts:['1 ainda','11','0','2'],correct:2,fb:'A dezena 1 emprestou 1 para as unidades, então virou 0. Depois precisa pegar das centenas!',whyWrong:{0:'Ela emprestou 1 para a unidade — não pode continuar sendo 1.',1:'11 seria se ela RECEBESSE empréstimo, mas ela DEU.',3:'Ela diminuiu 1, não aumentou.'}},
+          {q:'Resolva: 800 − 178 = ?',type:'num',answer:622,fb:'Empréstimo em cadeia! 0−8 não dá, pega da dezena (que é 0!), pega da centena. → 622.',whyWrong:(u)=>{if(u===678)return 'Quando há vários zeros, o empréstimo passa por todos. 800−178=622.';if(u===978)return 'Você somou em vez de subtrair.';return null;}}
+        ]},
+      {id:'mat_mental',icon:'🧠',name:'Cálculo Mental',desc:'Estratégias rápidas: ±10, ±100, aproximação',illus:'generic',
+        lesson:`<h3>Cálculo Mental</h3><p>Cálculo mental é fazer contas <span class="hl">sem precisar armar</span>. Existem estratégias:</p><p><strong>+10 ou −10:</strong> só muda a casa da DEZENA. Ex: 237 + 10 = 247. 481 − 10 = 471.</p><p><strong>+100 ou −100:</strong> só muda a casa da CENTENA. Ex: 392 + 100 = 492. 546 − 100 = 446.</p><p><strong>Completar 100 ou 1.000:</strong> 80 + 20 = 100. 800 + 200 = 1.000. 350 + 650 = 1.000.</p><p><strong>Aproximação:</strong> arredondar para a centena mais próxima. 320 ≈ 300. 680 ≈ 700. 570 ≈ 600.</p><p>📌 Para arredondar: se a dezena é 0–4, vai para baixo; se é 5–9, vai para cima.</p>`,
+        quiz:[
+          {q:'Cálculo mental: 237 + 10 = ?',type:'num',answer:247,fb:'+10 só muda a dezena: 23 → 24. Resultado: 247.',whyWrong:(u)=>{if(u===238)return 'Você somou 1 em vez de 10. +10 muda a DEZENA.';if(u===337)return 'Você somou 100 em vez de 10. +10 muda só a dezena.';return null;}},
+          {q:'Cálculo mental: 546 − 100 = ?',type:'num',answer:446,fb:'−100 só muda a centena: 5 → 4. Resultado: 446.',whyWrong:(u)=>{if(u===536)return 'Você tirou 10 em vez de 100. Reveja: −100 muda a centena.';if(u===545)return 'Você tirou 1 em vez de 100.';return null;}},
+          {q:'Para chegar a 100: 80 + ___ = 100',type:'num',answer:20,fb:'80 + 20 = 100. Bom truque para o cálculo mental!',whyWrong:(u)=>{if(u===10)return '80 + 10 = 90 (ainda não chegou a 100).';if(u===100)return '80 + 100 = 180 (passou bem do 100!).';return null;}},
+          {q:'Para chegar a 1.000: 350 + ___ = 1000',type:'num',answer:650,fb:'350 + 650 = 1.000. Pense: faltam 50 para 400, depois 600 para 1.000 = 650.',whyWrong:(u)=>{if(u===750)return '350 + 750 = 1.100 (passou). Reveja: 350+650=1000.';if(u===600)return '350 + 600 = 950 (faltam 50).';return null;}},
+          {q:'Aproxime 320 para a CENTENA mais próxima.',opts:['200','300','400','350'],correct:1,fb:'320 está mais perto de 300 (só 20 de diferença) do que de 400.',whyWrong:{0:'200 está MUITO longe de 320 (120 de diferença).',2:'400 está a 80 de distância. 300 está a 20 — bem mais perto.',3:'350 não é uma centena exata.'}},
+          {q:'Aproxime 680 para a CENTENA mais próxima.',opts:['600','650','700','800'],correct:2,fb:'680 está mais perto de 700 (só 20 de diferença) do que de 600 (80 de diferença).',whyWrong:{0:'600 está a 80 de distância. 700 está a 20.',1:'650 não é uma centena exata.',3:'800 está bem longe.'}},
+          {q:'Cálculo mental: 481 + 100 = ?',type:'num',answer:581,fb:'+100 muda a centena: 4 → 5. Resultado: 581.',whyWrong:(u)=>{if(u===491)return 'Você somou 10. +100 muda a CENTENA.';if(u===482)return 'Você somou 1. +100 muda a centena.';return null;}},
+          {q:'Resolva: 1100 + ___ = 2000',type:'num',answer:900,fb:'1.100 + 900 = 2.000. Falta 900 para chegar.',whyWrong:(u)=>{if(u===100)return '1.100 + 100 = 1.200 (ainda falta muito).';if(u===1000)return '1.100 + 1.000 = 2.100 (passou de 2.000).';return null;}}
+        ]},
+      {id:'mat_med',icon:'📏',name:'Grandezas e Medidas',desc:'Comprimento e tempo',illus:'generic',
+        lesson:`<h3>Grandezas e Medidas</h3><p><strong>Comprimento:</strong> usamos metro (m), centímetro (cm) e milímetro (mm). 1 m = 100 cm. Instrumentos: <span class="hl">régua</span> (coisas pequenas), <span class="hl">trena</span> e <span class="hl">fita métrica</span> (coisas grandes).</p><p>📏 Sempre comece a medir do <strong>zero</strong> da régua!</p><p><strong>Tempo:</strong> medimos em horas, minutos e segundos.</p><p>1 hora = 60 minutos · 1 minuto = 60 segundos.</p><p>No relógio analógico:<br>• Ponteiro pequeno = HORAS<br>• Ponteiro grande = MINUTOS<br>• Ponteiro fino = SEGUNDOS</p><p>Os números do relógio (12, 1, 2, 3...) marcam minutos de <strong>5 em 5</strong>: 12=0/60, 1=5, 2=10, 3=15, 4=20, 5=25, 6=30 ("e meia"), 7=35, 8=40, 9=45, 10=50, 11=55.</p>`,
+        quiz:[
+          {q:'Quantos centímetros tem 1 metro?',type:'num',answer:100,fb:'1 m = 100 cm. É o tamanho de um passo grande!',whyWrong:(u)=>{if(u===10)return '10 cm é mais ou menos o tamanho da palma da mão. Bem menos que 1 metro.';if(u===1000)return '1.000 cm = 10 metros. Bem mais que 1 metro.';return null;}},
+          {q:'Para medir o comprimento de um lápis, qual instrumento é melhor?',opts:['Balança','Régua','Termômetro','Relógio'],correct:1,fb:'Régua é para medir comprimento de coisas pequenas.',whyWrong:{0:'Balança mede peso (quilos), não comprimento.',2:'Termômetro mede temperatura.',3:'Relógio mede tempo.'}},
+          {q:'O ponteiro grande do relógio analógico mostra:',opts:['Horas','Minutos','Segundos','Dias'],correct:1,fb:'O ponteiro GRANDE mostra os minutos. O pequeno mostra as horas.',whyWrong:{0:'O ponteiro das horas é o PEQUENO.',2:'O dos segundos costuma ser o mais fino e rápido.',3:'Dias se contam no calendário, não no relógio.'}},
+          {q:'Quantos minutos tem 1 hora?',type:'num',answer:60,fb:'1 hora = 60 minutos. 1 minuto = 60 segundos.',whyWrong:(u)=>{if(u===100)return 'Quase confundindo com cm! Tempo é em base 60: 1 hora = 60 min.';if(u===24)return '24 são as HORAS do dia, não os minutos da hora.';return null;}},
+          {q:'No relógio, o número 3 representa quantos minutos?',type:'num',answer:15,fb:'Os números marcam minutos de 5 em 5: 1=5, 2=10, 3=15, 4=20...',whyWrong:(u)=>{if(u===3)return 'O ALGARISMO é 3, mas como minutos representa 15 (3 × 5).';if(u===30)return '30 minutos é no número 6 (no meio do relógio).';return null;}},
+          {q:'O ponteiro grande está no 6. Quantos minutos passaram?',type:'num',answer:30,fb:'O 6 fica no meio: 6 × 5 = 30 minutos. É o famoso "e meia"!',whyWrong:(u)=>{if(u===6)return 'O algarismo é 6, mas como minutos é 30 (6 × 5).';if(u===60)return '60 minutos seria voltar ao 12. O 6 fica na metade.';return null;}},
+          {q:'Qual é maior: 1 metro ou 80 centímetros?',opts:['80 cm','São iguais','1 metro','Depende'],correct:2,fb:'1 m = 100 cm, e 100 > 80. Então 1 metro é maior.',whyWrong:{0:'80 cm é menor que 100 cm.',1:'Não são iguais: 1 m = 100 cm, não 80 cm.',3:'Não depende — comprimento é fixo.'}},
+          {q:'Para medir a altura de uma porta, é melhor usar:',opts:['Milímetros','Centímetros','Metros','Gramas'],correct:2,fb:'Uma porta tem cerca de 2 metros. Usar mm ou cm daria um número muito grande!',whyWrong:{0:'2 metros = 2.000 mm. Um número difícil de ler.',1:'2 metros = 200 cm. Dá pra usar, mas metros é mais simples.',3:'Gramas é peso, não altura.'}},
+          {q:'Quantos segundos tem 1 minuto?',type:'num',answer:60,fb:'1 minuto = 60 segundos. Igual horas: 1 h = 60 min.',whyWrong:(u)=>{if(u===100)return 'Tempo usa base 60, não 100.';if(u===3600)return '3.600 é segundos em UMA HORA, não em um minuto.';return null;}},
+          {q:'O ponteiro grande está no 9. Quantos minutos passaram?',type:'num',answer:45,fb:'9 × 5 = 45 minutos. É 15 minutos antes da hora cheia.',whyWrong:(u)=>{if(u===9)return 'O 9 vale 45 minutos (9 × 5).';if(u===90)return 'Você multiplicou por 10. Os números marcam de 5 em 5.';return null;}}
+        ]},
+      {id:'mat_geo',icon:'📊',name:'Gráficos, Trajetos e Calendário',desc:'Ler dados, mapas e datas',illus:'generic',
+        lesson:`<h3>Gráficos, Trajetos e Calendário</h3><p><strong>Gráfico de barras:</strong> a barra MAIS ALTA mostra o MAIOR valor. Sempre leia o TÍTULO primeiro.</p><p><strong>Pictograma:</strong> usa figurinhas. Cada figurinha pode valer mais de 1 (a legenda diz quanto).</p><p><strong>Tabela:</strong> organiza dados em linhas e colunas.</p><p><strong>Trajetos / Mapas:</strong> usamos referências (escola, mercado, praça) e direções (esquerda, direita, frente). Mapas ajudam a saber onde estamos e aonde queremos chegar.</p><p><strong>Calendário:</strong> instrumento que mostra dias, semanas e meses. Um ano tem 365 dias. <span class="hl">Ano bissexto</span> tem 366 dias e fevereiro com 29 — acontece a cada <strong>4 anos</strong>!</p><p>📅 Bissextos próximos: 2020, 2024, 2028, 2032...</p>`,
+        quiz:[
+          {q:'Num gráfico de barras, a barra MAIS ALTA significa:',opts:['Menos quantidade','Mais quantidade','A mesma quantidade','Não significa nada'],correct:1,fb:'Quanto mais alta, MAIOR o número que ela representa.',whyWrong:{0:'É o contrário: alta = mais, baixa = menos.',2:'Cada barra mostra um valor diferente.',3:'A altura é a informação principal!'}},
+          {q:'Cada ⭐ vale 2 votos. Um sabor recebeu 5 estrelas. Quantos votos teve?',type:'num',answer:10,fb:'5 × 2 = 10. Em pictograma, multiplica a quantidade pela legenda!',whyWrong:(u)=>{if(u===5)return 'Você contou só as estrelas. Cada uma vale 2 votos!';if(u===7)return 'Você somou em vez de multiplicar. 5 × 2 = 10.';return null;}},
+          {q:'O que devemos LER PRIMEIRO em qualquer gráfico?',opts:['A barra mais alta','O título','As cores','Os números'],correct:1,fb:'O título diz SOBRE O QUE é o gráfico. Sem isso, os números não fazem sentido.',whyWrong:{0:'A altura só faz sentido depois de saber o tema.',2:'Cores são só para diferenciar.',3:'Números sem contexto não dizem nada.'}},
+          {q:'"Vire à direita e siga até a próxima esquina" é um exemplo de:',opts:['Gráfico','Medida','Trajeto','Pictograma'],correct:2,fb:'Trajeto = caminho a seguir, com direções e referências.',whyWrong:{0:'Gráfico mostra dados, não caminhos.',1:'Medida é distância ou tamanho.',3:'Pictograma usa figurinhas, não direções.'}},
+          {q:'Um ano normal tem 365 dias. Quantos dias tem um ano bissexto?',type:'num',answer:366,fb:'No bissexto, fevereiro ganha 1 dia extra (29 de fevereiro). 365 + 1 = 366.',whyWrong:(u)=>{if(u===365)return 'Bissexto tem UM dia a mais que o normal. 365 + 1 = 366.';if(u===364)return 'Bissexto tem MAIS dias, não menos.';return null;}},
+          {q:'Anos bissextos acontecem a cada quantos anos?',type:'num',answer:4,fb:'A cada 4 anos! Ex: 2020, 2024, 2028, 2032...',whyWrong:(u)=>{if(u===2)return 'Bissexto é a cada 4 anos, não 2.';if(u===10)return 'A cada 10 seria muito espaçado. É a cada 4.';return null;}},
+          {q:'Complete a sequência (de 5 em 5): 1023, 1028, 1033, 1038, ___',type:'num',answer:1043,fb:'A cada passo soma 5: 1038 + 5 = 1043.',whyWrong:(u)=>{if(u===1039)return 'Você somou 1 em vez de 5.';if(u===1048)return 'Você pulou um número. Vai de 5 em 5, não de 10 em 10.';return null;}},
+          {q:'Um calendário serve para:',opts:['Medir comprimento','Saber dias, meses e semanas','Pesar coisas','Contar dinheiro'],correct:1,fb:'Calendário organiza o tempo em dias, semanas e meses.',whyWrong:{0:'Comprimento mede-se com régua/trena.',2:'Peso mede-se com balança.',3:'Dinheiro conta-se com cédulas e moedas.'}},
+          {q:'Arraste a referência certa para cada lugar do mapa.',type:'dd',pool:['Escola','Mercado','Praça'],targets:[{label:'Onde se estuda',answer:0,placeholder:'?'},{label:'Onde se compra comida',answer:1,placeholder:'?'},{label:'Onde se brinca',answer:2,placeholder:'?'}],fb:'Cada lugar tem uma função: escola = estudar, mercado = comprar, praça = brincar.'}
         ]}
     ]},
 
   {id:'math',date:'27/04',day:'Monday',lang:'en',name:'Math Test',icon:'🧮',css:'c-math',badge:'English',
-    ref:'<p>📖 Prime Math: pp.20-31 (Add), 37-42 (Sub), 44+ (problems), 123&125 (Graphs), 130-134 (m&cm)</p>',
+    ref:'<p>📖 Prime Math: pp.20–22 (Add/Sub no regrouping), 27–31 (Add with regrouping), 37–40 (Sub with regrouping), 44–47 (Word problems), 123 & 125 (Bar graphs), 130–134 (Length, m & cm)</p>',
     topics:[
-      {id:'math_ops',icon:'➕',name:'Addition & Subtraction',desc:'Adding and taking away numbers',illus:'generic',
-        lesson:`<h3>Addition & Subtraction</h3><p><span class="hl">Regrouping:</span> When numbers add up to more than 9, we carry 1 to the next place. Example: 48+36 → 8+6=14, write 4, carry 1!</p><p><span class="hl">Subtraction:</span> When you can't take away, borrow from the next column. Example: 72−45 → borrow to make 12−5=7.</p><p>📌 "How many in all?" = add. "How many are left?" = take away.</p>`,
+      {id:'math_place',icon:'🧩',name:'Place Value (H · T · O)',desc:'Hundreds · Tens · Ones',illus:'generic',
+        lesson:`<h3>Place Value</h3><p>Each digit has a <span class="hl">place value</span>. From right to left:</p><p><strong>O</strong> = Ones · <strong>T</strong> = Tens · <strong>H</strong> = Hundreds.</p><p>Examples:<br>423 → 4 hundreds, 2 tens, 3 ones<br>739 → 7 hundreds, 3 tens, 9 ones</p><p>📌 Tip: 10 ones = 1 ten. 10 tens = 1 hundred.</p>`,
         quiz:[
-          {q:'What is 58 + 37?',opts:['85','95','105','94'],correct:1,fb:'8+7=15, write 5, carry 1. 5+3+1=9 → 95!',img:'math_ops_0'},
-          {q:'What is 83 − 46?',opts:['47','37','43','27'],correct:1,fb:'Borrow: 13−6=7, 7−4=3 → 37!',img:'math_ops_1'},
-          {q:'Tom has 45 stickers. He gets 28 more. How many in all?',opts:['63','73','83','72'],correct:1,fb:'45+28=73. He gets more, so we add!',img:'math_ops_2'},
-          {q:'What does "regrouping" mean in math?',opts:['Taking away','Carrying to the next place','Counting back','Cutting in half'],correct:1,fb:'Regrouping means carrying 1 when numbers add up to more than 9!',img:'math_ops_3'},
-          {q:'Sara had 60 candies. She gave 24 away. How many are left?',opts:['44','36','34','46'],correct:1,fb:'60−24=36. She gave away, so we take away!',img:'math_ops_4'}
+          {q:'In the number 423, what is the value of the 4?',type:'num',answer:400,fb:'The 4 is in the hundreds place. Its value is 400.',whyWrong:(u)=>{if(u===4)return 'The DIGIT is 4, but the VALUE is 400 (it is in the hundreds place).';if(u===40)return '40 would be the tens place. The 4 here is in the hundreds.';return null;}},
+          {q:'In the number 557, the digit 5 in the tens place has the value of:',type:'num',answer:50,fb:'557: the second 5 is in the TENS place. Its value is 50.',whyWrong:(u)=>{if(u===5)return 'The digit is 5, but its place value is 50.';if(u===500)return '500 is the FIRST 5 (hundreds). The second 5 is tens = 50.';return null;}},
+          {q:'How do we write 4 hundreds, 2 tens, and 3 ones as one number?',type:'num',answer:423,fb:'4 hundreds = 400, 2 tens = 20, 3 ones = 3 → 400 + 20 + 3 = 423.',whyWrong:(u)=>{if(u===234)return 'You wrote it backwards! Hundreds come first.';if(u===403)return 'You forgot the 2 tens (= 20).';return null;}},
+          {q:'Drag each digit of the number 256 to the correct place.',type:'dd',pool:['2','5','6'],targets:[{label:'Hundreds',answer:0,placeholder:'?'},{label:'Tens',answer:1,placeholder:'?'},{label:'Ones',answer:2,placeholder:'?'}],fb:'256 = 2 hundreds + 5 tens + 6 ones.'},
+          {q:'Which number is GREATER: 725 or 521?',opts:['521','They are equal','725','We cannot tell'],correct:2,fb:'725 has 7 hundreds; 521 has only 5 hundreds. So 725 is greater.',whyWrong:{0:'521 has fewer hundreds (5 vs 7).',1:'They are different numbers.',3:'We compare hundreds first: 7 > 5.'}},
+          {q:'How many tens are equal to 1 hundred?',type:'num',answer:10,fb:'10 tens = 100 (1 hundred).',whyWrong:(u)=>{if(u===100)return '100 is the value, not the count. We need 10 tens to make 100.';if(u===1)return '1 ten = 10, not 100.';return null;}},
+          {q:'What is the number that has 7 hundreds and 5 tens (no ones)?',type:'num',answer:750,fb:'7 hundreds = 700, 5 tens = 50, 0 ones. → 750.',whyWrong:(u)=>{if(u===75)return 'You used 7 and 5 only. Hundreds means 700, not 7.';if(u===705)return 'You wrote 5 in the ones place. The 5 is in the tens place.';return null;}}
         ]},
-      {id:'math_meas',icon:'📏',name:'Measurement',desc:'Meters and centimeters',illus:'generic',
-        lesson:`<h3>Meters & Centimeters</h3><p>A <span class="hl">meter (m)</span> is about the size of a big step. A <span class="hl">centimeter (cm)</span> is very small — like the tip of your finger!</p><p>1 meter = 100 centimeters.</p><p>We use a <span class="hl">ruler</span> for small things and a <span class="hl">tape measure</span> for big things.</p><p>📌 Always start at zero on the ruler!</p>`,
+      {id:'math_add',icon:'➕',name:'Addition',desc:'With and without regrouping',illus:'generic',
+        lesson:`<h3>Addition</h3><p><strong>Without regrouping:</strong> add column by column. Example: 423 + 316. Add ones (3+6=9), add tens (2+1=3), add hundreds (4+3=7) → 739.</p><p><strong>With regrouping (carry):</strong> when a column adds up to MORE than 9, write the ones digit and <span class="hl">carry 1</span> to the next column.</p><p>Example: 147 + 85<br>1) Ones: 7 + 5 = 12. Write 2, carry 1.<br>2) Tens: 4 + 8 + 1 = 13. Write 3, carry 1.<br>3) Hundreds: 1 + 1 = 2.<br>Result: <strong>232</strong>.</p>`,
         quiz:[
-          {q:'How many centimeters are in 1 meter?',opts:['10','50','100','1000'],correct:2,fb:'1 meter = 100 centimeters!',img:'math_meas_0'},
-          {q:'What do we use to measure a pencil?',opts:['Meters','Centimeters','Kilometers','Liters'],correct:1,fb:'A pencil is small — we use centimeters!',img:'math_meas_1'},
-          {q:'Which is longer: 1 meter or 90 cm?',opts:['90 cm','They are the same','1 meter','We don\'t know'],correct:2,fb:'1 meter = 100 cm, and 100 is more than 90!',img:'math_meas_2'},
-          {q:'What tool do we use to measure how long something is?',opts:['A scale','A clock','A ruler','A cup'],correct:2,fb:'We use a ruler to measure length!',img:'math_meas_3'},
-          {q:'About how long is a classroom?',opts:['5 cm','5 meters','50 meters','500 meters'],correct:1,fb:'A classroom is about 5 to 10 meters long!',img:'math_meas_4'}
+          {q:'What is 423 + 316? (no regrouping)',type:'num',answer:739,fb:'3+6=9, 2+1=3, 4+3=7 → 739.',whyWrong:(u)=>{if(u===749)return 'You added the tens wrong: 2+1=3, not 4.';if(u===839)return 'You added the hundreds wrong: 4+3=7, not 8.';return null;}},
+          {q:'What is 58 + 37? (with regrouping)',type:'num',answer:95,fb:'8+7=15, write 5 carry 1. 5+3+1=9 → 95.',whyWrong:(u)=>{if(u===85)return 'You forgot to CARRY the 1 from 8+7=15.';if(u===815)return 'You wrote the 15 in one column. Write only the 5 and carry the 1.';return null;}},
+          {q:'What is 147 + 85?',type:'num',answer:232,fb:'7+5=12 (carry 1). 4+8+1=13 (carry 1). 1+1=2. → 232.',whyWrong:(u)=>{if(u===222)return 'You forgot one of the carries. Both columns need to carry.';if(u===132)return 'You carried only once. Both ones AND tens columns regroup here.';return null;}},
+          {q:'When 7 + 5 = 12, what do we write in that column?',opts:['12','7','2 and carry 1','5 and carry 7'],correct:2,fb:'Write the ones (2) and carry the tens (1) to the next column.',whyWrong:{0:'12 cannot fit in one column. Each column holds one digit.',1:'7 was a number we added, not the answer.',3:'We carry the tens digit (1), not 7.'}},
+          {q:'What is 276 + 12? (no regrouping)',type:'num',answer:288,fb:'6+2=8, 7+1=8, 2+0=2 → 288.',whyWrong:(u)=>{if(u===278)return 'You added wrong: 7+1=8, not 7.';if(u===298)return 'You added wrong: 2+0=2, not 2 plus a carry.';return null;}},
+          {q:'What is 246 + 656?',type:'num',answer:902,fb:'6+6=12 (carry 1). 4+5+1=10 (carry 1). 2+6+1=9. → 902.',whyWrong:(u)=>{if(u===892)return 'You missed a carry in the tens column.';if(u===812)return 'Recheck the hundreds: 2+6+carry = 9.';return null;}},
+          {q:'Tom has 45 stickers. He gets 28 more. How many in all?',type:'num',answer:73,fb:'45 + 28 = 73. "How many in all" means add!',whyWrong:(u)=>{if(u===17)return 'You subtracted (45−28). But "in all" means add!';if(u===63)return 'Almost. 5+8=13 (carry 1). 4+2+1=7 → 73.';return null;}},
+          {q:'When you carry a 1 in addition, where does it go?',opts:['On the next column to the LEFT','At the end of the answer','On the same column','Below the line'],correct:0,fb:'The carry goes ON TOP of the next column to the LEFT.',whyWrong:{1:'The carry must be added in the next column, not at the end.',2:'The same column already has its answer.',3:'Below the line is where the answer goes.'}}
         ]},
-      {id:'math_graph',icon:'📊',name:'Graphs',desc:'Bar graphs and pictographs',illus:'generic',
-        lesson:`<h3>Graphs</h3><p>A <span class="hl">bar graph</span> uses bars to show numbers. The taller the bar, the bigger the number!</p><p>A <span class="hl">pictograph</span> uses little pictures to show numbers. Each picture can mean 1 or more.</p><p>📌 Always read the <span class="hl">title</span> first to know what the graph is about!</p>`,
+      {id:'math_sub',icon:'➖',name:'Subtraction',desc:'With and without regrouping',illus:'generic',
+        lesson:`<h3>Subtraction</h3><p><strong>Without regrouping:</strong> subtract column by column. Example: 557 − 315 = 242.</p><p><strong>With regrouping (borrow):</strong> when the top digit is <span class="hl">smaller</span> than the bottom, we <span class="hl">borrow</span> 1 from the next column.</p><p>Example: 256 − 28<br>1) Ones: 6 − 8? No! Borrow 1 ten → ones become 16. 16 − 8 = 8.<br>2) The tens digit was 5, now it is 4. 4 − 2 = 2.<br>3) Hundreds: 2 − 0 = 2.<br>Result: <strong>228</strong>.</p>`,
         quiz:[
-          {q:'In a bar graph, the tallest bar means:',opts:['The smallest number','The biggest number','Nothing','A mistake'],correct:1,fb:'The taller the bar, the bigger the number!',img:'math_graph_0'},
-          {q:'What is a pictograph?',opts:['A photo','A graph that uses little pictures','A painting','A math problem'],correct:1,fb:'A pictograph uses pictures to show numbers!',img:'math_graph_1'},
-          {q:'If each 🍎 = 3 votes and there are 4 apples, how many votes?',opts:['4','7','12','15'],correct:2,fb:'4 apples × 3 votes each = 12 votes!',img:'math_graph_2'},
-          {q:'What should you read first on a graph?',opts:['The biggest bar','The title','The colors','The smallest number'],correct:1,fb:'Always read the title first to know what the graph shows!',img:'math_graph_3'},
-          {q:'Bar graphs are good for:',opts:['Telling stories','Comparing numbers','Drawing','Measuring things'],correct:1,fb:'Bar graphs help us compare numbers side by side!',img:'math_graph_4'}
+          {q:'What is 557 − 315? (no regrouping)',type:'num',answer:242,fb:'7−5=2, 5−1=4, 5−3=2 → 242.',whyWrong:(u)=>{if(u===232)return 'Recheck the tens: 5−1=4, not 3.';if(u===342)return 'Recheck the hundreds: 5−3=2, not 3.';return null;}},
+          {q:'What is 162 − 7? Do you need to borrow?',type:'num',answer:155,fb:'2 cannot take 7 → borrow 1 ten (becomes 12). 12−7=5. Tens 6 becomes 5. → 155.',whyWrong:(u)=>{if(u===165)return 'You added instead of subtracting.';if(u===145)return 'After borrowing, the tens 6 becomes 5, not 4.';return null;}},
+          {q:'What is 256 − 28?',type:'num',answer:228,fb:'6−8 not enough → borrow (becomes 16). 16−8=8. Tens 5 becomes 4. 4−2=2. → 228.',whyWrong:(u)=>{if(u===238)return 'You forgot to lower the tens after borrowing.';if(u===232)return 'Recheck the ones: 16−8=8, not 2.';return null;}},
+          {q:'In 415 − 3, do we need to borrow?',opts:['Yes, from the tens','No, just subtract','Yes, from the hundreds','Yes, from both'],correct:1,fb:'5 − 3 = 2 directly. No borrowing needed!',whyWrong:{0:'We borrow only when the TOP is SMALLER. 5 is bigger than 3.',2:'No borrowing needed at all.',3:'Just a simple subtraction in the ones place.'}},
+          {q:'What is 564 − 18?',type:'num',answer:546,fb:'4−8 not enough → 14−8=6. Tens 6 becomes 5. 5−1=4. → 546.',whyWrong:(u)=>{if(u===556)return 'You did not lower the tens after borrowing.';if(u===544)return 'Recheck the ones: 14−8=6.';return null;}},
+          {q:'In 256 − 28, after borrowing, what does the tens digit (5) become?',type:'num',answer:4,fb:'It gave 1 to the ones, so it goes from 5 to 4.',whyWrong:(u)=>{if(u===5)return 'It LENT 1 to the ones, so it must go DOWN by 1.';if(u===6)return 'It went down, not up. It lent 1, did not receive.';return null;}},
+          {q:'Sara had 60 candies. She gave 24 away. How many are left?',type:'num',answer:36,fb:'60 − 24 = 36. "Gave away" means we subtract.',whyWrong:(u)=>{if(u===84)return 'You added instead. "Gave away" means take away.';if(u===46)return 'Recheck: 0−4 needs borrowing → 10−4=6, then 5−2=3 → 36.';return null;}},
+          {q:'What is 800 − 178?',type:'num',answer:622,fb:'Borrow chain across zeros! 0−8 needs borrow, but tens is 0 too — borrow from hundreds. → 622.',whyWrong:(u)=>{if(u===678)return 'Borrowing across zeros is tricky. 800−178=622.';if(u===978)return 'You added instead of subtracting.';return null;}}
+        ]},
+      {id:'math_word',icon:'📖',name:'Word Problems',desc:'Understand · Plan · Answer · Check',illus:'generic',
+        lesson:`<h3>Word Problems</h3><p>Use 4 steps:</p><p><strong>1. Understand:</strong> read carefully. What do we know? What do we need to find?</p><p><strong>2. Plan:</strong> add or subtract? "How many in all", "altogether", "more" → ADD. "How many left", "fewer", "give away" → SUBTRACT.</p><p><strong>3. Answer:</strong> do the math.</p><p><strong>4. Check:</strong> does the answer make sense? Reread the question.</p><p>📌 Tip: keywords help, but always think about the SITUATION!</p>`,
+        quiz:[
+          {q:'There are 295 seats on a train. 42 are empty. How many seats are taken?',type:'num',answer:253,fb:'295 − 42 = 253. Total minus empty = taken.',whyWrong:(u)=>{if(u===337)return 'You added. But empty + taken = TOTAL, so taken = total − empty.';if(u===263)return 'Recheck: 95−42=53, then 295−42 has hundreds 2.';return null;}},
+          {q:'Ana picked 135 daisies and 150 roses. How many flowers altogether?',type:'num',answer:285,fb:'135 + 150 = 285. "Altogether" means add.',whyWrong:(u)=>{if(u===15)return 'You subtracted. "Altogether" means add!';if(u===275)return 'Recheck: 5+0=5, 3+5=8, 1+1=2 → 285.';return null;}},
+          {q:'Raul has 266 star stickers. He has 223 MORE stars than circles. How many circle stickers?',type:'num',answer:43,fb:'Stars − 223 = circles. 266 − 223 = 43. "More than" means stars are bigger, so subtract to find circles.',whyWrong:(u)=>{if(u===489)return 'You added. But "more than" tells you stars are bigger — subtract to find the smaller group.';if(u===53)return 'Recheck: 266−223. 6−3=3, 6−2=4, 2−2=0 → 43.';return null;}},
+          {q:'Tara baked 124 almond cookies. She gave some away and had 56 left. How many did she give away?',type:'num',answer:68,fb:'Started − left = given away. 124 − 56 = 68.',whyWrong:(u)=>{if(u===180)return 'You added 124+56. But "left" means we subtract from the start.';if(u===58)return 'Recheck: 4−6 needs borrow → 14−6=8, then 11−5=6 → 68.';return null;}},
+          {q:'A shop sold 642 mobile phones in March and April. 319 were sold in March. How many in April?',type:'num',answer:323,fb:'Total − March = April. 642 − 319 = 323.',whyWrong:(u)=>{if(u===961)return 'You added. But March + April = total, so April = total − March.';if(u===333)return 'Recheck: borrow needed in the tens.';return null;}},
+          {q:'A farmer harvests 438 carrots. He harvests 153 FEWER turnips than carrots. How many turnips?',type:'num',answer:285,fb:'Carrots − 153 = turnips. 438 − 153 = 285. "Fewer" means turnips are smaller.',whyWrong:(u)=>{if(u===591)return 'You added. "Fewer" means turnips are LESS, so subtract.';if(u===325)return 'Recheck: 8−3=5, 13−5=8 (borrow), 3−1=2 → 285.';return null;}},
+          {q:'A factory makes 562 nuts in an hour. It makes 275 FEWER bolts than nuts. How many nuts AND bolts in an hour?',type:'num',answer:849,fb:'Bolts = 562 − 275 = 287. Total = 562 + 287 = 849.',whyWrong:(u)=>{if(u===287)return 'That is just the bolts! The question asks the TOTAL of nuts AND bolts.';if(u===562)return 'That is just the nuts! Add bolts (287) to get the total: 849.';return null;}},
+          {q:'Which words usually mean ADD?',opts:['Gave away · left','In all · altogether · more','Fewer · less than','How many remain'],correct:1,fb:'"In all", "altogether" and "more" mean ADD. The others mean subtract.',whyWrong:{0:'"Gave away" and "left" mean SUBTRACT.',2:'"Fewer" and "less than" mean SUBTRACT.',3:'"Remain" means what is LEFT — subtract.'}}
+        ]},
+      {id:'math_meas',icon:'📏',name:'Measurement',desc:'Meters, centimeters, ruler',illus:'generic',
+        lesson:`<h3>Length: Meters & Centimeters</h3><p>A <span class="hl">meter (m)</span> is about a big step. A <span class="hl">centimeter (cm)</span> is small — about the tip of your finger.</p><p><strong>1 meter = 100 centimeters.</strong></p><p>📏 To use the ruler:<br>• Always start at the <strong>zero</strong> mark!<br>• Read where the line ENDS.</p><p>For drawing: place pencil at zero and draw until you reach the right number.</p><p>To compare lengths: longer = more cm. Shorter = fewer cm.</p>`,
+        quiz:[
+          {q:'How many centimeters are in 1 meter?',type:'num',answer:100,fb:'1 m = 100 cm. About a big step!',whyWrong:(u)=>{if(u===10)return '10 cm is small — like a finger.';if(u===1000)return '1.000 cm = 10 meters. Too big.';return null;}},
+          {q:'A line goes from 0 to 6 on the ruler. How long is it (in cm)?',type:'num',answer:6,fb:'It is 6 cm long. Always start at zero!',whyWrong:(u)=>{if(u===0)return '0 is where it STARTS. The end is at 6.';if(u===60)return 'Look at cm, not mm. The line is 6 cm.';return null;}},
+          {q:'Where should we place the pencil when measuring with a ruler?',opts:['On the number 1','At the zero mark','At the end of the ruler','Anywhere'],correct:1,fb:'Always start at ZERO — that is the rule!',whyWrong:{0:'1 would skip the first centimeter.',2:'The end of the ruler would give a wrong measure.',3:'Position matters! Always zero.'}},
+          {q:'PQ = 5 cm and RS = 3 cm. PQ is HOW MUCH longer than RS?',type:'num',answer:2,fb:'5 − 3 = 2 cm. PQ is 2 cm longer.',whyWrong:(u)=>{if(u===8)return 'You added. To find DIFFERENCE, subtract.';if(u===5)return 'You gave the length of PQ, not the difference.';return null;}},
+          {q:'YZ = 6 cm and WX = 4 cm. WX is HOW MUCH shorter than YZ?',type:'num',answer:2,fb:'6 − 4 = 2 cm. WX is 2 cm shorter.',whyWrong:(u)=>{if(u===10)return 'You added. Use subtraction for difference.';if(u===4)return 'That is the length of WX, not the difference.';return null;}},
+          {q:'Which is LONGER: 1 meter or 90 cm?',opts:['90 cm','They are the same','1 meter','We cannot tell'],correct:2,fb:'1 m = 100 cm, and 100 > 90. So 1 m is longer.',whyWrong:{0:'90 cm is less than 100 cm.',1:'They are not equal: 100 ≠ 90.',3:'Length is fixed — we can compare.'}},
+          {q:'Drag each object to the best unit to measure it.',type:'dd',pool:['centimeters','meters'],targets:[{label:'Pencil',answer:0,placeholder:'?'},{label:'Classroom',answer:1,placeholder:'?'}],fb:'Small things use cm. Big things use meters.'},
+          {q:'About how long is a classroom?',opts:['5 cm','5 meters','50 meters','500 meters'],correct:1,fb:'A classroom is about 5 to 10 meters long.',whyWrong:{0:'5 cm is the size of a finger — way too small for a classroom.',2:'50 meters is half a soccer field — too big.',3:'500 m is 5 soccer fields! Way too big.'}}
+        ]},
+      {id:'math_graph',icon:'📊',name:'Bar Graphs',desc:'Reading data with scale > 1',illus:'generic',
+        lesson:`<h3>Bar Graphs</h3><p>A <span class="hl">bar graph</span> uses bars to show numbers. The taller the bar, the bigger the number!</p><p>The <span class="hl">scale</span> tells how much each line means. Sometimes each line = 1, but it can be 2, 3, 5, 10!</p><p>📌 Always read the <strong>title</strong> first. Then look at the scale.</p><p>You can compare: how many MORE? How many FEWER? Which is the MOST? Which is the LEAST?</p>`,
+        quiz:[
+          {q:'In a bar graph, the TALLEST bar means:',opts:['The smallest number','The biggest number','Nothing','A mistake'],correct:1,fb:'Taller = bigger. Shorter = smaller.',whyWrong:{0:'It is the opposite — short bars are small.',2:'The height is the main information!',3:'It is on purpose, not a mistake.'}},
+          {q:'The graph shows hats: blue=8, black=4, red=4, pink=4. How many MORE blue hats than red hats?',type:'num',answer:4,fb:'Blue 8 − Red 4 = 4. "How many more" means subtract.',whyWrong:(u)=>{if(u===12)return 'You added. "How many MORE" means difference, so subtract.';if(u===8)return 'That is just the blue hats. Subtract red to find the difference.';return null;}},
+          {q:'In a pictograph, each 🍎 = 3 votes. There are 4 apples. How many votes?',type:'num',answer:12,fb:'4 × 3 = 12. Multiply the count by the value per picture.',whyWrong:(u)=>{if(u===4)return 'Each apple is worth more than 1! Each = 3 votes.';if(u===7)return 'You added 4+3. The pictograph rule is multiply: 4 × 3 = 12.';return null;}},
+          {q:'What should you read FIRST on a graph?',opts:['The biggest bar','The title','The colors','The smallest number'],correct:1,fb:'The TITLE tells you what the graph is about.',whyWrong:{0:'The bar means nothing without knowing the topic.',2:'Colors only differ; they are not the topic.',3:'A number alone has no meaning.'}},
+          {q:'Bar graphs are good for:',opts:['Telling stories','Comparing numbers','Drawing pictures','Measuring length'],correct:1,fb:'Bar graphs let us COMPARE quantities side by side.',whyWrong:{0:'Stories use words, not bars.',2:'Drawings are art, not data.',3:'Length uses a ruler.'}},
+          {q:'A graph shows zoo animals. Each line on the scale = 3. A bar reaches the 5th line. How many animals?',type:'num',answer:15,fb:'5 lines × 3 each = 15 animals.',whyWrong:(u)=>{if(u===5)return 'Each line is worth 3, not 1. So 5 × 3 = 15.';if(u===8)return 'You added 5+3. Multiply: 5 × 3 = 15.';return null;}},
+          {q:'Cupcake sales: chocolate=35, lemon=25, blackberry=50, pineapple=10. Which sold the MOST?',opts:['Chocolate','Lemon','Blackberry','Pineapple'],correct:2,fb:'50 is the biggest number. Blackberry was the most popular!',whyWrong:{0:'35 is less than 50.',1:'25 is less than 50.',3:'10 is the smallest, not the biggest.'}}
         ]}
     ]},
 
@@ -678,18 +801,163 @@ function renderQ(){
   document.getElementById('qText').textContent=q.q;
   const imgEl=document.getElementById('qImg');
   if(q.img&&QI[q.img]){imgEl.innerHTML=QI[q.img]();imgEl.style.display='block'}else{imgEl.style.display='none'}
-  const L=['A','B','C','D'];
-  document.getElementById('optsList').innerHTML=q.opts.map((o,i)=>`<button class="opt" onclick="check(${i})"><span class="opt-l">${L[i]}</span><span>${o}</span></button>`).join('');
-  document.getElementById('fb').style.display='none';document.getElementById('fb').className='fb';document.getElementById('nxtBtn').style.display='none'}
+  document.getElementById('optsList').style.display='none';
+  document.getElementById('numWrap').style.display='none';
+  document.getElementById('ddWrap').style.display='none';
+  document.getElementById('fb').style.display='none';
+  document.getElementById('fb').className='fb';
+  document.getElementById('nxtBtn').style.display='none';
+  if(q.type==='num'){renderNum(q,pt)}
+  else if(q.type==='dd'){renderDD(q,pt)}
+  else{
+    const L=['A','B','C','D'];
+    document.getElementById('optsList').style.display='flex';
+    document.getElementById('optsList').innerHTML=q.opts.map((o,i)=>`<button class="opt" onclick="check(${i})"><span class="opt-l">${L[i]}</span><span>${o}</span></button>`).join('');
+  }
+}
+
+// ===== NUMERIC INPUT EXERCISE =====
+var numAns='';
+function renderNum(q,pt){
+  numAns='';
+  const w=document.getElementById('numWrap');w.style.display='flex';
+  const placeholder=pt?'Digite a resposta':'Type the answer';
+  const submit=pt?'Conferir':'Check';
+  let keys='';
+  for(let n=1;n<=9;n++)keys+=`<button class="num-key" onclick="numKey('${n}')">${n}</button>`;
+  keys+=`<button class="num-key" onclick="numKey('back')">⌫</button>`;
+  keys+=`<button class="num-key" onclick="numKey('0')">0</button>`;
+  keys+=`<button class="num-key" onclick="numKey('clear')">C</button>`;
+  w.innerHTML=`<div class="num-prompt">${placeholder}</div>
+    <input class="num-input" id="numInput" type="text" inputmode="numeric" pattern="[0-9]*" readonly value="">
+    <div class="num-keys">${keys}</div>
+    <button class="num-submit" id="numSubmit" disabled onclick="checkNum()">${submit}</button>`;
+}
+function numKey(k){
+  const inp=document.getElementById('numInput');if(!inp)return;
+  if(k==='clear')numAns='';
+  else if(k==='back')numAns=numAns.slice(0,-1);
+  else if(numAns.length<6)numAns+=k;
+  inp.value=numAns;
+  document.getElementById('numSubmit').disabled=numAns==='';
+}
+function checkNum(){
+  const q=curQuiz[qIdx],pt=curExam.lang==='pt';
+  const user=parseInt(numAns,10);const ok=user===q.answer;
+  const inp=document.getElementById('numInput');inp.classList.add(ok?'ok':'no');
+  document.querySelectorAll('.num-key,.num-submit').forEach(b=>b.disabled=true);
+  showFb(ok,q,pt,user);
+}
+
+// ===== DRAG-DROP EXERCISE =====
+var ddState={};
+var ddSelected=null;
+function renderDD(q,pt){
+  ddState={};ddSelected=null;
+  const w=document.getElementById('ddWrap');w.style.display='flex';
+  const prompt=q.prompt||(pt?'Toque numa peça e depois na caixa para encaixar.':'Tap a piece, then tap a box to place it.');
+  const targetsHTML=q.targets.map((t,i)=>`<div class="dd-target" id="ddT${i}" onclick="ddPlace(${i})"><span class="dd-tlabel">${t.label}</span><span id="ddTV${i}">${t.placeholder||'___'}</span></div>`).join('');
+  const poolHTML=q.pool.map((p,i)=>`<button class="dd-chip" id="ddC${i}" onclick="ddPick(${i})">${p}</button>`).join('');
+  w.innerHTML=`<div class="dd-prompt">${prompt}</div>
+    <div class="dd-targets">${targetsHTML}</div>
+    <div class="dd-pool">${poolHTML}</div>
+    <button class="num-submit" id="ddSubmit" disabled onclick="checkDD()">${pt?'Conferir':'Check'}</button>`;
+}
+function ddPick(i){
+  if(ddSelected===i){ddSelected=null}else{ddSelected=i}
+  document.querySelectorAll('.dd-chip').forEach((c,j)=>{c.classList.toggle('sel',j===ddSelected)});
+}
+function ddPlace(targetIdx){
+  if(ddSelected===null){
+    // unplace if filled
+    if(ddState[targetIdx]!==undefined){
+      const old=ddState[targetIdx];
+      delete ddState[targetIdx];
+      const tv=document.getElementById('ddTV'+targetIdx);const t=document.getElementById('ddT'+targetIdx);
+      const q=curQuiz[qIdx];tv.textContent=q.targets[targetIdx].placeholder||'___';t.classList.remove('filled');
+      document.getElementById('ddC'+old).classList.remove('used');
+      updateDDSubmit();
+    }
+    return;
+  }
+  // unplace if target was filled
+  if(ddState[targetIdx]!==undefined){
+    const old=ddState[targetIdx];
+    document.getElementById('ddC'+old).classList.remove('used');
+  }
+  // remove selected from any other target
+  Object.keys(ddState).forEach(k=>{if(ddState[k]===ddSelected){delete ddState[k];const q=curQuiz[qIdx];const tv=document.getElementById('ddTV'+k);const t=document.getElementById('ddT'+k);tv.textContent=q.targets[k].placeholder||'___';t.classList.remove('filled');}});
+  ddState[targetIdx]=ddSelected;
+  const q=curQuiz[qIdx];
+  document.getElementById('ddTV'+targetIdx).textContent=q.pool[ddSelected];
+  document.getElementById('ddT'+targetIdx).classList.add('filled');
+  document.getElementById('ddC'+ddSelected).classList.add('used');
+  ddSelected=null;
+  document.querySelectorAll('.dd-chip').forEach(c=>c.classList.remove('sel'));
+  updateDDSubmit();
+}
+function updateDDSubmit(){
+  const q=curQuiz[qIdx];
+  const allFilled=q.targets.every((_,i)=>ddState[i]!==undefined);
+  document.getElementById('ddSubmit').disabled=!allFilled;
+}
+function checkDD(){
+  const q=curQuiz[qIdx],pt=curExam.lang==='pt';
+  let allOk=true;const wrongList=[];
+  q.targets.forEach((t,i)=>{
+    const t_el=document.getElementById('ddT'+i);
+    const placed=ddState[i];const correctIdx=t.answer;
+    if(placed===correctIdx){t_el.classList.add('ok')}
+    else{t_el.classList.add('no');allOk=false;wrongList.push({label:t.label,gotIdx:placed,wantIdx:correctIdx})}
+  });
+  document.querySelectorAll('.dd-chip,#ddSubmit').forEach(b=>{b.disabled=true;b.style.pointerEvents='none'});
+  showFb(allOk,q,pt,null,wrongList);
+}
+
+// ===== SHOW FEEDBACK (shared) =====
+function showFb(ok,q,pt,user,wrongList){
+  const fb=document.getElementById('fb');
+  if(ok){
+    score++;fb.className='fb fb-ok';
+    fb.innerHTML=`<strong>${pt?'✅ Correto!':'✅ Correct!'}</strong> ${q.fb||''}`;
+  } else {
+    fb.className='fb fb-no';
+    let correctTxt='';
+    if(q.type==='num')correctTxt=String(q.answer);
+    else if(q.type==='dd')correctTxt=q.targets.map(t=>`${t.label}: <strong>${q.pool[t.answer]}</strong>`).join(' · ');
+    else correctTxt=`<strong>${q.opts[q.correct]}</strong>`;
+    let mistake='';
+    if(q.type==='num'){
+      if(q.whyWrong){mistake=q.whyWrong(user)||'';}
+      mistake=mistake||(pt?`Você digitou ${user}, mas a resposta é ${q.answer}.`:`You typed ${user}, but the answer is ${q.answer}.`);
+    } else if(q.type==='dd'){
+      mistake=wrongList.map(w=>`${pt?'Em':'In'} <strong>${w.label}</strong> ${pt?'você colocou':'you placed'} "${q.pool[w.gotIdx]}" — ${pt?'o certo é':'the correct one is'} "${q.pool[w.wantIdx]}".`).join('<br>');
+    }
+    const head=pt?'❌ Ops!':'❌ Oops!';
+    const ansLbl=pt?'Resposta certa:':'Correct answer:';
+    fb.innerHTML=`<strong>${head}</strong> ${ansLbl} ${correctTxt}<br>${mistake?mistake+'<br>':''}<em style="opacity:.85">${q.fb||''}</em>`;
+  }
+  fb.style.display='block';
+  const n=document.getElementById('nxtBtn');n.style.display='block';
+  n.textContent=qIdx<curQuiz.length-1?(pt?'Próxima →':'Next →'):(pt?'🏆 Ver resultado':'🏆 See results');
+}
 
 function check(sel){
   const q=curQuiz[qIdx],pt=curExam.lang==='pt';
   document.querySelectorAll('.opt').forEach((b,i)=>{b.classList.add('dis');if(i===q.correct)b.classList.add('ok');if(i===sel&&sel!==q.correct)b.classList.add('no')});
+  const ok=sel===q.correct;
   const fb=document.getElementById('fb');
-  if(sel===q.correct){score++;fb.className='fb fb-ok';fb.innerHTML=`${pt?'✅ Correto!':'✅ Correct!'} ${q.fb}`}
-  else{fb.className='fb fb-no';fb.innerHTML=`${pt?'❌ Ops! Resposta: ':'❌ Oops! Answer: '}<strong>${q.opts[q.correct]}</strong><br>${q.fb}`}
+  if(ok){score++;fb.className='fb fb-ok';fb.innerHTML=`<strong>${pt?'✅ Correto!':'✅ Correct!'}</strong> ${q.fb||''}`}
+  else{
+    fb.className='fb fb-no';
+    let mistake='';
+    if(q.whyWrong&&q.whyWrong[sel]){mistake=q.whyWrong[sel]+'<br>';}
+    fb.innerHTML=`<strong>${pt?'❌ Ops!':'❌ Oops!'}</strong> ${pt?'Resposta certa:':'Correct answer:'} <strong>${q.opts[q.correct]}</strong><br>${mistake}<em style="opacity:.85">${q.fb||''}</em>`;
+  }
   fb.style.display='block';
-  const n=document.getElementById('nxtBtn');n.style.display='block';n.textContent=qIdx<curQuiz.length-1?(pt?'Próxima →':'Next →'):(pt?'🏆 Ver resultado':'🏆 See results')}
+  const n=document.getElementById('nxtBtn');n.style.display='block';
+  n.textContent=qIdx<curQuiz.length-1?(pt?'Próxima →':'Next →'):(pt?'🏆 Ver resultado':'🏆 See results');
+}
 
 function nextQ(){qIdx++;if(qIdx<curQuiz.length)renderQ();else showResults()}
 
