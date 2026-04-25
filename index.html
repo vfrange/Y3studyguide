@@ -408,20 +408,46 @@ function barGraph(opts){
   return s;
 }
 
-// Pictograph — rows with repeated icons
-// data: [{label, count, icon}], legend: '🍎 = 3 votos'
+// Pictograph — rows with repeated icons (using SVG shapes for browser compatibility)
+// data: [{label, count, color}], legend, iconType: 'star'|'circle'|'square'
 function pictograph(opts){
   const data=opts.data, w=opts.w||340, x0=opts.x||30, y0=opts.y||15;
   const rowH=32;
+  const iconType=opts.iconType||'star';
+  const iconColor=opts.iconColor||'#FFC107';
+  const iconSize=opts.iconSize||14;
+  function drawIcon(cx, cy){
+    if(iconType==='star'){
+      // 5-point star
+      const r1=iconSize, r2=iconSize*0.4;
+      let pts=[];
+      for(let i=0;i<10;i++){
+        const a=Math.PI/2 + i*Math.PI/5;
+        const r=i%2===0?r1:r2;
+        pts.push(`${cx+r*Math.cos(a)},${cy-r*Math.sin(a)}`);
+      }
+      return `<polygon points="${pts.join(' ')}" fill="${iconColor}" stroke="#F57C00" stroke-width="1"/>`;
+    } else if(iconType==='circle'){
+      return `<circle cx="${cx}" cy="${cy}" r="${iconSize}" fill="${iconColor}" stroke="#C62828" stroke-width="1"/>`;
+    }
+    return `<rect x="${cx-iconSize}" y="${cy-iconSize}" width="${iconSize*2}" height="${iconSize*2}" fill="${iconColor}"/>`;
+  }
   let s=`<g transform="translate(${x0},${y0})">`;
   if(opts.title){s+=`<text x="${w/2}" y="0" fill="#222" font-family="Fredoka,sans-serif" font-size="13" font-weight="700" text-anchor="middle">${opts.title}</text>`;}
-  if(opts.legend){s+=`<text x="${w/2}" y="16" fill="#555" font-family="Quicksand,sans-serif" font-size="11" font-weight="600" text-anchor="middle">${opts.legend}</text>`;}
+  if(opts.legend){
+    // legend with icon + text
+    const legendCx = w/2 - 40;
+    s+=drawIcon(legendCx, 18);
+    s+=`<text x="${legendCx+18}" y="22" fill="#555" font-family="Quicksand,sans-serif" font-size="11" font-weight="600">${opts.legend}</text>`;
+  }
   data.forEach((d,i)=>{
-    const ry=24+i*rowH;
-    s+=`<text x="0" y="${ry+18}" fill="#222" font-family="Quicksand,sans-serif" font-size="12" font-weight="600">${d.label}</text>`;
-    let icons='';
-    for(let k=0;k<d.count;k++){icons+=d.icon;}
-    s+=`<text x="${opts.iconStart||80}" y="${ry+22}" font-size="22">${icons}</text>`;
+    const ry=42+i*rowH;
+    s+=`<text x="0" y="${ry+5}" fill="#222" font-family="Quicksand,sans-serif" font-size="12" font-weight="600">${d.label}</text>`;
+    const startX=opts.iconStart||80;
+    const spacing=iconSize*2.2;
+    for(let k=0;k<d.count;k++){
+      s+=drawIcon(startX+k*spacing, ry);
+    }
   });
   s+='</g>';
   return s;
@@ -669,8 +695,8 @@ const QI = {
   mat_decomp_542:()=>paperSvg(`<text x="200" y="50" fill="#222" font-family="Fredoka" font-size="20" font-weight="700" text-anchor="middle">5 4 2</text><text x="200" y="80" fill="#1E88E5" font-family="Fredoka" font-size="14" text-anchor="middle">decompondo:</text>`+decompCards({parts:['?','+','40','+','2'],x:80,y:110})+`<text x="200" y="200" fill="#FF6B35" font-family="Fredoka" font-size="14" text-anchor="middle">Qual é o valor da CENTENA?</text>`),
   mat_decomp_316:()=>paperSvg(`<text x="200" y="50" fill="#222" font-family="Fredoka" font-size="20" font-weight="700" text-anchor="middle">3 1 6</text><text x="200" y="80" fill="#1E88E5" font-family="Fredoka" font-size="14" text-anchor="middle">decompondo:</text>`+decompCards({parts:['300','+','?','+','6'],x:80,y:110})),
   mat_decomp_729:()=>paperSvg(`<text x="200" y="50" fill="#222" font-family="Fredoka" font-size="20" font-weight="700" text-anchor="middle">7 2 9</text><text x="200" y="80" fill="#1E88E5" font-family="Fredoka" font-size="14" text-anchor="middle">decompondo:</text>`+decompCards({parts:['700','+','20','+','?'],x:80,y:110})),
-  mat_decomp_1205:()=>paperSvg(`<text x="200" y="50" fill="#222" font-family="Fredoka" font-size="20" font-weight="700" text-anchor="middle">1 . 2 0 5</text><text x="200" y="80" fill="#1E88E5" font-family="Fredoka" font-size="14" text-anchor="middle">UM · C · D · U</text>`),
-  mat_money_100:()=>paperSvg(`<g transform="translate(40,30)">${[0,1,2,3,4].map(i=>`<rect x="${i*52}" y="0" width="48" height="36" rx="6" fill="#FFE082" stroke="#F57C00" stroke-width="2"/><text x="${i*52+24}" y="22" fill="#333" font-family="Fredoka" font-size="14" font-weight="700" text-anchor="middle">10</text>`).join('')}${[0,1,2,3,4].map(i=>`<rect x="${i*52}" y="44" width="48" height="36" rx="6" fill="#FFE082" stroke="#F57C00" stroke-width="2"/><text x="${i*52+24}" y="66" fill="#333" font-family="Fredoka" font-size="14" font-weight="700" text-anchor="middle">10</text>`).join('')}</g><text x="320" y="70" fill="#1E88E5" font-family="Fredoka" font-size="28" font-weight="700">=</text><rect x="350" y="50" width="48" height="36" rx="6" fill="#A5D6A7" stroke="#388E3C" stroke-width="2"/><text x="374" y="72" fill="#333" font-family="Fredoka" font-size="14" font-weight="700" text-anchor="middle">100</text><text x="200" y="170" fill="#FF6B35" font-family="Fredoka" font-size="14" font-weight="700" text-anchor="middle">Conte as notas de 10!</text>`),
+  mat_decomp_1205:()=>paperSvg(`<text x="200" y="40" fill="#1E88E5" font-family="Fredoka" font-size="16" font-weight="700" text-anchor="middle">Decomponha 1.205</text>`+mvtTable({cols:[{label:'UM'},{label:'C'},{label:'D'},{label:'U'}],rows:[[{v:'1'},{v:'2'},{v:'0'},{v:'5'}]],x:40,y:60,w:320,rowH:54,bigDigits:true})+`<text x="200" y="160" fill="#FF6B35" font-family="Fredoka" font-size="13" font-weight="700" text-anchor="middle">Arraste cada parte para a casa certa →</text>`),
+  mat_money_100:()=>paperSvg(`<text x="200" y="40" fill="#1E88E5" font-family="Fredoka" font-size="14" font-weight="700" text-anchor="middle">Quantas notas de 10 = 1 nota de 100?</text><g transform="translate(60,70)">${[0,1,2].map(i=>`<rect x="${i*60}" y="0" width="50" height="38" rx="6" fill="#FFE082" stroke="#F57C00" stroke-width="2"/><text x="${i*60+25}" y="24" fill="#333" font-family="Fredoka" font-size="16" font-weight="700" text-anchor="middle">10</text>`).join('')}<text x="195" y="24" fill="#1E88E5" font-family="Fredoka" font-size="22" font-weight="700">...?</text></g><g transform="translate(40,140)"><rect x="0" y="0" width="60" height="42" rx="6" fill="#A5D6A7" stroke="#388E3C" stroke-width="2"/><text x="30" y="27" fill="#333" font-family="Fredoka" font-size="18" font-weight="700" text-anchor="middle">100</text><text x="80" y="27" fill="#1E88E5" font-family="Fredoka" font-size="16" font-weight="700">=</text><text x="115" y="27" fill="#FF6B35" font-family="Fredoka" font-size="22" font-weight="700">?</text><text x="145" y="27" fill="#1E88E5" font-family="Fredoka" font-size="16" font-weight="700">notas de 10</text></g>`),
 
   // === Adição vertical (livro-style) ===
   mat_add_47_35:()=>paperSvg(vstack({a:'47',b:'35',op:'+',ans:''})),
@@ -687,7 +713,7 @@ const QI = {
   mat_sub_415_3:()=>paperSvg(vstack({a:'415',b:'3',op:'−',ans:''})),
   mat_sub_91_45:()=>paperSvg(vstack({a:'91',b:'45',op:'−',ans:''})),
   mat_sub_800_178:()=>paperSvg(vstack({a:'800',b:'178',op:'−',ans:''})),
-  mat_sub_quadro1:()=>paperSvg(mvtTable({cols:[{label:'C'},{label:'D'},{label:'U'}],rows:[[{v:'5'},{v:'8'},{v:'3'}],[{v:'2'},{v:'2'},{v:'2'}],[{v:'?',color:'#FF6B35'},{v:'?',color:'#FF6B35'},{v:'?',color:'#FF6B35'}]],x:50,y:50,w:300,boldLast:true})+`<text x="200" y="35" fill="#1E88E5" font-family="Fredoka" font-size="13" font-weight="700" text-anchor="middle">583 − 222 = ?</text>`),
+  mat_sub_quadro1:()=>paperSvg(mvtTable({cols:[{label:'C'},{label:'D'},{label:'U'}],rows:[[{v:'5'},{v:'4'},{v:'3'}],[{v:'2'},{v:'1'},{v:'8'}],[{v:'?',color:'#FF6B35'},{v:'?',color:'#FF6B35'},{v:'?',color:'#FF6B35'}]],x:50,y:50,w:300,boldLast:true})+`<text x="200" y="35" fill="#1E88E5" font-family="Fredoka" font-size="13" font-weight="700" text-anchor="middle">543 − 218 = ?</text>`),
 
   // === Cálculo mental (reta numérica) ===
   mat_mental_80_100:()=>paperSvg(numberLine({x:30,y:120,w:340,min:0,max:200,step:50,marks:[{value:80,label:'80',color:'#FF1493'},{value:100,label:'100?',color:'#388E3C'}]})+`<text x="200" y="50" fill="#222" font-family="Fredoka" font-size="16" font-weight="700" text-anchor="middle">80 + ? = 100</text>`),
@@ -695,9 +721,12 @@ const QI = {
   mat_mental_1100_2000:()=>paperSvg(numberLine({x:30,y:120,w:340,min:0,max:2200,step:500,marks:[{value:1100,label:'1100',color:'#FF1493'},{value:2000,label:'2000?',color:'#388E3C'}]})+`<text x="200" y="50" fill="#222" font-family="Fredoka" font-size="16" font-weight="700" text-anchor="middle">1.100 + ? = 2.000</text>`),
   mat_mental_320:()=>paperSvg(numberLine({x:30,y:130,w:340,min:200,max:500,step:100,marks:[{value:320,label:'320',color:'#FF1493'}]})+`<text x="200" y="60" fill="#222" font-family="Fredoka" font-size="16" font-weight="700" text-anchor="middle">320 está mais perto de qual centena?</text>`),
   mat_mental_680:()=>paperSvg(numberLine({x:30,y:130,w:340,min:500,max:800,step:100,marks:[{value:680,label:'680',color:'#FF1493'}]})+`<text x="200" y="60" fill="#222" font-family="Fredoka" font-size="16" font-weight="700" text-anchor="middle">680 está mais perto de qual centena?</text>`),
+  mat_mental_237_10:()=>paperSvg(`<text x="200" y="40" fill="#1E88E5" font-family="Fredoka" font-size="16" font-weight="700" text-anchor="middle">237 + 10 = ?</text>`+mvtTable({cols:[{label:'C'},{label:'D'},{label:'U'}],rows:[[{v:'2'},{v:'3'},{v:'7'}]],x:60,y:60,w:280,rowH:48,bigDigits:true})+`<text x="200" y="170" fill="#FF6B35" font-family="Fredoka" font-size="13" font-weight="700" text-anchor="middle">+10 muda só a casa da DEZENA (azul)</text>`),
+  mat_mental_546_100:()=>paperSvg(`<text x="200" y="40" fill="#1E88E5" font-family="Fredoka" font-size="16" font-weight="700" text-anchor="middle">546 − 100 = ?</text>`+mvtTable({cols:[{label:'C'},{label:'D'},{label:'U'}],rows:[[{v:'5'},{v:'4'},{v:'6'}]],x:60,y:60,w:280,rowH:48,bigDigits:true})+`<text x="200" y="170" fill="#FF6B35" font-family="Fredoka" font-size="13" font-weight="700" text-anchor="middle">−100 muda só a casa da CENTENA (amarela)</text>`),
+  mat_mental_481_100:()=>paperSvg(`<text x="200" y="40" fill="#1E88E5" font-family="Fredoka" font-size="16" font-weight="700" text-anchor="middle">481 + 100 = ?</text>`+mvtTable({cols:[{label:'C'},{label:'D'},{label:'U'}],rows:[[{v:'4'},{v:'8'},{v:'1'}]],x:60,y:60,w:280,rowH:48,bigDigits:true})+`<text x="200" y="170" fill="#FF6B35" font-family="Fredoka" font-size="13" font-weight="700" text-anchor="middle">+100 muda só a casa da CENTENA (amarela)</text>`),
 
   // === Sequências ===
-  mat_seq_5:()=>paperSvg(`<text x="200" y="100" fill="#222" font-family="Fredoka" font-size="22" font-weight="700" text-anchor="middle">1023 → 1028 → 1033 → 1038 → ?</text><text x="200" y="160" fill="#1E88E5" font-family="Fredoka" font-size="14" text-anchor="middle">a cada passo soma 5</text>`),
+  mat_seq_5:()=>paperSvg(`<text x="200" y="40" fill="#1E88E5" font-family="Fredoka" font-size="14" font-weight="700" text-anchor="middle">Complete a sequência:</text><g transform="translate(20,80)">${[{n:'1023',x:0},{n:'1028',x:75},{n:'1033',x:150},{n:'1038',x:225},{n:'?',x:300,c:'#FF6B35'}].map((d,i)=>`<rect x="${d.x}" y="0" width="60" height="38" rx="6" fill="#FFF8E1" stroke="#FFC107" stroke-width="2"/><text x="${d.x+30}" y="25" fill="${d.c||'#222'}" font-family="Fredoka" font-size="16" font-weight="700" text-anchor="middle">${d.n}</text>${i<4?`<text x="${d.x+67}" y="25" fill="#1E88E5" font-family="Fredoka" font-size="16" font-weight="700">→</text><text x="${d.x+67}" y="-2" fill="#E53935" font-family="Caveat" font-size="14" font-weight="700">+5</text>`:''}`).join('')}</g>`),
 
   // === Régua ===
   mat_ruler_pq:()=>paperSvg(ruler({x:30,y:130,cmPx:22,maxCm:15,segments:[{from:0,to:5,label:'PQ',color:'#FF1493'}]})+`<text x="200" y="50" fill="#222" font-family="Fredoka" font-size="14" font-weight="700" text-anchor="middle">Use a régua começando do ZERO</text>`),
@@ -710,14 +739,14 @@ const QI = {
 
   // === Gráficos de barras ===
   mat_graph_brincadeiras:()=>paperSvg(barGraph({data:[{label:'Esconde-',label2:'esconde',value:12,color:'#5DADE2'},{label:'Cabra-',label2:'cega',value:9,color:'#5DADE2'},{label:'Pular',label2:'corda',value:7,color:'#5DADE2'},{label:'Pular',label2:'amarelinha',value:11,color:'#5DADE2'}],maxY:14,step:2,w:340,h:180,title:'Brincadeiras preferidas — 3º ano'})),
-  mat_picto_morango:()=>paperSvg(pictograph({data:[{label:'Morango',count:5,icon:'⭐'},{label:'Chocolate',count:3,icon:'⭐'},{label:'Baunilha',count:2,icon:'⭐'}],legend:'⭐ = 2 votos',title:'Sabores favoritos',w:340,iconStart:90,x:30,y:30})),
+  mat_picto_morango:()=>paperSvg(pictograph({data:[{label:'Morango',count:5},{label:'Chocolate',count:3},{label:'Baunilha',count:2}],legend:' = 2 votos',title:'Sabores favoritos',w:340,iconStart:90,x:30,y:30,iconType:'star',iconColor:'#FFC107'})),
 
   // === MATH (English versions) ===
   math_pv_423:()=>paperSvg(mvtTable({cols:[{label:'H'},{label:'T'},{label:'O'}],rows:[[{v:'4'},{v:'2'},{v:'3'}]],x:50,y:60,w:300,rowH:54,bigDigits:true})+`<text x="200" y="40" fill="#1E88E5" font-family="Fredoka" font-size="14" font-weight="700" text-anchor="middle">PLACE VALUE TABLE</text>`),
   math_pv_557:()=>paperSvg(mvtTable({cols:[{label:'H'},{label:'T'},{label:'O'}],rows:[[{v:'5'},{v:'5'},{v:'7'}]],x:50,y:60,w:300,rowH:54,bigDigits:true})+`<text x="200" y="40" fill="#1E88E5" font-family="Fredoka" font-size="14" font-weight="700" text-anchor="middle">PLACE VALUE TABLE</text>`),
   math_pv_256_blank:()=>paperSvg(mvtTable({cols:[{label:'H'},{label:'T'},{label:'O'}],rows:[[{v:'?'},{v:'?'},{v:'?'}]],x:50,y:60,w:300,rowH:54,bigDigits:true})+`<text x="200" y="40" fill="#1E88E5" font-family="Fredoka" font-size="14" font-weight="700" text-anchor="middle">Drag the digits of 256!</text>`),
   math_pv_compare:()=>paperSvg(`<g transform="translate(40,60)">${mvtTable({cols:[{label:'H'},{label:'T'},{label:'O'}],rows:[[{v:'7'},{v:'2'},{v:'5'}]],x:0,y:0,w:140,rowH:48,bigDigits:true})}</g><text x="195" y="115" fill="#1E88E5" font-family="Fredoka" font-size="28" font-weight="700" text-anchor="middle">vs</text><g transform="translate(220,60)">${mvtTable({cols:[{label:'H'},{label:'T'},{label:'O'}],rows:[[{v:'5'},{v:'2'},{v:'1'}]],x:0,y:0,w:140,rowH:48,bigDigits:true})}</g>`),
-  math_money_100:()=>paperSvg(`<g transform="translate(40,30)">${[0,1,2,3,4].map(i=>`<rect x="${i*52}" y="0" width="48" height="36" rx="6" fill="#FFE082" stroke="#F57C00" stroke-width="2"/><text x="${i*52+24}" y="22" fill="#333" font-family="Fredoka" font-size="14" font-weight="700" text-anchor="middle">10</text>`).join('')}${[0,1,2,3,4].map(i=>`<rect x="${i*52}" y="44" width="48" height="36" rx="6" fill="#FFE082" stroke="#F57C00" stroke-width="2"/><text x="${i*52+24}" y="66" fill="#333" font-family="Fredoka" font-size="14" font-weight="700" text-anchor="middle">10</text>`).join('')}</g><text x="320" y="70" fill="#1E88E5" font-family="Fredoka" font-size="28" font-weight="700">=</text><rect x="350" y="50" width="48" height="36" rx="6" fill="#A5D6A7" stroke="#388E3C" stroke-width="2"/><text x="374" y="72" fill="#333" font-family="Fredoka" font-size="14" font-weight="700" text-anchor="middle">100</text><text x="200" y="170" fill="#FF6B35" font-family="Fredoka" font-size="14" font-weight="700" text-anchor="middle">Count the tens!</text>`),
+  math_money_100:()=>paperSvg(`<text x="200" y="40" fill="#1E88E5" font-family="Fredoka" font-size="14" font-weight="700" text-anchor="middle">How many tens make 1 hundred?</text><g transform="translate(60,70)">${[0,1,2].map(i=>`<rect x="${i*60}" y="0" width="50" height="38" rx="6" fill="#FFE082" stroke="#F57C00" stroke-width="2"/><text x="${i*60+25}" y="24" fill="#333" font-family="Fredoka" font-size="16" font-weight="700" text-anchor="middle">10</text>`).join('')}<text x="195" y="24" fill="#1E88E5" font-family="Fredoka" font-size="22" font-weight="700">...?</text></g><g transform="translate(60,140)"><rect x="0" y="0" width="60" height="42" rx="6" fill="#A5D6A7" stroke="#388E3C" stroke-width="2"/><text x="30" y="27" fill="#333" font-family="Fredoka" font-size="18" font-weight="700" text-anchor="middle">100</text><text x="80" y="27" fill="#1E88E5" font-family="Fredoka" font-size="16" font-weight="700">=</text><text x="115" y="27" fill="#FF6B35" font-family="Fredoka" font-size="22" font-weight="700">?</text><text x="145" y="27" fill="#1E88E5" font-family="Fredoka" font-size="16" font-weight="700">tens</text></g>`),
 
   math_add_423_316:()=>paperSvg(vstack({a:'423',b:'316',op:'+',ans:''})),
   math_add_58_37:()=>paperSvg(vstack({a:'58',b:'37',op:'+',ans:''})),
@@ -741,7 +770,7 @@ const QI = {
 
   math_graph_cupcakes:()=>paperSvg(barGraph({data:[{label:'Choco',value:35,color:'#8B4513'},{label:'Lemon',value:25,color:'#FFD93D'},{label:'Black-',label2:'berry',value:50,color:'#6A1B9A'},{label:'Pine-',label2:'apple',value:10,color:'#FF9800'}],maxY:60,step:10,w:340,h:180,title:'Cupcakes sold today'})),
   math_graph_hats:()=>paperSvg(barGraph({data:[{label:'Blue',value:8,color:'#1E88E5'},{label:'Black',value:4,color:'#212121'},{label:'Red',value:4,color:'#E53935'},{label:'Pink',value:4,color:'#FF80AB'}],maxY:10,step:2,w:340,h:180,title:'Hats in a shop'})),
-  math_picto_apple:()=>paperSvg(pictograph({data:[{label:'Apple',count:4,icon:'🍎'},{label:'Banana',count:3,icon:'🍎'},{label:'Cherry',count:2,icon:'🍎'}],legend:'🍎 = 3 votes',title:'Favorite fruit',w:340,iconStart:90,x:30,y:30})),
+  math_picto_apple:()=>paperSvg(pictograph({data:[{label:'Apple',count:4},{label:'Banana',count:3},{label:'Cherry',count:2}],legend:' = 3 votes',title:'Favorite fruit',w:340,iconStart:90,x:30,y:30,iconType:'circle',iconColor:'#E53935'})),
 };
 // ===================== LESSON ILLUSTRATIONS =====================
 const LILLUS = {
@@ -790,20 +819,20 @@ const EXAMS = [
           {q:'Resolva esta subtração:',type:'num',answer:228,fb:'6−8 não dá → vira 16. 16−8=8. Dezena 5 vira 4: 4−2=2. Centena 2 desce. → 228.',img:'mat_sub_256_28',whyWrong:(u)=>{if(u===238)return 'Você não diminuiu a dezena depois do empréstimo.';if(u===232)return 'Reveja: 16−8=8.';return null;}},
           {q:'Resolva esta subtração:',type:'num',answer:546,fb:'4−8 não dá → vira 14. 14−8=6. Dezena 6 vira 5: 5−1=4. Centena 5 desce. → 546.',img:'mat_sub_564_18'},
           {q:'Em 415 − 3, precisamos pegar emprestado?',opts:['Sim, da dezena','Não, é só subtrair direto','Sim, da centena','Sim, das duas casas'],correct:1,fb:'5 − 3 = 2 direto, sem precisar emprestar!',img:'mat_sub_415_3',whyWrong:{0:'Só pega emprestado quando o de cima é MENOR. 5 já é maior que 3.',2:'Aqui não precisa nada disso.',3:'5−3=2 direto.'}},
-          {q:'Olhe o quadro. Qual é a subtração? (CDU)',type:'num',answer:361,fb:'583 − 222 = 361. Atenção que aqui a dezena emprestou: 8 virou 14, 5 virou 4.',img:'mat_sub_quadro1',whyWrong:(u)=>{if(u===261)return 'Reveja a centena: 5−2=3 (depois de emprestar a dezena, 5 ficou 5 mesmo aqui).';return null;}},
+          {q:'Olhe o quadro. Qual é a subtração? (CDU)',type:'num',answer:325,fb:'543 − 218 = 325. Na unidade: 3 não tira 8, pega emprestado (vira 13). 13−8=5. Dezena 4 vira 3: 3−1=2. Centena 5−2=3. → 325.',img:'mat_sub_quadro1',whyWrong:(u)=>{if(u===335)return 'Você esqueceu de DIMINUIR a dezena depois de emprestar.';if(u===335)return null;if(u===225)return 'Reveja a centena: 5−2=3.';return null;}},
           {q:'Pedro tinha 91 cards. Deu 45 para o irmão. Com quantos ele ficou?',type:'num',answer:46,fb:'91 − 45 = 46. "Deu" significa tirar.',img:'mat_sub_91_45',whyWrong:(u)=>{if(u===136)return 'Você somou. Mas "deu" é subtração!';if(u===54)return 'Reveja: 1−5 vira 11−5=6 (emprestou). Dezena 9 vira 8: 8−4=4 → 46.';return null;}},
           {q:'Resolva esta subtração:',type:'num',answer:622,fb:'Empréstimo passa pelo zero! 0−8 não dá; dezena também é 0; pega da centena (8 vira 7). → 622.',img:'mat_sub_800_178',whyWrong:(u)=>{if(u===722)return 'Você não emprestou de uma das casas com 0.';if(u===632)return 'A centena ficou 7 depois dos empréstimos. 7−1=6.';return null;}}
         ]},
       {id:'mat_mental',icon:'🧠',name:'Cálculo Mental',desc:'Estratégias rápidas: ±10, ±100',illus:'generic',
         lesson:`<h3>Cálculo Mental</h3><p>Cálculo mental é fazer contas <span class="hl">sem precisar armar</span>. Estratégias:</p><p><strong>+10 ou −10:</strong> só muda a casa da DEZENA. Ex: 237 + 10 = 247.</p><p><strong>+100 ou −100:</strong> só muda a casa da CENTENA. Ex: 392 + 100 = 492.</p><p><strong>Completar 100 ou 1.000:</strong> 80 + 20 = 100. 350 + 650 = 1.000.</p><p><strong>Aproximação:</strong> arredondar para a centena mais próxima. Se a dezena é 0–4, vai pra baixo; se é 5–9, vai pra cima.</p>`,
         quiz:[
-          {q:'Cálculo mental: 237 + 10 = ?',type:'num',answer:247,fb:'+10 só muda a dezena: 23 → 24. → 247.',whyWrong:(u)=>{if(u===238)return 'Você somou 1 em vez de 10.';if(u===337)return 'Você somou 100 em vez de 10.';return null;}},
-          {q:'Cálculo mental: 546 − 100 = ?',type:'num',answer:446,fb:'−100 só muda a centena: 5 → 4. → 446.',whyWrong:(u)=>{if(u===536)return 'Você tirou 10. −100 muda a CENTENA.';if(u===545)return 'Você tirou 1. −100 muda a centena.';return null;}},
+          {q:'Cálculo mental: 237 + 10 = ?',type:'num',answer:247,fb:'+10 só muda a dezena: 23 → 24. → 247.',img:'mat_mental_237_10',whyWrong:(u)=>{if(u===238)return 'Você somou 1 em vez de 10.';if(u===337)return 'Você somou 100 em vez de 10.';return null;}},
+          {q:'Cálculo mental: 546 − 100 = ?',type:'num',answer:446,fb:'−100 só muda a centena: 5 → 4. → 446.',img:'mat_mental_546_100',whyWrong:(u)=>{if(u===536)return 'Você tirou 10. −100 muda a CENTENA.';if(u===545)return 'Você tirou 1. −100 muda a centena.';return null;}},
           {q:'Olhe a reta numérica. Para chegar a 100, faltam quantos?',type:'num',answer:20,fb:'80 + 20 = 100. Bom truque!',img:'mat_mental_80_100',whyWrong:(u)=>{if(u===10)return '80+10=90, ainda não chega a 100.';return null;}},
           {q:'Olhe a reta numérica. Para chegar a 1.000, faltam quantos?',type:'num',answer:650,fb:'350 + 650 = 1.000.',img:'mat_mental_350_1000',whyWrong:(u)=>{if(u===750)return '350+750=1.100 (passou).';if(u===600)return '350+600=950 (faltam 50).';return null;}},
           {q:'Aproxime 320 para a CENTENA mais próxima.',opts:['200','300','400','350'],correct:1,fb:'320 está mais perto de 300 (só 20 de diferença).',img:'mat_mental_320',whyWrong:{0:'200 está MUITO longe (120 de diferença).',2:'400 está a 80; 300 está a 20 — bem mais perto.',3:'350 não é centena exata.'}},
           {q:'Aproxime 680 para a CENTENA mais próxima.',opts:['600','650','700','800'],correct:2,fb:'680 está mais perto de 700 (só 20 de diferença).',img:'mat_mental_680',whyWrong:{0:'600 está a 80; 700 está a 20.',1:'650 não é centena exata.',3:'800 está bem longe.'}},
-          {q:'Cálculo mental: 481 + 100 = ?',type:'num',answer:581,fb:'+100 muda a centena: 4 → 5. → 581.',whyWrong:(u)=>{if(u===491)return 'Você somou 10. +100 muda a centena.';return null;}},
+          {q:'Cálculo mental: 481 + 100 = ?',type:'num',answer:581,fb:'+100 muda a centena: 4 → 5. → 581.',img:'mat_mental_481_100',whyWrong:(u)=>{if(u===491)return 'Você somou 10. +100 muda a centena.';return null;}},
           {q:'Olhe a reta. Para chegar a 2.000, faltam quantos?',type:'num',answer:900,fb:'1.100 + 900 = 2.000.',img:'mat_mental_1100_2000',whyWrong:(u)=>{if(u===100)return '1.100+100=1.200 (ainda falta muito).';return null;}}
         ]},
       {id:'mat_med',icon:'📏',name:'Grandezas e Medidas',desc:'Comprimento e tempo',illus:'generic',
@@ -824,7 +853,7 @@ const EXAMS = [
           {q:'Olhe o gráfico. Qual brincadeira teve MAIS votos?',opts:['Esconde-esconde','Cabra-cega','Pular corda','Pular amarelinha'],correct:0,fb:'A barra mais alta é a de Esconde-esconde (12 votos).',img:'mat_graph_brincadeiras',whyWrong:{1:'Cabra-cega tem 9 votos. Veja: tem barra menor que esconde-esconde.',2:'Pular corda tem só 7 votos — a barra mais baixa entre as quatro.',3:'Pular amarelinha tem 11 — perto, mas esconde-esconde é maior (12).'}},
           {q:'Olhe o gráfico das brincadeiras. Quantas crianças no TOTAL participaram?',type:'num',answer:39,fb:'12 + 9 + 7 + 11 = 39 crianças.',img:'mat_graph_brincadeiras',whyWrong:(u)=>{if(u===12)return 'Esse é só o maior valor. Some TODAS as barras.';if(u===36)return 'Confira: 12+9+7+11=39.';return null;}},
           {q:'Olhe o gráfico. Quantas crianças A MAIS escolheram esconde-esconde do que pular corda?',type:'num',answer:5,fb:'12 − 7 = 5 crianças a mais.',img:'mat_graph_brincadeiras',whyWrong:(u)=>{if(u===19)return 'Você somou. "A mais" é diferença → subtração.';if(u===12)return 'Esse é o total da maior. Faça a diferença: 12−7.';return null;}},
-          {q:'Olhe o pictograma. Cada ⭐ vale 2 votos. Quantos votos teve o sabor MORANGO?',type:'num',answer:10,fb:'5 estrelas × 2 votos cada = 10 votos.',img:'mat_picto_morango',whyWrong:(u)=>{if(u===5)return 'Cada estrela vale 2, não 1. Multiplica: 5 × 2 = 10.';if(u===7)return 'Você somou (5+2). É multiplicação: 5 × 2 = 10.';return null;}},
+          {q:'Olhe o pictograma. Cada estrela vale 2 votos. Quantos votos teve o sabor MORANGO?',type:'num',answer:10,fb:'5 estrelas × 2 votos cada = 10 votos.',img:'mat_picto_morango',whyWrong:(u)=>{if(u===5)return 'Cada estrela vale 2, não 1. Multiplica: 5 × 2 = 10.';if(u===7)return 'Você somou (5+2). É multiplicação: 5 × 2 = 10.';return null;}},
           {q:'O que devemos LER PRIMEIRO em qualquer gráfico?',opts:['A barra mais alta','O título','As cores','Os números'],correct:1,fb:'O título diz SOBRE O QUE é o gráfico.',whyWrong:{0:'A altura só faz sentido depois de saber o tema.',2:'Cores são só pra diferenciar.',3:'Números sem contexto não dizem nada.'}},
           {q:'Um ano normal tem 365 dias. Quantos dias tem um ano bissexto?',type:'num',answer:366,fb:'No bissexto, fevereiro ganha 1 dia extra (29). 365 + 1 = 366.',whyWrong:(u)=>{if(u===365)return 'Bissexto tem UM dia a mais.';return null;}},
           {q:'Anos bissextos acontecem a cada quantos anos?',type:'num',answer:4,fb:'A cada 4 anos! Ex: 2020, 2024, 2028, 2032...',whyWrong:(u)=>{if(u===2)return 'Bissexto é a cada 4 anos.';return null;}},
@@ -902,7 +931,7 @@ const EXAMS = [
           {q:'Look at the cupcake graph. How many MORE blackberry than chocolate were sold?',type:'num',answer:15,fb:'Blackberry 50 − Chocolate 35 = 15.',img:'math_graph_cupcakes',whyWrong:(u)=>{if(u===85)return 'You added. "How many MORE" means subtract.';return null;}},
           {q:'Look at the graph. How many TOTAL hats are in the shop?',type:'num',answer:20,fb:'Blue 8 + Black 4 + Red 4 + Pink 4 = 20.',img:'math_graph_hats',whyWrong:(u)=>{if(u===8)return 'That is just the biggest bar. Add ALL the bars.';return null;}},
           {q:'Look at the hat graph. How many MORE blue hats than red hats?',type:'num',answer:4,fb:'Blue 8 − Red 4 = 4. "How many more" → subtract.',img:'math_graph_hats'},
-          {q:'In the pictograph, each 🍎 = 3 votes. How many votes did Apple get?',type:'num',answer:12,fb:'4 apples × 3 votes each = 12.',img:'math_picto_apple',whyWrong:(u)=>{if(u===4)return 'Each apple is worth 3, not 1.';if(u===7)return 'You added 4+3. Multiply: 4 × 3 = 12.';return null;}},
+          {q:'In the pictograph, each apple = 3 votes. How many votes did Apple get?',type:'num',answer:12,fb:'4 apples × 3 votes each = 12.',img:'math_picto_apple',whyWrong:(u)=>{if(u===4)return 'Each apple is worth 3, not 1.';if(u===7)return 'You added 4+3. Multiply: 4 × 3 = 12.';return null;}},
           {q:'In a bar graph, the TALLEST bar means:',opts:['The smallest number','The biggest number','Nothing','A mistake'],correct:1,fb:'Taller = bigger.',whyWrong:{0:'It is the opposite — short bars are small.',2:'The height is the main info!',3:'It is on purpose.'}},
           {q:'What should you read FIRST on a graph?',opts:['The biggest bar','The title','The colors','The smallest number'],correct:1,fb:'The TITLE tells you what the graph is about.',whyWrong:{0:'The bar means nothing without the topic.',2:'Colors only differ; not the topic.',3:'A number alone has no meaning.'}}
         ]}
