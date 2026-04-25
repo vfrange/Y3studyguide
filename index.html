@@ -120,14 +120,20 @@ body{font-family:'Quicksand','Trebuchet MS',Verdana,sans-serif;background:linear
 .dd-target.filled{border-style:solid;border-color:#B388FF;background:rgba(179,136,255,.15)}
 .dd-target.ok{border-color:#39FF14;background:rgba(57,255,20,.15);color:#39FF14}
 .dd-target.no{border-color:#FF4444;background:rgba(255,68,68,.15);color:#FF4444}
-.dd-pool{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;padding:8px}
+.dd-pool{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;padding:8px}
 .dd-pool>*+*{margin:0}
-.dd-chip{background:linear-gradient(135deg,#FF6B35,#FF1493);border:none;border-radius:12px;padding:10px 16px;color:#fff;font-family:'Fredoka','Trebuchet MS',sans-serif;font-size:16px;font-weight:600;cursor:pointer;-webkit-transition:all .2s;transition:all .2s;box-shadow:0 4px 12px rgba(255,107,53,.25)}
+.dd-chip{background:linear-gradient(135deg,#FF6B35,#FF1493);border:none;border-radius:12px;padding:14px 22px;color:#fff;font-family:'Fredoka','Trebuchet MS',sans-serif;font-size:18px;font-weight:700;cursor:pointer;-webkit-transition:all .2s;transition:all .2s;box-shadow:0 4px 12px rgba(255,107,53,.25);min-width:54px;min-height:48px;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+.dd-chip:hover{-webkit-transform:translateY(-2px);transform:translateY(-2px);box-shadow:0 6px 16px rgba(255,107,53,.4)}
 .dd-chip:active{-webkit-transform:scale(.92);transform:scale(.92)}
 .dd-chip.used{opacity:.25;pointer-events:none}
-.dd-chip.sel{outline:3px solid #FFD93D}
+.dd-chip.sel{outline:3px solid #FFD93D;outline-offset:2px}
+.dd-target{cursor:pointer;-webkit-user-select:none;user-select:none;touch-action:manipulation}
+.dd-target.filled{cursor:pointer}
 .nxt{width:100%;max-width:420px;background:-webkit-linear-gradient(315deg,#B388FF,#FF1493);background:linear-gradient(135deg,#B388FF,#FF1493);border:none;border-radius:18px;padding:15px;color:#fff;font-family:'Fredoka','Trebuchet MS',sans-serif;font-size:17px;font-weight:600;cursor:pointer;margin-top:8px;display:none;-webkit-animation:su .3s;animation:su .3s;-webkit-transition:-webkit-transform .2s;transition:transform .2s}
 .nxt:active{-webkit-transform:scale(.97);transform:scale(.97)}
+.skip-btn{width:100%;max-width:420px;background:transparent;border:1px solid rgba(255,255,255,.18);border-radius:14px;padding:11px;color:rgba(255,255,255,.55);font-family:'Quicksand','Trebuchet MS',sans-serif;font-size:13px;font-weight:600;cursor:pointer;margin-top:10px;-webkit-transition:all .2s;transition:all .2s}
+.skip-btn:hover{color:rgba(255,255,255,.85);border-color:rgba(255,255,255,.3)}
+.skip-btn:active{-webkit-transform:scale(.98);transform:scale(.98)}
 #results{-webkit-box-pack:center;justify-content:center;gap:20px;text-align:center;z-index:1}
 #results>*+*{margin-top:20px}
 .res-emoji{font-size:72px;-webkit-animation:bob 2s ease-in-out infinite;animation:bob 2s ease-in-out infinite}
@@ -140,6 +146,7 @@ body{font-family:'Quicksand','Trebuchet MS',Verdana,sans-serif;background:linear
 @-webkit-keyframes pop{from{-webkit-transform:scale(0)}to{-webkit-transform:scale(1)}}
 @keyframes pop{from{transform:scale(0)}to{transform:scale(1)}}
 .res-msg{font-size:15px;color:rgba(255,255,255,.5);max-width:280px;line-height:1.5}
+.res-breakdown{font-size:12px;color:rgba(255,255,255,.65);background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:8px 12px;margin-bottom:10px}
 .res-btns{display:-webkit-box;display:flex;-webkit-box-orient:vertical;flex-direction:column;gap:10px;width:100%;max-width:320px}
 .res-btns>*+*{margin-top:10px}
 .btn-retry,.btn-home{border:none;border-radius:18px;padding:15px;font-family:'Fredoka','Trebuchet MS',sans-serif;font-size:17px;font-weight:600;cursor:pointer;-webkit-transition:all .2s;transition:all .2s}
@@ -215,6 +222,7 @@ body{font-family:'Quicksand','Trebuchet MS',Verdana,sans-serif;background:linear
   <div class="dd-wrap" id="ddWrap" style="display:none"></div>
   <div class="fb" id="fb"></div>
   <button class="nxt" id="nxtBtn" onclick="nextQ()"></button>
+  <button class="skip-btn" id="skipBtn" onclick="skipQ()"></button>
 </div>
 <div class="screen" id="results">
   <div class="res-emoji" id="resEmoji"></div>
@@ -371,7 +379,7 @@ const EXAMS = [
           {q:'Quantas notas de 10 são iguais a 1 nota de 100?',type:'num',answer:10,fb:'10 × 10 = 100. Dez notas de 10 formam 100!',whyWrong:(u)=>{if(u===100)return '100 é o valor total, não a quantidade de notas. São 10 notas de 10.';if(u===1)return '1 nota só de 10 vale apenas 10. Precisamos de 10 notas.';return null;}},
           {q:'Decomponha: 729 = 700 + 20 + ___',type:'num',answer:9,fb:'729 → centena 700, dezena 20, unidade 9.',whyWrong:(u)=>{if(u===7)return 'O 7 já apareceu em 700 (centena). Falta a unidade.';if(u===2)return 'O 2 já apareceu em 20 (dezena). Falta a unidade.';return null;}},
           {q:'Arraste cada parte para a casa correta. Decomponha 1.205.',type:'dd',pool:['1.000','200','0','5'],targets:[{label:'UM',answer:0,placeholder:'?'},{label:'C',answer:1,placeholder:'?'},{label:'D',answer:2,placeholder:'?'},{label:'U',answer:3,placeholder:'?'}],fb:'1.205 = 1.000 + 200 + 0 + 5. Não tem dezena, então a casa D é 0!'},
-          {q:'Usando os algarismos 1, 2, 3 e 0, qual é o MAIOR número de 4 ordens que dá pra formar?',type:'num',answer:3210,fb:'O maior tem que começar pelo maior algarismo: 3, depois 2, depois 1, depois 0 → 3.210.',whyWrong:(u)=>{if(u===123)return 'Você fez o menor possível, não o maior. O maior começa pelo MAIOR algarismo.';if(u===321)return 'Faltou usar todos os 4 algarismos. Use também o 0.';if(u===3201)return 'Quase! Depois do 3, tem que vir o 2, depois o 1, depois o 0.';return null;}},
+          {q:'Usando os algarismos 1, 2, 3 e 0, qual é o MAIOR número de 4 ordens que dá pra formar?',type:'num',answer:3210,fb:'O maior tem que começar pelo maior algarismo: 3, depois 2, depois 1, depois 0 → 3.210.',whyWrong:(u)=>{if(u===123)return 'Esse é um número de 3 ordens (centenas). O enunciado pede 4 ordens (milhar). Use os 4 algarismos!';if(u===321)return 'Faltou usar todos os 4 algarismos. Você não usou o 0.';if(u===3201)return 'Quase! Depois do 3, tem que vir o 2, depois o 1, depois o 0.';return null;}},
           {q:'Qual destes números é MENOR?',opts:['1.250','725','1.000','999'],correct:1,fb:'725 tem só 3 ordens, os outros têm 4 ordens (milhar). Por isso é o menor!',whyWrong:{0:'1.250 tem milhar, é grande.',2:'1.000 tem milhar, é maior que 725.',3:'999 é maior que 725 (999 > 725).'}},
           {q:'Quantas notas de 1 são iguais a 1 nota de 1.000?',type:'num',answer:1000,fb:'Mil notas de 1 = 1.000. Cada nota de 1 vale 1, então precisa de 1.000 notas!',whyWrong:(u)=>{if(u===100)return '100 notas de 1 = 100, não 1.000.';if(u===10)return '10 notas de 1 = 10. Muito pouco!';return null;}},
           {q:'Escreva 1.432 decomposto. Qual é a UM?',type:'num',answer:1000,fb:'1.432 = 1.000 + 400 + 30 + 2. A unidade de milhar vale 1.000.',whyWrong:(u)=>{if(u===1)return 'O ALGARISMO é 1, mas o VALOR de lugar é 1.000.';if(u===1432)return 'Esse é o número inteiro. Só a UM é 1.000.';return null;}}
@@ -381,7 +389,7 @@ const EXAMS = [
         quiz:[
           {q:'Quanto é 47 + 35?',type:'num',answer:82,fb:'7+5=12, escreve 2 e reserva 1. 4+3+1=8 → 82.',whyWrong:(u)=>{if(u===72)return 'Você esqueceu de RESERVAR o 1 da soma 7+5=12.';if(u===712)return 'Você escreveu o 12 inteiro. O certo é só o 2 e reservar o 1.';if(u===92)return 'Você reservou 2 em vez de 1. 7+5=12 → reserva só 1.';return null;}},
           {q:'Quanto é 138 + 685?',type:'num',answer:823,fb:'8+5=13 (reserva 1). 3+8+1=12 (reserva 1). 1+6+1=8. → 823.',whyWrong:(u)=>{if(u===713)return 'Você esqueceu de reservar nas dezenas.';if(u===723)return 'Você reservou só 1 vez. As DUAS casas precisam de reserva.';return null;}},
-          {q:'Resolva: 356 + 95 = ?',type:'num',answer:451,fb:'6+5=11 (reserva 1). 5+9+1=15 (reserva 1). 3+0+1=4. → 451.',whyWrong:(u)=>{if(u===441)return 'Quase! Faltou reservar 1 vez.';if(u===351)return 'Você somou só as casas, sem reservar.';return null;}},
+          {q:'Resolva: 356 + 95 = ?',type:'num',answer:451,fb:'6+5=11 (reserva 1). 5+9+1=15 (reserva 1). 3+0+1=4. → 451.',whyWrong:(u)=>{if(u===441)return 'Quase! Você esqueceu de reservar uma vez. Confira: 6+5=11 (reserva 1) e 5+9+1=15 (reserva 1).';if(u===341)return 'Você esqueceu as DUAS reservas. 6+5=11 e 5+9=14 — as duas casas reservam 1.';return null;}},
           {q:'Em uma adição, 7 + 5 = 12. O que escrevo nessa casa?',opts:['12','7','2 e reservo 1','5 e reservo 7'],correct:2,fb:'Escreve a unidade (2) e RESERVA a dezena (1) para a próxima casa.',whyWrong:{0:'Não cabe 12 numa casa só! Cada casa só guarda um algarismo.',1:'7 era um dos números somados, não a resposta.',3:'Reserva-se a DEZENA do resultado (1), não 7.'}},
           {q:'Lara tinha 124 figurinhas. Ganhou 86. Com quantas ficou?',type:'num',answer:210,fb:'124 + 86 = 210. Ganhou MAIS, então é adição.',whyWrong:(u)=>{if(u===200)return 'Quase! Você esqueceu de levar a reserva da soma 4+6=10.';if(u===38)return 'Isso seria 124 − 86 (subtração). Mas ganhou = soma.';return null;}},
           {q:'Resolva: 821 + 191 = ?',type:'num',answer:1012,fb:'1+1=2. 2+9=11 (reserva 1). 8+1+1=10. → 1.012 (a centena virou milhar!).',whyWrong:(u)=>{if(u===912)return 'Faltou ver que a soma das centenas passou de 9 — virou milhar!';if(u===1002)return 'Quase! Reveja a soma das dezenas: 2+9=11.';return null;}},
@@ -396,7 +404,7 @@ const EXAMS = [
           {q:'Resolva: 564 − 18 = ?',type:'num',answer:546,fb:'4 não tira 8 → vira 14. 14−8=6. Dezena 6 vira 5: 5−1=4. Centena 5 desce. → 546.',whyWrong:(u)=>{if(u===556)return 'Você não diminuiu a dezena depois do empréstimo.';if(u===546)return null;return null;}},
           {q:'Pedro tinha 91 cards. Deu 45. Com quantos ficou?',type:'num',answer:46,fb:'91 − 45 = 46. "Deu" significa tirar (subtração).',whyWrong:(u)=>{if(u===136)return 'Você somou (91+45). Mas "deu" significa tirar!';if(u===54)return 'Quase. 91−45: 1 não tira 5, vira 11. 11−5=6. Dezena 9 vira 8: 8−4=4. → 46.';return null;}},
           {q:'Em 813 − 158, depois de pegar emprestado nas unidades, a dezena (que era 1) vira:',opts:['1 ainda','11','0','2'],correct:2,fb:'A dezena 1 emprestou 1 para as unidades, então virou 0. Depois precisa pegar das centenas!',whyWrong:{0:'Ela emprestou 1 para a unidade — não pode continuar sendo 1.',1:'11 seria se ela RECEBESSE empréstimo, mas ela DEU.',3:'Ela diminuiu 1, não aumentou.'}},
-          {q:'Resolva: 800 − 178 = ?',type:'num',answer:622,fb:'Empréstimo em cadeia! 0−8 não dá, pega da dezena (que é 0!), pega da centena. → 622.',whyWrong:(u)=>{if(u===678)return 'Quando há vários zeros, o empréstimo passa por todos. 800−178=622.';if(u===978)return 'Você somou em vez de subtrair.';return null;}}
+          {q:'Resolva: 800 − 178 = ?',type:'num',answer:622,fb:'Empréstimo passa pelas casas com zero! Passo a passo: 0−8 não dá. A dezena também é 0, então pega da centena 8 (vira 7). A dezena vira 10, depois empresta 1 para as unidades (vira 9). Unidades: 10−8=2. Dezenas: 9−7=2. Centena: 7−1=6. → 622.',whyWrong:(u)=>{if(u===722)return 'Você não emprestou de uma das casas com 0. 800−178=622.';if(u===632)return 'Quase! Reveja a centena depois dos empréstimos: 8 virou 7, e 7−1=6.';if(u===978)return 'Você somou em vez de subtrair.';return null;}}
         ]},
       {id:'mat_mental',icon:'🧠',name:'Cálculo Mental',desc:'Estratégias rápidas: ±10, ±100, aproximação',illus:'generic',
         lesson:`<h3>Cálculo Mental</h3><p>Cálculo mental é fazer contas <span class="hl">sem precisar armar</span>. Existem estratégias:</p><p><strong>+10 ou −10:</strong> só muda a casa da DEZENA. Ex: 237 + 10 = 247. 481 − 10 = 471.</p><p><strong>+100 ou −100:</strong> só muda a casa da CENTENA. Ex: 392 + 100 = 492. 546 − 100 = 446.</p><p><strong>Completar 100 ou 1.000:</strong> 80 + 20 = 100. 800 + 200 = 1.000. 350 + 650 = 1.000.</p><p><strong>Aproximação:</strong> arredondar para a centena mais próxima. 320 ≈ 300. 680 ≈ 700. 570 ≈ 600.</p><p>📌 Para arredondar: se a dezena é 0–4, vai para baixo; se é 5–9, vai para cima.</p>`,
@@ -475,7 +483,7 @@ const EXAMS = [
           {q:'What is 564 − 18?',type:'num',answer:546,fb:'4−8 not enough → 14−8=6. Tens 6 becomes 5. 5−1=4. → 546.',whyWrong:(u)=>{if(u===556)return 'You did not lower the tens after borrowing.';if(u===544)return 'Recheck the ones: 14−8=6.';return null;}},
           {q:'In 256 − 28, after borrowing, what does the tens digit (5) become?',type:'num',answer:4,fb:'It gave 1 to the ones, so it goes from 5 to 4.',whyWrong:(u)=>{if(u===5)return 'It LENT 1 to the ones, so it must go DOWN by 1.';if(u===6)return 'It went down, not up. It lent 1, did not receive.';return null;}},
           {q:'Sara had 60 candies. She gave 24 away. How many are left?',type:'num',answer:36,fb:'60 − 24 = 36. "Gave away" means we subtract.',whyWrong:(u)=>{if(u===84)return 'You added instead. "Gave away" means take away.';if(u===46)return 'Recheck: 0−4 needs borrowing → 10−4=6, then 5−2=3 → 36.';return null;}},
-          {q:'What is 800 − 178?',type:'num',answer:622,fb:'Borrow chain across zeros! 0−8 needs borrow, but tens is 0 too — borrow from hundreds. → 622.',whyWrong:(u)=>{if(u===678)return 'Borrowing across zeros is tricky. 800−178=622.';if(u===978)return 'You added instead of subtracting.';return null;}}
+          {q:'What is 800 − 178?',type:'num',answer:622,fb:'We need to borrow many times because of the zeros! 0−8 needs help. Tens is also 0, so we borrow from the hundreds (8 becomes 7). Step by step: 10−8=2, 9−7=2, 7−1=6. → 622.',whyWrong:(u)=>{if(u===722)return 'You did not borrow from one of the zeros. 800−178=622.';if(u===632)return 'Almost! Recheck the hundreds: 8 became 7 after lending.';if(u===978)return 'You added instead of subtracting.';return null;}}
         ]},
       {id:'math_word',icon:'📖',name:'Word Problems',desc:'Understand · Plan · Answer · Check',illus:'generic',
         lesson:`<h3>Word Problems</h3><p>Use 4 steps:</p><p><strong>1. Understand:</strong> read carefully. What do we know? What do we need to find?</p><p><strong>2. Plan:</strong> add or subtract? "How many in all", "altogether", "more" → ADD. "How many left", "fewer", "give away" → SUBTRACT.</p><p><strong>3. Answer:</strong> do the math.</p><p><strong>4. Check:</strong> does the answer make sense? Reread the question.</p><p>📌 Tip: keywords help, but always think about the SITUATION!</p>`,
@@ -487,7 +495,7 @@ const EXAMS = [
           {q:'A shop sold 642 mobile phones in March and April. 319 were sold in March. How many in April?',type:'num',answer:323,fb:'Total − March = April. 642 − 319 = 323.',whyWrong:(u)=>{if(u===961)return 'You added. But March + April = total, so April = total − March.';if(u===333)return 'Recheck: borrow needed in the tens.';return null;}},
           {q:'A farmer harvests 438 carrots. He harvests 153 FEWER turnips than carrots. How many turnips?',type:'num',answer:285,fb:'Carrots − 153 = turnips. 438 − 153 = 285. "Fewer" means turnips are smaller.',whyWrong:(u)=>{if(u===591)return 'You added. "Fewer" means turnips are LESS, so subtract.';if(u===325)return 'Recheck: 8−3=5, 13−5=8 (borrow), 3−1=2 → 285.';return null;}},
           {q:'A factory makes 562 nuts in an hour. It makes 275 FEWER bolts than nuts. How many nuts AND bolts in an hour?',type:'num',answer:849,fb:'Bolts = 562 − 275 = 287. Total = 562 + 287 = 849.',whyWrong:(u)=>{if(u===287)return 'That is just the bolts! The question asks the TOTAL of nuts AND bolts.';if(u===562)return 'That is just the nuts! Add bolts (287) to get the total: 849.';return null;}},
-          {q:'Which words usually mean ADD?',opts:['Gave away · left','In all · altogether · more','Fewer · less than','How many remain'],correct:1,fb:'"In all", "altogether" and "more" mean ADD. The others mean subtract.',whyWrong:{0:'"Gave away" and "left" mean SUBTRACT.',2:'"Fewer" and "less than" mean SUBTRACT.',3:'"Remain" means what is LEFT — subtract.'}}
+          {q:'Which words usually mean ADD?',opts:['Gave away · left','In all · altogether · more','Fewer · less than','How many are left'],correct:1,fb:'"In all", "altogether" and "more" mean ADD. The others mean subtract.',whyWrong:{0:'"Gave away" and "left" mean SUBTRACT.',2:'"Fewer" and "less than" mean SUBTRACT.',3:'"Left" means what is left over — that is SUBTRACT.'}}
         ]},
       {id:'math_meas',icon:'📏',name:'Measurement',desc:'Meters, centimeters, ruler',illus:'generic',
         lesson:`<h3>Length: Meters & Centimeters</h3><p>A <span class="hl">meter (m)</span> is about a big step. A <span class="hl">centimeter (cm)</span> is small — about the tip of your finger.</p><p><strong>1 meter = 100 centimeters.</strong></p><p>📏 To use the ruler:<br>• Always start at the <strong>zero</strong> mark!<br>• Read where the line ENDS.</p><p>For drawing: place pencil at zero and draw until you reach the right number.</p><p>To compare lengths: longer = more cm. Shorter = fewer cm.</p>`,
@@ -509,7 +517,7 @@ const EXAMS = [
           {q:'In a pictograph, each 🍎 = 3 votes. There are 4 apples. How many votes?',type:'num',answer:12,fb:'4 × 3 = 12. Multiply the count by the value per picture.',whyWrong:(u)=>{if(u===4)return 'Each apple is worth more than 1! Each = 3 votes.';if(u===7)return 'You added 4+3. The pictograph rule is multiply: 4 × 3 = 12.';return null;}},
           {q:'What should you read FIRST on a graph?',opts:['The biggest bar','The title','The colors','The smallest number'],correct:1,fb:'The TITLE tells you what the graph is about.',whyWrong:{0:'The bar means nothing without knowing the topic.',2:'Colors only differ; they are not the topic.',3:'A number alone has no meaning.'}},
           {q:'Bar graphs are good for:',opts:['Telling stories','Comparing numbers','Drawing pictures','Measuring length'],correct:1,fb:'Bar graphs let us COMPARE quantities side by side.',whyWrong:{0:'Stories use words, not bars.',2:'Drawings are art, not data.',3:'Length uses a ruler.'}},
-          {q:'A graph shows zoo animals. Each line on the scale = 3. A bar reaches the 5th line. How many animals?',type:'num',answer:15,fb:'5 lines × 3 each = 15 animals.',whyWrong:(u)=>{if(u===5)return 'Each line is worth 3, not 1. So 5 × 3 = 15.';if(u===8)return 'You added 5+3. Multiply: 5 × 3 = 15.';return null;}},
+          {q:'A graph shows zoo animals. Each square on the scale = 3 animals. A bar is 5 squares tall. How many animals does it show?',type:'num',answer:15,fb:'5 squares × 3 animals each = 15 animals.',whyWrong:(u)=>{if(u===5)return 'Each square is worth 3, not 1. So 5 × 3 = 15.';if(u===8)return 'You added 5+3. We need to multiply: 5 × 3 = 15.';return null;}},
           {q:'Cupcake sales: chocolate=35, lemon=25, blackberry=50, pineapple=10. Which sold the MOST?',opts:['Chocolate','Lemon','Blackberry','Pineapple'],correct:2,fb:'50 is the biggest number. Blackberry was the most popular!',whyWrong:{0:'35 is less than 50.',1:'25 is less than 50.',3:'10 is the smallest, not the biggest.'}}
         ]}
     ]},
@@ -764,7 +772,7 @@ const EXAMS = [
 ];
 
 // ===================== STATE =====================
-let curExam=null,curTopic=null,curQuiz=[],qIdx=0,score=0;
+let curExam=null,curTopic=null,curQuiz=[],qIdx=0,score=0,skipped=0;
 function go(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active');window.scrollTo(0,0)}
 
 // ===================== HOME =====================
@@ -792,7 +800,7 @@ function openTopic(id){
   go('lesson')}
 
 // ===================== QUIZ =====================
-function startQuiz(){curQuiz=[...curTopic.quiz].sort(()=>Math.random()-.5);qIdx=0;score=0;document.getElementById('quizHdrTitle').textContent=curTopic.icon+' Quiz';go('quiz');renderQ()}
+function startQuiz(){curQuiz=[...curTopic.quiz].sort(()=>Math.random()-.5);qIdx=0;score=0;skipped=0;document.getElementById('quizHdrTitle').textContent=curTopic.icon+' Quiz';go('quiz');renderQ()}
 
 function renderQ(){
   const q=curQuiz[qIdx],total=curQuiz.length,pt=curExam.lang==='pt';
@@ -802,11 +810,17 @@ function renderQ(){
   const imgEl=document.getElementById('qImg');
   if(q.img&&QI[q.img]){imgEl.innerHTML=QI[q.img]();imgEl.style.display='block'}else{imgEl.style.display='none'}
   document.getElementById('optsList').style.display='none';
+  document.getElementById('optsList').innerHTML='';
   document.getElementById('numWrap').style.display='none';
+  document.getElementById('numWrap').innerHTML='';
   document.getElementById('ddWrap').style.display='none';
+  document.getElementById('ddWrap').innerHTML='';
   document.getElementById('fb').style.display='none';
   document.getElementById('fb').className='fb';
   document.getElementById('nxtBtn').style.display='none';
+  const skipBtn=document.getElementById('skipBtn');
+  skipBtn.textContent=pt?'⏭️ Pular esta pergunta':'⏭️ Skip this question';
+  skipBtn.style.display='block';
   if(q.type==='num'){renderNum(q,pt)}
   else if(q.type==='dd'){renderDD(q,pt)}
   else{
@@ -855,43 +869,66 @@ var ddSelected=null;
 function renderDD(q,pt){
   ddState={};ddSelected=null;
   const w=document.getElementById('ddWrap');w.style.display='flex';
-  const prompt=q.prompt||(pt?'Toque numa peça e depois na caixa para encaixar.':'Tap a piece, then tap a box to place it.');
-  const targetsHTML=q.targets.map((t,i)=>`<div class="dd-target" id="ddT${i}" onclick="ddPlace(${i})"><span class="dd-tlabel">${t.label}</span><span id="ddTV${i}">${t.placeholder||'___'}</span></div>`).join('');
-  const poolHTML=q.pool.map((p,i)=>`<button class="dd-chip" id="ddC${i}" onclick="ddPick(${i})">${p}</button>`).join('');
+  const prompt=q.prompt||(pt?'Toque numa peça e depois numa caixa para encaixar.':'Tap a piece, then tap a box to place it.');
+  const targetsHTML=q.targets.map((t,i)=>`<div class="dd-target" data-tidx="${i}"><span class="dd-tlabel">${t.label}</span><span class="dd-tval" id="ddTV${i}">${t.placeholder||'___'}</span></div>`).join('');
+  const poolHTML=q.pool.map((p,i)=>`<button type="button" class="dd-chip" data-cidx="${i}">${p}</button>`).join('');
   w.innerHTML=`<div class="dd-prompt">${prompt}</div>
     <div class="dd-targets">${targetsHTML}</div>
     <div class="dd-pool">${poolHTML}</div>
-    <button class="num-submit" id="ddSubmit" disabled onclick="checkDD()">${pt?'Conferir':'Check'}</button>`;
+    <button type="button" class="num-submit" id="ddSubmit" disabled>${pt?'Conferir':'Check'}</button>`;
+  // Attach event listeners
+  w.querySelectorAll('.dd-chip').forEach(btn=>{
+    const idx=parseInt(btn.getAttribute('data-cidx'),10);
+    btn.addEventListener('click',function(ev){ev.preventDefault();ev.stopPropagation();ddPick(idx);});
+  });
+  w.querySelectorAll('.dd-target').forEach(div=>{
+    const idx=parseInt(div.getAttribute('data-tidx'),10);
+    div.addEventListener('click',function(ev){ev.preventDefault();ev.stopPropagation();ddPlace(idx);});
+  });
+  document.getElementById('ddSubmit').addEventListener('click',function(ev){ev.preventDefault();checkDD();});
 }
 function ddPick(i){
   if(ddSelected===i){ddSelected=null}else{ddSelected=i}
-  document.querySelectorAll('.dd-chip').forEach((c,j)=>{c.classList.toggle('sel',j===ddSelected)});
+  document.querySelectorAll('.dd-chip').forEach(c=>{
+    const idx=parseInt(c.getAttribute('data-cidx'),10);
+    c.classList.toggle('sel',idx===ddSelected);
+  });
 }
+function _ddTargetEl(i){return document.querySelector('.dd-target[data-tidx="'+i+'"]')}
+function _ddChipEl(i){return document.querySelector('.dd-chip[data-cidx="'+i+'"]')}
 function ddPlace(targetIdx){
+  const q=curQuiz[qIdx];
   if(ddSelected===null){
-    // unplace if filled
+    // empty selection: unplace if target is filled
     if(ddState[targetIdx]!==undefined){
       const old=ddState[targetIdx];
       delete ddState[targetIdx];
-      const tv=document.getElementById('ddTV'+targetIdx);const t=document.getElementById('ddT'+targetIdx);
-      const q=curQuiz[qIdx];tv.textContent=q.targets[targetIdx].placeholder||'___';t.classList.remove('filled');
-      document.getElementById('ddC'+old).classList.remove('used');
+      document.getElementById('ddTV'+targetIdx).textContent=q.targets[targetIdx].placeholder||'___';
+      _ddTargetEl(targetIdx).classList.remove('filled');
+      _ddChipEl(old).classList.remove('used');
       updateDDSubmit();
     }
     return;
   }
-  // unplace if target was filled
+  // there's a selection
+  // 1) if target was filled, free its previous chip
   if(ddState[targetIdx]!==undefined){
     const old=ddState[targetIdx];
-    document.getElementById('ddC'+old).classList.remove('used');
+    _ddChipEl(old).classList.remove('used');
   }
-  // remove selected from any other target
-  Object.keys(ddState).forEach(k=>{if(ddState[k]===ddSelected){delete ddState[k];const q=curQuiz[qIdx];const tv=document.getElementById('ddTV'+k);const t=document.getElementById('ddT'+k);tv.textContent=q.targets[k].placeholder||'___';t.classList.remove('filled');}});
+  // 2) if selected chip was already on another target, clear there
+  Object.keys(ddState).forEach(k=>{
+    if(ddState[k]===ddSelected){
+      delete ddState[k];
+      document.getElementById('ddTV'+k).textContent=q.targets[k].placeholder||'___';
+      _ddTargetEl(k).classList.remove('filled');
+    }
+  });
+  // 3) place
   ddState[targetIdx]=ddSelected;
-  const q=curQuiz[qIdx];
   document.getElementById('ddTV'+targetIdx).textContent=q.pool[ddSelected];
-  document.getElementById('ddT'+targetIdx).classList.add('filled');
-  document.getElementById('ddC'+ddSelected).classList.add('used');
+  _ddTargetEl(targetIdx).classList.add('filled');
+  _ddChipEl(ddSelected).classList.add('used');
   ddSelected=null;
   document.querySelectorAll('.dd-chip').forEach(c=>c.classList.remove('sel'));
   updateDDSubmit();
@@ -905,12 +942,13 @@ function checkDD(){
   const q=curQuiz[qIdx],pt=curExam.lang==='pt';
   let allOk=true;const wrongList=[];
   q.targets.forEach((t,i)=>{
-    const t_el=document.getElementById('ddT'+i);
+    const tEl=_ddTargetEl(i);
     const placed=ddState[i];const correctIdx=t.answer;
-    if(placed===correctIdx){t_el.classList.add('ok')}
-    else{t_el.classList.add('no');allOk=false;wrongList.push({label:t.label,gotIdx:placed,wantIdx:correctIdx})}
+    if(placed===correctIdx){tEl.classList.add('ok')}
+    else{tEl.classList.add('no');allOk=false;wrongList.push({label:t.label,gotIdx:placed,wantIdx:correctIdx})}
   });
   document.querySelectorAll('.dd-chip,#ddSubmit').forEach(b=>{b.disabled=true;b.style.pointerEvents='none'});
+  document.querySelectorAll('.dd-target').forEach(t=>{t.style.pointerEvents='none'});
   showFb(allOk,q,pt,null,wrongList);
 }
 
@@ -940,6 +978,14 @@ function showFb(ok,q,pt,user,wrongList){
   fb.style.display='block';
   const n=document.getElementById('nxtBtn');n.style.display='block';
   n.textContent=qIdx<curQuiz.length-1?(pt?'Próxima →':'Next →'):(pt?'🏆 Ver resultado':'🏆 See results');
+  document.getElementById('skipBtn').style.display='none';
+}
+
+function skipQ(){
+  skipped++;
+  qIdx++;
+  if(qIdx<curQuiz.length)renderQ();
+  else showResults();
 }
 
 function check(sel){
@@ -957,18 +1003,27 @@ function check(sel){
   fb.style.display='block';
   const n=document.getElementById('nxtBtn');n.style.display='block';
   n.textContent=qIdx<curQuiz.length-1?(pt?'Próxima →':'Next →'):(pt?'🏆 Ver resultado':'🏆 See results');
+  document.getElementById('skipBtn').style.display='none';
 }
 
 function nextQ(){qIdx++;if(qIdx<curQuiz.length)renderQ();else showResults()}
 
 function showResults(){
-  const pt=curExam.lang==='pt',total=curQuiz.length,pct=score/total;
+  const pt=curExam.lang==='pt',total=curQuiz.length,answered=total-skipped,pct=score/total;
   const tier=pct<.3?0:pct<.5?1:pct<.7?2:pct<1?3:4;
+  document.getElementById('skipBtn').style.display='none';
   go('results');
   document.getElementById('resEmoji').textContent=['😅','🤔','😊','🤩','🏆'][tier];
   document.getElementById('resTitle').textContent=(pt?['Tente de novo!','Quase lá!','Muito bom!','Excelente!','Perfeito! 🎉']:['Try again!','Almost there!','Very good!','Excellent!','Perfect! 🎉'])[tier];
   document.getElementById('resScore').innerHTML=`${score} <span class="tot">/ ${total}</span>`;
-  document.getElementById('resMsg').textContent=(pt?['Continue estudando!','No caminho certo!','Parabéns!','Incrível!','Você é demais! ⭐']:['Keep studying!','On the right track!','Great job!','Amazing!','You\'re a genius! ⭐'])[tier];
+  let breakdown='';
+  if(skipped>0){
+    const wrong=answered-score;
+    const lbl=pt?`✅ ${score} acertou · ❌ ${wrong} errou · ⏭️ ${skipped} ${skipped===1?'não respondida':'não respondidas'}`:`✅ ${score} right · ❌ ${wrong} wrong · ⏭️ ${skipped} ${skipped===1?'unanswered':'unanswered'}`;
+    breakdown=`<div class="res-breakdown">${lbl}</div>`;
+  }
+  const msg=(pt?['Continue estudando!','No caminho certo!','Parabéns!','Incrível!','Você é demais! ⭐']:['Keep studying!','On the right track!','Great job!','Amazing!','You\'re a genius! ⭐'])[tier];
+  document.getElementById('resMsg').innerHTML=breakdown+`<div>${msg}</div>`;
   const sc=Math.ceil(pct*5);
   document.getElementById('resStars').innerHTML=Array.from({length:5},(_,i)=>`<span style="animation-delay:${i*.12}s;opacity:${i<sc?1:.2}">${i<sc?'⭐':'☆'}</span>`).join('');
   document.getElementById('btnRetry').textContent=pt?'🔄 Tentar de novo':'🔄 Try again';
