@@ -219,10 +219,9 @@ button,input{font-family:inherit;-webkit-tap-highlight-color:transparent}
 <div id="loginScreen">
   <div class="login-lock">🔐</div>
   <div class="login-title">Study Quiz</div>
-  <div class="login-sub">Enter your credentials to start</div>
+  <div class="login-sub">Type the password to start</div>
   <div class="login-form">
-    <input class="login-input" type="text" id="loginUser" placeholder="👤 Username" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false">
-    <input class="login-input" type="password" id="loginPass" placeholder="🔑 Password">
+    <input class="login-input" type="password" id="loginPass" placeholder="🔑 Password" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false">
     <button class="login-btn" id="loginBtn" onclick="tryLogin()">Enter →</button>
   </div>
   <div class="login-error" id="loginError"></div>
@@ -2173,7 +2172,6 @@ var lockTimer=null;
 if(window.sessionStorage){try{if(sessionStorage.getItem('sq_auth')==='1'){unlockApp()}}catch(e){}}
 
 // Enter key support
-document.getElementById('loginUser').addEventListener('keydown',function(e){if(e.key==='Enter'){document.getElementById('loginPass').focus()}});
 document.getElementById('loginPass').addEventListener('keydown',function(e){if(e.key==='Enter'){tryLogin()}});
 
 function tryLogin(){
@@ -2189,10 +2187,9 @@ function tryLogin(){
     return;
   }
 
-  var user=document.getElementById('loginUser').value.trim().toLowerCase();
-  var pass=document.getElementById('loginPass').value;
+  var pass=document.getElementById('loginPass').value.trim().toLowerCase();
 
-  if(user===LOGIN_USER && pass===LOGIN_PASS){
+  if(pass===LOGIN_PASS){
     // Success
     failCount=0;
     if(window.sessionStorage){try{sessionStorage.setItem('sq_auth','1')}catch(e){}}
@@ -2207,7 +2204,6 @@ function tryLogin(){
       errEl.textContent='🔒 Blocked! Too many wrong attempts.';
       attEl.textContent='Try again in 3 minutes';
       btn.disabled=true;
-      document.getElementById('loginUser').disabled=true;
       document.getElementById('loginPass').disabled=true;
 
       // Countdown timer
@@ -2219,7 +2215,6 @@ function tryLogin(){
           lockTimer=null;
           failCount=0;
           btn.disabled=false;
-          document.getElementById('loginUser').disabled=false;
           document.getElementById('loginPass').disabled=false;
           errEl.textContent='';
           attEl.textContent='You can try again now!';
@@ -2230,7 +2225,7 @@ function tryLogin(){
         }
       },1000);
     } else {
-      errEl.textContent='❌ Wrong username or password';
+      errEl.textContent='❌ Wrong password';
       attEl.textContent=remaining+' attempt'+(remaining!==1?'s':'')+' left';
     }
 
