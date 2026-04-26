@@ -67,7 +67,8 @@ button,input{font-family:inherit;-webkit-tap-highlight-color:transparent}
 .topic-grid>*+*{margin-top:12px}
 .topic-card{background:#1c1f5a;border:2px solid rgba(255,255,255,.1);border-radius:18px;padding:18px;cursor:pointer;-webkit-transition:all .25s;transition:all .25s;position:relative;overflow:hidden}
 .topic-card:active{-webkit-transform:scale(.98);transform:scale(.98)}
-.topic-icon{font-size:34px;margin-bottom:8px}
+.topic-icon{font-size:34px;margin-bottom:8px;line-height:1;-webkit-text-stroke:0;text-shadow:0 1px 2px rgba(0,0,0,.2)}
+.topic-icon svg{display:block}
 .topic-name{font-family:'Fredoka','Trebuchet MS',sans-serif;font-size:18px;font-weight:600}
 .topic-desc{font-size:13px;color:rgba(255,255,255,.5);margin-top:4px;line-height:1.4}
 .study-ref{width:100%;max-width:420px;background:rgba(255,217,61,.08);border:1px solid rgba(255,217,61,.2);border-radius:18px;padding:16px;margin-top:8px}
@@ -80,7 +81,7 @@ button,input{font-family:inherit;-webkit-tap-highlight-color:transparent}
 .lesson-body{background:#1c1f5a;border:1px solid rgba(255,255,255,.1);border-radius:18px;padding:20px;line-height:1.75;font-size:15px}
 .lesson-body h3{font-family:'Fredoka','Trebuchet MS',sans-serif;font-size:20px;margin-bottom:10px}
 .lesson-body p{margin-bottom:10px;color:rgba(255,255,255,.7)}
-.hl{color:#FFD93D;font-weight:700}
+.hl{color:#FFF176;font-weight:700;text-shadow:0 0 6px rgba(255,217,61,.45)}
 .quiz-start{width:100%;max-width:420px;background:-webkit-linear-gradient(315deg,#00E5FF,#B388FF);background:linear-gradient(135deg,#00E5FF,#B388FF);border:none;border-radius:18px;padding:16px;color:#fff;font-family:'Fredoka','Trebuchet MS',sans-serif;font-size:18px;font-weight:600;cursor:pointer;margin-top:14px;box-shadow:0 8px 25px rgba(0,229,255,.25);-webkit-transition:-webkit-transform .2s;transition:transform .2s}
 .quiz-start:active{-webkit-transform:scale(.97);transform:scale(.97)}
 #quiz{z-index:1}
@@ -623,7 +624,364 @@ function decompCards(opts){
 }
 
 // Wrapper to put MV helpers inside an S() svg with white BG (like book paper)
+// Polygon — draw regular polygon with N sides, optional label inside or outside
+function polygon(opts){
+  const cx=opts.cx||100, cy=opts.cy||100, r=opts.r||50, n=opts.n||3;
+  const color=opts.color||'#5DADE2', stroke=opts.stroke||'#1E88E5';
+  const rotation=opts.rot!==undefined?opts.rot:-Math.PI/2; // start at top
+  let pts=[];
+  for(let i=0;i<n;i++){
+    const a=rotation+i*2*Math.PI/n;
+    pts.push(`${cx+r*Math.cos(a)},${cy+r*Math.sin(a)}`);
+  }
+  let s=`<polygon points="${pts.join(' ')}" fill="${color}" fill-opacity="0.4" stroke="${stroke}" stroke-width="2.5"/>`;
+  // Mark each vertex with a small dot
+  if(opts.markVertices){
+    for(let i=0;i<n;i++){
+      const a=rotation+i*2*Math.PI/n;
+      s+=`<circle cx="${cx+r*Math.cos(a)}" cy="${cy+r*Math.sin(a)}" r="3" fill="${stroke}"/>`;
+    }
+  }
+  // Label below
+  if(opts.label){
+    s+=`<text x="${cx}" y="${cy+r+22}" fill="#222" font-family="Fredoka,sans-serif" font-size="14" font-weight="700" text-anchor="middle">${opts.label}</text>`;
+  }
+  // Side count label inside
+  if(opts.showSides){
+    s+=`<text x="${cx}" y="${cy+5}" fill="#222" font-family="Fredoka,sans-serif" font-size="13" font-weight="700" text-anchor="middle">${n} sides</text>`;
+  }
+  return s;
+}
+
+// Rectangle / Square primitive
+function shape4(opts){
+  const cx=opts.cx||100, cy=opts.cy||100, w=opts.w||80, h=opts.h||60;
+  const color=opts.color||'#5DADE2', stroke=opts.stroke||'#1E88E5';
+  let s=`<rect x="${cx-w/2}" y="${cy-h/2}" width="${w}" height="${h}" fill="${color}" fill-opacity="0.4" stroke="${stroke}" stroke-width="2.5"/>`;
+  if(opts.label){
+    s+=`<text x="${cx}" y="${cy+h/2+22}" fill="#222" font-family="Fredoka,sans-serif" font-size="14" font-weight="700" text-anchor="middle">${opts.label}</text>`;
+  }
+  return s;
+}
+
+// Circle primitive
+function shapeCircle(opts){
+  const cx=opts.cx||100, cy=opts.cy||100, r=opts.r||40;
+  const color=opts.color||'#5DADE2', stroke=opts.stroke||'#1E88E5';
+  let s=`<circle cx="${cx}" cy="${cy}" r="${r}" fill="${color}" fill-opacity="0.4" stroke="${stroke}" stroke-width="2.5"/>`;
+  if(opts.label){
+    s+=`<text x="${cx}" y="${cy+r+22}" fill="#222" font-family="Fredoka,sans-serif" font-size="14" font-weight="700" text-anchor="middle">${opts.label}</text>`;
+  }
+  return s;
+}
+
+// Calendar grid for one month
+// month: 1-12, year: e.g. 2026, firstDayOfWeek: 0=Sun, dayLabels: ['D','S','T','Q','Q','S','S']
+function calendar(opts){
+  const month=opts.month||3, year=opts.year||2025, firstDow=opts.firstDow||0;
+  const monthName=opts.monthName||'Março', dayLabels=opts.dayLabels||['D','S','T','Q','Q','S','S'];
+  const x0=opts.x||30, y0=opts.y||10, w=opts.w||340;
+  const cellW=w/7, cellH=opts.cellH||26, headH=24;
+  const daysInMonth=new Date(year, month, 0).getDate();
+  // first day of month
+  const startDow=new Date(year, month-1, 1).getDay();
+  let s=`<g transform="translate(${x0},${y0})">`;
+  // Title
+  s+=`<rect x="0" y="0" width="${w}" height="22" rx="4" fill="#1E88E5"/>`;
+  s+=`<text x="${w/2}" y="16" fill="#fff" font-family="Fredoka,sans-serif" font-size="13" font-weight="700" text-anchor="middle">${monthName} ${year}</text>`;
+  // Day-of-week header
+  for(let i=0;i<7;i++){
+    const isWeekend=(i===0||i===6);
+    s+=`<rect x="${i*cellW}" y="22" width="${cellW}" height="${headH}" fill="${isWeekend?'#FFE0B2':'#FFF3E0'}" stroke="#fff"/>`;
+    s+=`<text x="${i*cellW+cellW/2}" y="${22+16}" fill="${isWeekend?'#E53935':'#222'}" font-family="Fredoka,sans-serif" font-size="11" font-weight="700" text-anchor="middle">${dayLabels[i]}</text>`;
+  }
+  // Days
+  let day=1;
+  for(let row=0;row<6;row++){
+    for(let col=0;col<7;col++){
+      const idx=row*7+col;
+      if(idx<startDow||day>daysInMonth) continue;
+      const isWeekend=(col===0||col===6);
+      const yC=22+headH+row*cellH;
+      const isHighlight=opts.highlight&&opts.highlight.includes(day);
+      s+=`<rect x="${col*cellW}" y="${yC}" width="${cellW}" height="${cellH}" fill="${isHighlight?'#FFD93D':'#fff'}" stroke="#1E88E5" stroke-width="0.5"/>`;
+      s+=`<text x="${col*cellW+cellW/2}" y="${yC+17}" fill="${isWeekend?'#E53935':'#222'}" font-family="Caveat,Comic Sans MS,cursive" font-size="14" font-weight="700" text-anchor="middle">${day}</text>`;
+      day++;
+    }
+    if(day>daysInMonth) break;
+  }
+  s+='</g>';
+  return s;
+}
+
+// Clock with minute numbers labeled (5,10,15...60)
+function clockWithMinuteLabels(opts){
+  const cx=opts.cx||200, cy=opts.cy||120, r=opts.r||80;
+  const hour=opts.hour||0, minute=opts.minute||0;
+  let s='';
+  // face
+  s+=`<circle cx="${cx}" cy="${cy}" r="${r}" fill="#fff" stroke="#222" stroke-width="3"/>`;
+  // hour numbers (small, inside)
+  for(let i=1;i<=12;i++){
+    const ang=(i-3)*Math.PI/6;
+    const nx=cx+Math.cos(ang)*(r-22);
+    const ny=cy+Math.sin(ang)*(r-22)+5;
+    s+=`<text x="${nx}" y="${ny}" fill="#666" font-family="Fredoka,sans-serif" font-size="13" font-weight="600" text-anchor="middle">${i}</text>`;
+    // tick
+    const tx1=cx+Math.cos(ang)*(r-4), ty1=cy+Math.sin(ang)*(r-4);
+    const tx2=cx+Math.cos(ang)*(r-1), ty2=cy+Math.sin(ang)*(r-1);
+    s+=`<line x1="${tx1}" y1="${ty1}" x2="${tx2}" y2="${ty2}" stroke="#222" stroke-width="2"/>`;
+  }
+  // minute labels (5,10,15,...60) outside
+  for(let i=1;i<=12;i++){
+    const ang=(i-3)*Math.PI/6;
+    const nx=cx+Math.cos(ang)*(r+18);
+    const ny=cy+Math.sin(ang)*(r+18)+5;
+    const minLabel=i*5===60?'00':String(i*5);
+    s+=`<text x="${nx}" y="${ny}" fill="#FF1493" font-family="Caveat,Comic Sans MS,cursive" font-size="14" font-weight="700" text-anchor="middle">${minLabel}</text>`;
+  }
+  // minute marks
+  for(let i=0;i<60;i++){
+    if(i%5===0)continue;
+    const ang=(i-15)*Math.PI/30;
+    const tx1=cx+Math.cos(ang)*(r-3), ty1=cy+Math.sin(ang)*(r-3);
+    const tx2=cx+Math.cos(ang)*(r-1), ty2=cy+Math.sin(ang)*(r-1);
+    s+=`<line x1="${tx1}" y1="${ty1}" x2="${tx2}" y2="${ty2}" stroke="#888" stroke-width="1"/>`;
+  }
+  // hour hand (short)
+  const hAng=((hour%12)+minute/60-3)*Math.PI/6;
+  const hx=cx+Math.cos(hAng)*(r*0.45);
+  const hy=cy+Math.sin(hAng)*(r*0.45);
+  s+=`<line x1="${cx}" y1="${cy}" x2="${hx}" y2="${hy}" stroke="#222" stroke-width="5" stroke-linecap="round"/>`;
+  // minute hand (long, blue)
+  const mAng=(minute-15)*Math.PI/30;
+  const mx=cx+Math.cos(mAng)*(r*0.78);
+  const my=cy+Math.sin(mAng)*(r*0.78);
+  s+=`<line x1="${cx}" y1="${cy}" x2="${mx}" y2="${my}" stroke="#1E88E5" stroke-width="3" stroke-linecap="round"/>`;
+  // center dot
+  s+=`<circle cx="${cx}" cy="${cy}" r="4" fill="#FF6B35"/>`;
+  return s;
+}
+
+// Scale (balance) with weight visual
+function scale(opts){
+  const cx=opts.cx||200, cy=opts.cy||130, weight=opts.weight||'?';
+  const unit=opts.unit||'kg';
+  let s='';
+  // Base
+  s+=`<rect x="${cx-60}" y="${cy+30}" width="120" height="60" rx="8" fill="#5DADE2" stroke="#1E88E5" stroke-width="2"/>`;
+  // Display
+  s+=`<rect x="${cx-40}" y="${cy+45}" width="80" height="30" rx="4" fill="#fff" stroke="#1E88E5" stroke-width="2"/>`;
+  s+=`<text x="${cx}" y="${cy+66}" fill="#222" font-family="Caveat,Comic Sans MS,cursive" font-size="20" font-weight="700" text-anchor="middle">${weight} ${unit}</text>`;
+  // Top (weighing surface)
+  s+=`<rect x="${cx-50}" y="${cy+22}" width="100" height="10" rx="2" fill="#444"/>`;
+  // Object on top
+  if(opts.object){
+    s+=`<text x="${cx}" y="${cy+10}" font-size="42" text-anchor="middle">${opts.object}</text>`;
+  }
+  return s;
+}
+
+// Measuring cup / cylinder for volume
+function measuringCup(opts){
+  const cx=opts.cx||200, cy=opts.cy||130;
+  const filledMl=opts.filledMl||0, maxMl=opts.maxMl||500;
+  const w=80, h=140;
+  const x0=cx-w/2, y0=cy-h/2;
+  let s='';
+  // cup body
+  s+=`<rect x="${x0}" y="${y0}" width="${w}" height="${h}" fill="#E3F2FD" stroke="#1E88E5" stroke-width="2.5" rx="6"/>`;
+  // marks (every 100ml)
+  for(let v=100;v<=maxMl;v+=100){
+    const yMark=y0+h-(v/maxMl)*h;
+    s+=`<line x1="${x0}" y1="${yMark}" x2="${x0+15}" y2="${yMark}" stroke="#1E88E5" stroke-width="1.5"/>`;
+    s+=`<text x="${x0-5}" y="${yMark+4}" fill="#222" font-family="Quicksand,sans-serif" font-size="10" font-weight="600" text-anchor="end">${v}</text>`;
+  }
+  // mL label at top
+  s+=`<text x="${x0-5}" y="${y0+12}" fill="#1E88E5" font-family="Quicksand,sans-serif" font-size="10" font-weight="700" text-anchor="end">mL</text>`;
+  // fill (water)
+  if(filledMl>0){
+    const fillH=(filledMl/maxMl)*h;
+    s+=`<rect x="${x0+2}" y="${y0+h-fillH}" width="${w-4}" height="${fillH}" fill="#42A5F5" fill-opacity="0.7"/>`;
+    // top edge of water (wavy)
+    s+=`<path d="M ${x0+2} ${y0+h-fillH} Q ${x0+w/4} ${y0+h-fillH-3} ${x0+w/2} ${y0+h-fillH} T ${x0+w-2} ${y0+h-fillH}" fill="none" stroke="#1976D2" stroke-width="1.5"/>`;
+  }
+  return s;
+}
+
 function paperSvg(content, w, h){return `<svg viewBox="0 0 ${w||400} ${h||240}" xmlns="http://www.w3.org/2000/svg"><rect width="${w||400}" height="${h||240}" rx="14" fill="#fcfaf2"/>${content}</svg>`;}
+
+// Polygon helper: regular polygon with N sides centered at (cx,cy) radius r
+function polygon(opts){
+  const cx=opts.cx, cy=opts.cy, r=opts.r||50, sides=opts.sides;
+  const color=opts.color||'#5DADE2', stroke=opts.stroke||'#1E88E5';
+  const rot=opts.rot!==undefined?opts.rot:-Math.PI/2; // start from top
+  let pts=[];
+  for(let i=0;i<sides;i++){
+    const a=rot+i*2*Math.PI/sides;
+    pts.push(`${cx+r*Math.cos(a)},${cy+r*Math.sin(a)}`);
+  }
+  let s=`<polygon points="${pts.join(' ')}" fill="${color}" stroke="${stroke}" stroke-width="2.5"/>`;
+  if(opts.label){
+    s+=`<text x="${cx}" y="${cy+5}" fill="#fff" font-family="Fredoka,sans-serif" font-size="13" font-weight="700" text-anchor="middle" style="pointer-events:none">${opts.label}</text>`;
+  }
+  return s;
+}
+
+// Rectangle helper
+function rect(opts){
+  const x=opts.x, y=opts.y, w=opts.w, h=opts.h;
+  const color=opts.color||'#5DADE2', stroke=opts.stroke||'#1E88E5';
+  let s=`<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="${color}" stroke="${stroke}" stroke-width="2.5"/>`;
+  if(opts.label){
+    s+=`<text x="${x+w/2}" y="${y+h/2+5}" fill="#fff" font-family="Fredoka,sans-serif" font-size="13" font-weight="700" text-anchor="middle">${opts.label}</text>`;
+  }
+  return s;
+}
+
+// Circle/oval helper
+function circ(opts){
+  const cx=opts.cx, cy=opts.cy, r=opts.r||40;
+  const color=opts.color||'#5DADE2', stroke=opts.stroke||'#1E88E5';
+  let s=`<circle cx="${cx}" cy="${cy}" r="${r}" fill="${color}" stroke="${stroke}" stroke-width="2.5"/>`;
+  if(opts.label){
+    s+=`<text x="${cx}" y="${cy+5}" fill="#fff" font-family="Fredoka,sans-serif" font-size="13" font-weight="700" text-anchor="middle">${opts.label}</text>`;
+  }
+  return s;
+}
+
+// Calendar visual (month grid)
+function calendarSvg(opts){
+  const month=opts.month||'Março', year=opts.year||'2025';
+  const startDay=opts.startDay||0; // 0=Sunday (D)
+  const days=opts.days||31;
+  const x0=opts.x||30, y0=opts.y||30, w=opts.w||340;
+  const cellW=w/7;
+  const headers=['D','S','T','Q','Q','S','S'];
+  let s=`<g transform="translate(${x0},${y0})">`;
+  // Title bar
+  s+=`<rect x="0" y="0" width="${w}" height="32" fill="#1E88E5" rx="4"/>`;
+  s+=`<text x="${w/2}" y="22" fill="#fff" font-family="Fredoka,sans-serif" font-size="15" font-weight="700" text-anchor="middle">${month} ${year}</text>`;
+  // Day headers
+  headers.forEach((h,i)=>{
+    const isWeekend=i===0||i===6;
+    s+=`<rect x="${i*cellW}" y="32" width="${cellW}" height="22" fill="${isWeekend?'#FFE082':'#E3F2FD'}" stroke="#fff"/>`;
+    s+=`<text x="${i*cellW+cellW/2}" y="48" fill="#222" font-family="Fredoka,sans-serif" font-size="12" font-weight="700" text-anchor="middle">${h}</text>`;
+  });
+  // Days
+  let day=1, row=0, col=startDay;
+  while(day<=days){
+    const x=col*cellW;
+    const y=54+row*22;
+    const isWeekend=col===0||col===6;
+    s+=`<rect x="${x}" y="${y}" width="${cellW}" height="22" fill="${isWeekend?'#FFF8E1':'#fff'}" stroke="#1E88E5" stroke-width="0.5"/>`;
+    s+=`<text x="${x+cellW/2}" y="${y+15}" fill="${isWeekend?'#E53935':'#222'}" font-family="Quicksand,sans-serif" font-size="11" font-weight="600" text-anchor="middle">${day}</text>`;
+    day++; col++;
+    if(col>=7){col=0;row++;}
+  }
+  s+='</g>';
+  return s;
+}
+
+// Balance scale visual (for weight)
+function balanceScale(opts){
+  const cx=opts.cx||200, cy=opts.cy||100;
+  const leftMass=opts.leftMass||1, rightMass=opts.rightMass||1;
+  // tilt towards heavier side
+  const tilt=(rightMass-leftMass)*0.15;
+  const armLen=80;
+  let s=`<g>`;
+  // Base
+  s+=`<polygon points="${cx-30},${cy+60} ${cx+30},${cy+60} ${cx+10},${cy+30} ${cx-10},${cy+30}" fill="#8D6E63"/>`;
+  // Vertical pole
+  s+=`<line x1="${cx}" y1="${cy+30}" x2="${cx}" y2="${cy-10}" stroke="#5D4037" stroke-width="4"/>`;
+  // Arm (tilted)
+  const lx=cx-armLen*Math.cos(tilt), ly=cy-10+armLen*Math.sin(tilt);
+  const rx=cx+armLen*Math.cos(tilt), ry=cy-10-armLen*Math.sin(tilt);
+  s+=`<line x1="${lx}" y1="${ly}" x2="${rx}" y2="${ry}" stroke="#5D4037" stroke-width="4"/>`;
+  // Pans
+  s+=`<line x1="${lx}" y1="${ly}" x2="${lx}" y2="${ly+15}" stroke="#666" stroke-width="1.5"/>`;
+  s+=`<ellipse cx="${lx}" cy="${ly+18}" rx="22" ry="5" fill="#BDBDBD" stroke="#666"/>`;
+  s+=`<line x1="${rx}" y1="${ry}" x2="${rx}" y2="${ry+15}" stroke="#666" stroke-width="1.5"/>`;
+  s+=`<ellipse cx="${rx}" cy="${ry+18}" rx="22" ry="5" fill="#BDBDBD" stroke="#666"/>`;
+  // Labels
+  if(opts.leftLabel){s+=`<text x="${lx}" y="${ly+38}" fill="#222" font-family="Fredoka,sans-serif" font-size="13" font-weight="700" text-anchor="middle">${opts.leftLabel}</text>`;}
+  if(opts.rightLabel){s+=`<text x="${rx}" y="${ry+38}" fill="#222" font-family="Fredoka,sans-serif" font-size="13" font-weight="700" text-anchor="middle">${opts.rightLabel}</text>`;}
+  s+=`</g>`;
+  return s;
+}
+
+// Measuring cup (for volume)
+function measuringCup(opts){
+  const cx=opts.cx||200, cy=opts.cy||100;
+  // Support both filledMl/maxMl OR fillLevel/maxL
+  let fillLevel, maxMl;
+  if(opts.filledMl!==undefined){
+    maxMl=opts.maxMl||1000;
+    fillLevel=opts.filledMl/maxMl;
+  } else {
+    fillLevel=opts.fillLevel||0.5;
+    maxMl=(opts.maxL||1)*1000;
+  }
+  const showLabel=opts.showLabel===true; // ONLY show label if explicitly requested
+  const w=80, h=120;
+  let s=`<g>`;
+  // Cup outline
+  s+=`<path d="M ${cx-w/2} ${cy-h/2} L ${cx-w/2-5} ${cy+h/2} L ${cx+w/2+5} ${cy+h/2} L ${cx+w/2} ${cy-h/2}" fill="#E1F5FE" stroke="#0288D1" stroke-width="2"/>`;
+  // Liquid (clipped at fillLevel)
+  const liqY=cy+h/2-fillLevel*h;
+  // Slanted edges: liquid width grows toward bottom
+  const topW=w, botW=w+10;
+  const liqTopW=topW + (botW-topW)*(1-fillLevel);
+  s+=`<path d="M ${cx-liqTopW/2} ${liqY} L ${cx-(w/2+5)} ${cy+h/2} L ${cx+(w/2+5)} ${cy+h/2} L ${cx+liqTopW/2} ${liqY} Z" fill="#4FC3F7" opacity="0.75"/>`;
+  // Marks (every 100mL or based on maxMl)
+  const stepN=Math.min(10, maxMl/100);
+  const stepMl=maxMl/stepN;
+  for(let i=0;i<=stepN;i++){
+    const my=cy+h/2-(i/stepN)*h;
+    s+=`<line x1="${cx+w/2-2}" y1="${my}" x2="${cx+w/2+8}" y2="${my}" stroke="#0288D1" stroke-width="1"/>`;
+    s+=`<text x="${cx+w/2+12}" y="${my+4}" fill="#0288D1" font-family="Quicksand,sans-serif" font-size="10" font-weight="600">${(i*stepMl)|0}</text>`;
+  }
+  s+=`<text x="${cx+w/2+30}" y="${cy+h/2+4}" fill="#0288D1" font-family="Quicksand,sans-serif" font-size="10" font-weight="600">mL</text>`;
+  // Label (only if requested)
+  if(showLabel && opts.label){
+    s+=`<text x="${cx}" y="${cy+h/2+22}" fill="#222" font-family="Fredoka,sans-serif" font-size="14" font-weight="700" text-anchor="middle">${opts.label}</text>`;
+  }
+  s+=`</g>`;
+  return s;
+}
+
+// Horizontal bar graph
+function hBarGraph(opts){
+  const data=opts.data, maxX=opts.maxX||30, step=opts.step||3;
+  const w=opts.w||340, h=opts.h||180, x0=opts.x||30, y0=opts.y||15;
+  const padL=70, padR=10, padT=24, padB=30;
+  const plotW=w-padL-padR, plotH=h-padT-padB;
+  const barH=plotH/data.length*0.65;
+  const gap=plotH/data.length;
+  let s=`<g transform="translate(${x0},${y0})">`;
+  // Title
+  if(opts.title){s+=`<text x="${padL+plotW/2}" y="14" fill="#222" font-family="Fredoka,sans-serif" font-size="13" font-weight="700" text-anchor="middle">${opts.title}</text>`;}
+  // Axes
+  s+=`<line x1="${padL}" y1="${padT}" x2="${padL}" y2="${padT+plotH}" stroke="#2c3e50" stroke-width="1.5"/>`;
+  s+=`<line x1="${padL}" y1="${padT+plotH}" x2="${padL+plotW}" y2="${padT+plotH}" stroke="#2c3e50" stroke-width="1.5"/>`;
+  // X gridlines/ticks
+  for(let v=0;v<=maxX;v+=step){
+    const x=padL+(v/maxX)*plotW;
+    s+=`<line x1="${x}" y1="${padT}" x2="${x}" y2="${padT+plotH}" stroke="#e0e0e0" stroke-width="1" stroke-dasharray="2,2"/>`;
+    s+=`<text x="${x}" y="${padT+plotH+14}" fill="#2c3e50" font-family="Quicksand,sans-serif" font-size="10" font-weight="600" text-anchor="middle">${v}</text>`;
+  }
+  // Bars
+  data.forEach((d,i)=>{
+    const cy=padT+i*gap+gap/2;
+    const barW=(d.value/maxX)*plotW;
+    const color=d.color||'#5DADE2';
+    s+=`<rect x="${padL}" y="${cy-barH/2}" width="${barW}" height="${barH}" fill="${color}" stroke="#2c3e50" stroke-width="1"/>`;
+    s+=`<text x="${padL-6}" y="${cy+4}" fill="#222" font-family="Quicksand,sans-serif" font-size="11" font-weight="600" text-anchor="end">${d.label}</text>`;
+  });
+  s+='</g>';
+  return s;
+}
 
 // ===================== QUESTION ILLUSTRATIONS =====================
 const QI = {
@@ -833,6 +1191,175 @@ const QI = {
   math_graph_cupcakes:()=>paperSvg(barGraph({data:[{label:'Choco',value:35,color:'#8B4513'},{label:'Lemon',value:25,color:'#FFD93D'},{label:'Black-',label2:'berry',value:50,color:'#6A1B9A'},{label:'Pine-',label2:'apple',value:10,color:'#FF9800'}],maxY:60,step:10,w:340,h:180,title:'Cupcakes sold today'})),
   math_graph_hats:()=>paperSvg(barGraph({data:[{label:'Blue',value:8,color:'#1E88E5'},{label:'Black',value:4,color:'#212121'},{label:'Red',value:4,color:'#E53935'},{label:'Pink',value:4,color:'#FF80AB'}],maxY:10,step:2,w:340,h:180,title:'Hats in a shop'})),
   math_picto_apple:()=>paperSvg(pictograph({data:[{label:'Apple',count:4},{label:'Banana',count:3},{label:'Cherry',count:2}],legend:' = 3 votes',title:'Favorite fruit',w:340,iconStart:90,x:30,y:30,iconType:'circle',iconColor:'#E53935'})),
+
+  // === GEOMETRY (Polygons) — Math 27/04 ===
+  math_poly_triangle:()=>paperSvg(`<text x="200" y="35" fill="#1E88E5" font-family="Fredoka" font-size="15" font-weight="700" text-anchor="middle">How many sides does this shape have?</text>`+polygon({cx:200,cy:130,r:60,sides:3,color:'#5DADE2'})),
+  math_poly_square:()=>paperSvg(`<text x="200" y="35" fill="#1E88E5" font-family="Fredoka" font-size="15" font-weight="700" text-anchor="middle">How many sides does this shape have?</text>`+rect({x:150,y:80,w:100,h:100,color:'#FFD93D',stroke:'#F57C00'})),
+  math_poly_pentagon:()=>paperSvg(`<text x="200" y="35" fill="#1E88E5" font-family="Fredoka" font-size="15" font-weight="700" text-anchor="middle">How many sides does this shape have?</text>`+polygon({cx:200,cy:135,r:60,sides:5,color:'#A5D6A7',stroke:'#388E3C'})),
+  math_poly_hexagon:()=>paperSvg(`<text x="200" y="35" fill="#1E88E5" font-family="Fredoka" font-size="15" font-weight="700" text-anchor="middle">How many sides does this shape have?</text>`+polygon({cx:200,cy:130,r:60,sides:6,color:'#CE93D8',stroke:'#7B1FA2'})),
+  math_poly_octagon:()=>paperSvg(`<text x="200" y="35" fill="#1E88E5" font-family="Fredoka" font-size="15" font-weight="700" text-anchor="middle">How many sides does this shape have?</text>`+polygon({cx:200,cy:130,r:60,sides:8,color:'#FF8A65',stroke:'#D84315'})),
+  math_poly_rect:()=>paperSvg(`<text x="200" y="35" fill="#1E88E5" font-family="Fredoka" font-size="15" font-weight="700" text-anchor="middle">Look at this shape:</text>`+rect({x:120,y:90,w:160,h:90,color:'#90CAF9',stroke:'#1976D2'})),
+  mat_poly_rect:()=>paperSvg(`<text x="200" y="35" fill="#1E88E5" font-family="Fredoka" font-size="15" font-weight="700" text-anchor="middle">Olhe essa forma:</text>`+rect({x:120,y:90,w:160,h:90,color:'#90CAF9',stroke:'#1976D2'})),
+  math_poly_circle_q:()=>paperSvg(`<text x="200" y="35" fill="#1E88E5" font-family="Fredoka" font-size="15" font-weight="700" text-anchor="middle">Is this a polygon?</text>`+circ({cx:200,cy:135,r:55,color:'#FFAB91',stroke:'#D84315'})),
+  math_poly_dd:()=>paperSvg(`<text x="200" y="30" fill="#1E88E5" font-family="Fredoka" font-size="14" font-weight="700" text-anchor="middle">Match each shape with its name</text>`+`<g transform="translate(50,55)">`+polygon({cx:30,cy:50,r:30,sides:3,color:'#5DADE2'})+`</g>`+`<g transform="translate(140,55)">`+rect({x:0,y:20,w:60,h:60,color:'#FFD93D',stroke:'#F57C00'})+`</g>`+`<g transform="translate(240,55)">`+polygon({cx:30,cy:50,r:30,sides:5,color:'#A5D6A7',stroke:'#388E3C'})+`</g>`+`<g transform="translate(330,55)">`+polygon({cx:30,cy:50,r:30,sides:6,color:'#CE93D8',stroke:'#7B1FA2'})+`</g>`),
+
+  // === Length: more than/less than 1 meter — Mat 28/04 ===
+  mat_length_doormat:()=>paperSvg(`<text x="200" y="40" fill="#1E88E5" font-family="Fredoka" font-size="14" font-weight="700" text-anchor="middle">Tapete de porta</text>`+`<g transform="translate(120,80)"><rect x="0" y="0" width="160" height="60" rx="8" fill="#A1887F" stroke="#5D4037" stroke-width="2"/><text x="80" y="36" fill="#fff" font-family="Fredoka" font-size="14" font-weight="700" text-anchor="middle">~ 60 cm</text></g><text x="200" y="180" fill="#FF6B35" font-family="Fredoka" font-size="14" font-weight="700" text-anchor="middle">É MAIS ou MENOS que 1 metro?</text>`),
+  mat_length_bus:()=>paperSvg(`<text x="200" y="40" fill="#1E88E5" font-family="Fredoka" font-size="14" font-weight="700" text-anchor="middle">Ônibus</text>`+`<g transform="translate(60,70)"><rect x="0" y="20" width="280" height="60" rx="6" fill="#FFC107" stroke="#F57C00" stroke-width="2"/><circle cx="50" cy="85" r="12" fill="#212121"/><circle cx="230" cy="85" r="12" fill="#212121"/><rect x="20" y="30" width="40" height="20" fill="#81D4FA" stroke="#0288D1"/><rect x="80" y="30" width="40" height="20" fill="#81D4FA" stroke="#0288D1"/><rect x="140" y="30" width="40" height="20" fill="#81D4FA" stroke="#0288D1"/><rect x="200" y="30" width="40" height="20" fill="#81D4FA" stroke="#0288D1"/></g><text x="200" y="190" fill="#FF6B35" font-family="Fredoka" font-size="14" font-weight="700" text-anchor="middle">É MAIS ou MENOS que 1 metro?</text>`),
+  mat_length_building:()=>paperSvg(`<text x="200" y="35" fill="#1E88E5" font-family="Fredoka" font-size="14" font-weight="700" text-anchor="middle">Prédio</text>`+`<g transform="translate(160,55)"><rect x="0" y="0" width="80" height="140" fill="#90A4AE" stroke="#37474F" stroke-width="2"/>${[0,1,2,3,4,5].map(r=>[0,1].map(c=>`<rect x="${10+c*35}" y="${15+r*22}" width="22" height="14" fill="#FFEB3B" stroke="#F57C00"/>`).join('')).join('')}</g><text x="200" y="220" fill="#FF6B35" font-family="Fredoka" font-size="14" font-weight="700" text-anchor="middle">É MAIS ou MENOS que 2 metros?</text>`),
+
+  // === Length: comparing segments — Mat 28/04 ===
+  mat_length_kl_mn:()=>paperSvg(`<text x="200" y="35" fill="#1E88E5" font-family="Fredoka" font-size="14" font-weight="700" text-anchor="middle">Olhe os segmentos:</text>`+ruler({x:30,y:160,cmPx:22,maxCm:15,segments:[{from:0,to:4,label:'KL',color:'#FF1493'},{from:6,to:13,label:'MN',color:'#1E88E5'}]})+`<text x="200" y="100" fill="#222" font-family="Fredoka" font-size="13" font-weight="700" text-anchor="middle">KL = 4 cm · MN = 7 cm</text>`),
+  mat_length_segments_order:()=>paperSvg(`<text x="200" y="35" fill="#1E88E5" font-family="Fredoka" font-size="14" font-weight="700" text-anchor="middle">Quatro segmentos:</text>`+ruler({x:30,y:170,cmPx:20,maxCm:16,segments:[{from:0,to:5,label:'PQ',color:'#FF1493'},{from:0,to:3,label:'RS',color:'#FFC107'}]})+`<text x="200" y="80" fill="#222" font-family="Fredoka" font-size="12" text-anchor="middle">PQ = 5cm · RS = 3cm · YZ = 8cm · WX = 4cm</text><text x="200" y="105" fill="#FF6B35" font-family="Fredoka" font-size="13" font-weight="700" text-anchor="middle">Ordene do MAIOR para o menor</text>`),
+  mat_length_curved:()=>paperSvg(`<text x="200" y="35" fill="#1E88E5" font-family="Fredoka" font-size="14" font-weight="700" text-anchor="middle">Linha curva AB:</text>`+`<path d="M 30 130 Q 90 80, 150 130 T 270 130 T 370 110" stroke="#FF1493" stroke-width="3" fill="none"/><circle cx="30" cy="130" r="5" fill="#FF1493"/><circle cx="370" cy="110" r="5" fill="#FF1493"/><text x="22" y="124" fill="#FF1493" font-family="Fredoka" font-size="14" font-weight="700">A</text><text x="378" y="106" fill="#FF1493" font-family="Fredoka" font-size="14" font-weight="700">B</text><text x="200" y="200" fill="#FF6B35" font-family="Fredoka" font-size="13" font-weight="700" text-anchor="middle">Para medir uma linha curva, use o quê?</text>`),
+
+  // === Calendar — Mat 28/04 ===
+  mat_calendar_marco:()=>paperSvg(calendarSvg({month:'Março',year:'2025',startDay:6,days:31,x:30,y:30,w:340})),
+
+  // === Clock with multiple times — Mat 28/04 ===
+  mat_clock_5min_marks:()=>paperSvg(`<text x="200" y="30" fill="#1E88E5" font-family="Fredoka" font-size="14" font-weight="700" text-anchor="middle">Cada número do relógio = quantos minutos?</text>`+clock({cx:200,cy:130,r:80,hour:0,minute:0})+[0,1,2,3,4,5,6,7,8,9,10,11].map(i=>{const ang=(i-2)*Math.PI/6;const x=200+(80+18)*Math.cos(ang);const y=130+(80+18)*Math.sin(ang)+4;const v=i*5||60;return `<text x="${x}" y="${y}" fill="#E53935" font-family="Fredoka" font-size="11" font-weight="700" text-anchor="middle">${v===0?60:v}</text>`}).join('')),
+  mat_clock_min15:()=>paperSvg(clock({cx:200,cy:120,r:90,hour:2,minute:15})+`<text x="200" y="225" fill="#FF6B35" font-family="Fredoka" font-size="14" font-weight="700" text-anchor="middle">Quantos MINUTOS o ponteiro azul marca?</text>`),
+  mat_clock_min23:()=>paperSvg(clock({cx:200,cy:120,r:90,hour:7,minute:23})+`<text x="200" y="225" fill="#FF6B35" font-family="Fredoka" font-size="14" font-weight="700" text-anchor="middle">Quantos MINUTOS o ponteiro azul marca?</text>`),
+  mat_clock_min9:()=>paperSvg(clock({cx:200,cy:120,r:90,hour:11,minute:9})+`<text x="200" y="225" fill="#FF6B35" font-family="Fredoka" font-size="14" font-weight="700" text-anchor="middle">Quantos MINUTOS o ponteiro azul marca?</text>`),
+  mat_clock_3hands:()=>paperSvg(`<text x="200" y="30" fill="#1E88E5" font-family="Fredoka" font-size="14" font-weight="700" text-anchor="middle">Os 3 ponteiros do relógio</text>`+`<g transform="translate(0,5)">`+clock({cx:200,cy:130,r:85,hour:5,minute:20})+`</g>`+`<line x1="200" y1="135" x2="200" y2="65" stroke="#E53935" stroke-width="1.5"/><text x="200" y="225" fill="#222" font-family="Fredoka" font-size="12" text-anchor="middle">preto curto = ? · azul longo = ? · vermelho fino = ?</text>`),
+
+  // === Weight (peso) — Mat 28/04 ===
+  mat_weight_apple:()=>paperSvg(`<text x="200" y="35" fill="#1E88E5" font-family="Fredoka" font-size="15" font-weight="700" text-anchor="middle">Quanto pesa uma maçã?</text>`+balanceScale({cx:200,cy:130,leftMass:1,rightMass:1,leftLabel:'1 maçã',rightLabel:'?'})+`<text x="200" y="220" fill="#FF6B35" font-family="Fredoka" font-size="13" font-weight="700" text-anchor="middle">A unidade de medida é o quê?</text>`),
+  mat_weight_units:()=>paperSvg(`<text x="200" y="40" fill="#1E88E5" font-family="Fredoka" font-size="15" font-weight="700" text-anchor="middle">Unidades de medida de PESO</text>`+`<g transform="translate(40,80)"><rect x="0" y="0" width="100" height="50" rx="8" fill="#FFE082" stroke="#F57C00" stroke-width="2"/><text x="50" y="32" fill="#333" font-family="Fredoka" font-size="14" font-weight="700" text-anchor="middle">grama (g)</text></g><g transform="translate(150,80)"><rect x="0" y="0" width="100" height="50" rx="8" fill="#A5D6A7" stroke="#388E3C" stroke-width="2"/><text x="50" y="32" fill="#333" font-family="Fredoka" font-size="14" font-weight="700" text-anchor="middle">quilo (kg)</text></g><g transform="translate(260,80)"><rect x="0" y="0" width="100" height="50" rx="8" fill="#CE93D8" stroke="#7B1FA2" stroke-width="2"/><text x="50" y="32" fill="#333" font-family="Fredoka" font-size="14" font-weight="700" text-anchor="middle">tonelada (t)</text></g><text x="200" y="180" fill="#222" font-family="Fredoka" font-size="13" font-weight="700" text-anchor="middle">1 kg = 1.000 g</text><text x="200" y="205" fill="#222" font-family="Fredoka" font-size="13" font-weight="700" text-anchor="middle">1 tonelada = 1.000 kg</text>`),
+
+  // === Volume — Mat 28/04 ===
+  mat_volume_cup:()=>paperSvg(`<text x="200" y="35" fill="#1E88E5" font-family="Fredoka" font-size="15" font-weight="700" text-anchor="middle">Volume — quanto líquido cabe?</text>`+measuringCup({cx:200,cy:130,filledMl:600,maxMl:1000})),
+  mat_volume_units:()=>paperSvg(`<text x="200" y="40" fill="#1E88E5" font-family="Fredoka" font-size="15" font-weight="700" text-anchor="middle">Unidades de VOLUME</text>`+`<g transform="translate(70,80)"><rect x="0" y="0" width="120" height="50" rx="8" fill="#81D4FA" stroke="#0288D1" stroke-width="2"/><text x="60" y="32" fill="#01579B" font-family="Fredoka" font-size="14" font-weight="700" text-anchor="middle">litro (L)</text></g><g transform="translate(210,80)"><rect x="0" y="0" width="120" height="50" rx="8" fill="#B3E5FC" stroke="#0288D1" stroke-width="2"/><text x="60" y="32" fill="#01579B" font-family="Fredoka" font-size="14" font-weight="700" text-anchor="middle">mililitro (mL)</text></g><text x="200" y="180" fill="#222" font-family="Fredoka" font-size="14" font-weight="700" text-anchor="middle">1 L = 1.000 mL</text><text x="200" y="205" fill="#FF6B35" font-family="Fredoka" font-size="13" text-anchor="middle">Quantos mL tem 1 litro?</text>`),
+
+  // === Mental calc: Combinations of 100 — Mat 28/04 ===
+  mat_amigos_100:()=>paperSvg(`<text x="200" y="35" fill="#1E88E5" font-family="Fredoka" font-size="15" font-weight="700" text-anchor="middle">"Amigos do 100" — pares que somam 100</text>`+`<g transform="translate(50,70)">${[[90,10],[80,20],[70,30],[60,40],[50,50]].map((p,i)=>`<rect x="0" y="${i*28}" width="55" height="22" rx="6" fill="#FFF8E1" stroke="#FFC107" stroke-width="1.5"/><text x="27" y="${i*28+16}" fill="#222" font-family="Fredoka" font-size="13" font-weight="700" text-anchor="middle">${p[0]}</text><text x="65" y="${i*28+16}" fill="#1E88E5" font-family="Fredoka" font-size="13" font-weight="700">+</text><rect x="78" y="${i*28}" width="55" height="22" rx="6" fill="#FFF8E1" stroke="#FFC107" stroke-width="1.5"/><text x="105" y="${i*28+16}" fill="#222" font-family="Fredoka" font-size="13" font-weight="700" text-anchor="middle">${p[1]}</text><text x="143" y="${i*28+16}" fill="#1E88E5" font-family="Fredoka" font-size="13" font-weight="700">=</text><text x="175" y="${i*28+16}" fill="#388E3C" font-family="Fredoka" font-size="14" font-weight="700">100</text>`).join('')}</g><text x="200" y="225" fill="#FF6B35" font-family="Fredoka" font-size="12" font-weight="700" text-anchor="middle">É só lembrar dos pares!</text>`),
+  mat_amigos_1000:()=>paperSvg(`<text x="200" y="35" fill="#1E88E5" font-family="Fredoka" font-size="15" font-weight="700" text-anchor="middle">"Amigos do 1.000" — pares que somam 1.000</text>`+`<g transform="translate(40,70)">${[[800,200],[700,300],[600,400],[500,500],[350,650]].map((p,i)=>`<rect x="0" y="${i*28}" width="65" height="22" rx="6" fill="#FFF8E1" stroke="#FFC107" stroke-width="1.5"/><text x="32" y="${i*28+16}" fill="#222" font-family="Fredoka" font-size="13" font-weight="700" text-anchor="middle">${p[0]}</text><text x="78" y="${i*28+16}" fill="#1E88E5" font-family="Fredoka" font-size="13" font-weight="700">+</text><rect x="92" y="${i*28}" width="65" height="22" rx="6" fill="#FFF8E1" stroke="#FFC107" stroke-width="1.5"/><text x="124" y="${i*28+16}" fill="#222" font-family="Fredoka" font-size="13" font-weight="700" text-anchor="middle">${p[1]}</text><text x="170" y="${i*28+16}" fill="#1E88E5" font-family="Fredoka" font-size="13" font-weight="700">=</text><text x="200" y="${i*28+16}" fill="#388E3C" font-family="Fredoka" font-size="14" font-weight="700">1.000</text>`).join('')}</g>`),
+  mat_unknown_left_35:()=>paperSvg(`<text x="200" y="50" fill="#222" font-family="Fredoka" font-size="22" font-weight="700" text-anchor="middle">? + 35 = 100</text>`+numberLine({x:30,y:140,w:340,min:0,max:120,step:20,marks:[{value:35,label:'35',color:'#FF1493'},{value:100,label:'100',color:'#388E3C'}]})+`<text x="200" y="200" fill="#FF6B35" font-family="Fredoka" font-size="13" font-weight="700" text-anchor="middle">Que número + 35 = 100?</text>`),
+  mat_unknown_800_1000:()=>paperSvg(`<text x="200" y="50" fill="#222" font-family="Fredoka" font-size="22" font-weight="700" text-anchor="middle">800 + ? = 1.000</text>`+numberLine({x:30,y:140,w:340,min:0,max:1200,step:200,marks:[{value:800,label:'800',color:'#FF1493'},{value:1000,label:'1.000',color:'#388E3C'}]})),
+  mat_approx_570:()=>paperSvg(numberLine({x:30,y:130,w:340,min:400,max:700,step:100,marks:[{value:570,label:'570',color:'#FF1493'}]})+`<text x="200" y="60" fill="#222" font-family="Fredoka" font-size="16" font-weight="700" text-anchor="middle">570 está mais perto de qual centena?</text>`),
+  mat_approx_850:()=>paperSvg(numberLine({x:30,y:130,w:340,min:700,max:1000,step:100,marks:[{value:850,label:'850',color:'#FF1493'}]})+`<text x="200" y="60" fill="#222" font-family="Fredoka" font-size="16" font-weight="700" text-anchor="middle">850 está mais perto de qual centena?</text>`),
+  mat_mental_table:()=>paperSvg(`<text x="200" y="30" fill="#1E88E5" font-family="Fredoka" font-size="14" font-weight="700" text-anchor="middle">Tabela ±10 ±100</text>`+`<g transform="translate(40,50)"><rect x="0" y="0" width="320" height="24" fill="#1E88E5"/><text x="40" y="17" fill="#fff" font-family="Fredoka" font-size="12" font-weight="700" text-anchor="middle">Número</text><text x="120" y="17" fill="#fff" font-family="Fredoka" font-size="12" font-weight="700" text-anchor="middle">+10</text><text x="180" y="17" fill="#fff" font-family="Fredoka" font-size="12" font-weight="700" text-anchor="middle">−10</text><text x="240" y="17" fill="#fff" font-family="Fredoka" font-size="12" font-weight="700" text-anchor="middle">+100</text><text x="300" y="17" fill="#fff" font-family="Fredoka" font-size="12" font-weight="700" text-anchor="middle">−100</text>${[['237','247','227','337','137'],['392','402','382','492','292'],['546','556','536','646','446']].map((row,r)=>`<rect x="0" y="${24+r*22}" width="320" height="22" fill="${r%2?'#fff':'#FFF8E1'}" stroke="#FFC107"/><text x="40" y="${39+r*22}" fill="#222" font-family="Fredoka" font-size="12" font-weight="700" text-anchor="middle">${row[0]}</text><text x="120" y="${39+r*22}" fill="#388E3C" font-family="Fredoka" font-size="12" font-weight="700" text-anchor="middle">${row[1]}</text><text x="180" y="${39+r*22}" fill="#388E3C" font-family="Fredoka" font-size="12" font-weight="700" text-anchor="middle">${row[2]}</text><text x="240" y="${39+r*22}" fill="#388E3C" font-family="Fredoka" font-size="12" font-weight="700" text-anchor="middle">${row[3]}</text><text x="300" y="${39+r*22}" fill="#388E3C" font-family="Fredoka" font-size="12" font-weight="700" text-anchor="middle">${row[4]}</text>`).join('')}</g><text x="200" y="200" fill="#FF6B35" font-family="Fredoka" font-size="12" text-anchor="middle">Veja como cada coluna muda apenas a casa certa!</text>`),
+
+  // === Money composition — Mat 28/04 ===
+  mat_money_2735:()=>paperSvg(`<text x="200" y="35" fill="#1E88E5" font-family="Fredoka" font-size="14" font-weight="700" text-anchor="middle">Como obter 2.735 reais?</text>`+`<g transform="translate(30,55)"><rect x="0" y="0" width="46" height="28" rx="4" fill="#A5D6A7" stroke="#388E3C" stroke-width="2"/><text x="23" y="19" fill="#333" font-family="Fredoka" font-size="12" font-weight="700" text-anchor="middle">1.000</text><rect x="50" y="0" width="46" height="28" rx="4" fill="#A5D6A7" stroke="#388E3C" stroke-width="2"/><text x="73" y="19" fill="#333" font-family="Fredoka" font-size="12" font-weight="700" text-anchor="middle">1.000</text><rect x="100" y="0" width="46" height="28" rx="4" fill="#FFAB91" stroke="#D84315" stroke-width="2"/><text x="123" y="19" fill="#333" font-family="Fredoka" font-size="12" font-weight="700" text-anchor="middle">500</text><rect x="150" y="0" width="46" height="28" rx="4" fill="#FFAB91" stroke="#D84315" stroke-width="2"/><text x="173" y="19" fill="#333" font-family="Fredoka" font-size="12" font-weight="700" text-anchor="middle">100</text><rect x="200" y="0" width="46" height="28" rx="4" fill="#FFAB91" stroke="#D84315" stroke-width="2"/><text x="223" y="19" fill="#333" font-family="Fredoka" font-size="12" font-weight="700" text-anchor="middle">100</text><rect x="250" y="0" width="40" height="28" rx="4" fill="#90CAF9" stroke="#1976D2" stroke-width="2"/><text x="270" y="19" fill="#333" font-family="Fredoka" font-size="12" font-weight="700" text-anchor="middle">50</text><rect x="294" y="0" width="40" height="28" rx="4" fill="#FFE082" stroke="#F57C00" stroke-width="2"/><text x="314" y="19" fill="#333" font-family="Fredoka" font-size="12" font-weight="700" text-anchor="middle">10</text></g><text x="200" y="100" fill="#222" font-family="Fredoka" font-size="13" font-weight="700" text-anchor="middle">2×1.000 + 1×500 + 2×100 + 1×50 + ?×10</text><text x="200" y="135" fill="#FF6B35" font-family="Fredoka" font-size="13" font-weight="700" text-anchor="middle">Quantas notas de 10 faltam para chegar em 2.735?</text>`),
+  mat_money_500_10:()=>paperSvg(`<text x="200" y="35" fill="#1E88E5" font-family="Fredoka" font-size="15" font-weight="700" text-anchor="middle">500 = quantas notas de 10?</text>`+`<g transform="translate(70,70)"><rect x="0" y="0" width="80" height="50" rx="8" fill="#FFAB91" stroke="#D84315" stroke-width="2"/><text x="40" y="32" fill="#333" font-family="Fredoka" font-size="20" font-weight="700" text-anchor="middle">500</text></g><text x="220" y="100" fill="#1E88E5" font-family="Fredoka" font-size="22" font-weight="700">=</text><g transform="translate(255,70)"><rect x="0" y="0" width="50" height="30" rx="6" fill="#FFE082" stroke="#F57C00" stroke-width="2"/><text x="25" y="20" fill="#333" font-family="Fredoka" font-size="14" font-weight="700" text-anchor="middle">10</text><text x="60" y="20" fill="#FF6B35" font-family="Fredoka" font-size="22" font-weight="700">×?</text></g><text x="200" y="180" fill="#FF6B35" font-family="Fredoka" font-size="13" font-weight="700" text-anchor="middle">Quantas notas de 10 valem R$ 500?</text>`),
+
+  // === Decomposition: largest/smallest number — Mat 28/04 ===
+  mat_decomp_largest:()=>paperSvg(`<text x="200" y="40" fill="#1E88E5" font-family="Fredoka" font-size="14" font-weight="700" text-anchor="middle">Algarismos disponíveis: 1, 2, 3, 0</text>`+`<g transform="translate(60,70)">${[1,2,3,0].map((d,i)=>`<rect x="${i*70}" y="0" width="60" height="60" rx="10" fill="#FFE082" stroke="#F57C00" stroke-width="2.5"/><text x="${i*70+30}" y="44" fill="#222" font-family="Fredoka" font-size="32" font-weight="700" text-anchor="middle">${d}</text>`).join('')}</g><text x="200" y="180" fill="#FF6B35" font-family="Fredoka" font-size="14" font-weight="700" text-anchor="middle">Forme o MAIOR número de 4 ordens</text>`),
+  mat_compare_two:()=>paperSvg(`<text x="200" y="35" fill="#1E88E5" font-family="Fredoka" font-size="14" font-weight="700" text-anchor="middle">Qual é o MAIOR?</text>`+`<g transform="translate(30,55)">`+mvtTable({cols:[{label:'UM'},{label:'C'},{label:'D'},{label:'U'}],rows:[[{v:'1'},{v:'2'},{v:'5'},{v:'0'}]],x:0,y:0,w:140,rowH:42,bigDigits:true})+`</g><text x="200" y="115" fill="#FF6B35" font-family="Fredoka" font-size="22" font-weight="700" text-anchor="middle">vs</text><g transform="translate(235,55)">`+mvtTable({cols:[{label:'UM'},{label:'C'},{label:'D'},{label:'U'}],rows:[[{v:'1'},{v:'1'},{v:'9'},{v:'9'}]],x:0,y:0,w:140,rowH:42,bigDigits:true})+`</g>`),
+
+  // === Sequences — Mat 28/04 ===
+  mat_seq_regress:()=>paperSvg(`<text x="200" y="40" fill="#1E88E5" font-family="Fredoka" font-size="14" font-weight="700" text-anchor="middle">Sequência regressiva (de trás para frente)</text>`+`<g transform="translate(20,80)">${[{n:'?',x:0,c:'#FF6B35'},{n:'1500',x:75},{n:'1450',x:150},{n:'?',x:225,c:'#FF6B35'},{n:'1350',x:300}].map((d,i)=>`<rect x="${d.x}" y="0" width="60" height="38" rx="6" fill="#FFF8E1" stroke="#FFC107" stroke-width="2"/><text x="${d.x+30}" y="25" fill="${d.c||'#222'}" font-family="Fredoka" font-size="14" font-weight="700" text-anchor="middle">${d.n}</text>${i<4?`<text x="${d.x+67}" y="25" fill="#1E88E5" font-family="Fredoka" font-size="14" font-weight="700">→</text><text x="${d.x+67}" y="-2" fill="#E53935" font-family="Caveat" font-size="13" font-weight="700">−50</text>`:''}`).join('')}</g><text x="200" y="180" fill="#FF6B35" font-family="Fredoka" font-size="13" font-weight="700" text-anchor="middle">Vai diminuindo de 50 em 50</text>`),
+  mat_seq_bissextos:()=>paperSvg(`<text x="200" y="35" fill="#1E88E5" font-family="Fredoka" font-size="14" font-weight="700" text-anchor="middle">Anos bissextos (de 4 em 4 anos)</text>`+`<g transform="translate(20,80)">${[{n:'2012',x:0},{n:'?',x:75,c:'#FF6B35'},{n:'2020',x:150},{n:'2024',x:225},{n:'?',x:300,c:'#FF6B35'}].map((d,i)=>`<rect x="${d.x}" y="0" width="60" height="38" rx="6" fill="#FFF8E1" stroke="#FFC107" stroke-width="2"/><text x="${d.x+30}" y="25" fill="${d.c||'#222'}" font-family="Fredoka" font-size="14" font-weight="700" text-anchor="middle">${d.n}</text>${i<4?`<text x="${d.x+67}" y="25" fill="#1E88E5" font-family="Fredoka" font-size="14" font-weight="700">→</text>`:''}`).join('')}</g>`),
+
+  // === Word problems multi-step — Math 27/04 ===
+  // (no visual needed, conceptual)
+
+  // === Horizontal bar graph: Animals zoo — Math 27/04 ===
+  math_graph_zoo:()=>paperSvg(hBarGraph({data:[{label:'Deer',value:24,color:'#A1887F'},{label:'Zebra',value:12,color:'#FFFFFF'},{label:'Monkey',value:18,color:'#8D6E63'},{label:'Crocodile',value:9,color:'#43A047'},{label:'Elephant',value:15,color:'#9E9E9E'}],maxX:30,step:3,w:340,h:180,title:'Animals in a zoo'})),
+
+  // === Bar graph cupcakes deep analysis — Math 27/04 ===
+  math_graph_cupcakes_full:()=>paperSvg(barGraph({data:[{label:'Choco',value:35,color:'#8B4513'},{label:'Lemon',value:25,color:'#FFD93D'},{label:'Black-',label2:'berry',value:50,color:'#6A1B9A'},{label:'Pine-',label2:'apple',value:10,color:'#FF9800'},{label:'Straw-',label2:'berry',value:25,color:'#E91E63'}],maxY:60,step:10,w:340,h:180,title:'Cupcakes sold today'})),
+
+  // === Map — Mat 28/04 ===
+  mat_map:()=>paperSvg(`<text x="200" y="30" fill="#1E88E5" font-family="Fredoka" font-size="14" font-weight="700" text-anchor="middle">Mapa do bairro</text>`+`<g transform="translate(20,45)"><rect x="0" y="0" width="360" height="180" fill="#A5D6A7"/>${/* Streets */ ''}<rect x="0" y="55" width="360" height="14" fill="#9E9E9E"/><rect x="0" y="115" width="360" height="14" fill="#9E9E9E"/><rect x="120" y="0" width="14" height="180" fill="#9E9E9E"/><rect x="240" y="0" width="14" height="180" fill="#9E9E9E"/>${/* Houses with labels */ ''}<rect x="20" y="10" width="80" height="40" fill="#FFE082" stroke="#5D4037" stroke-width="2"/><text x="60" y="35" fill="#5D4037" font-family="Fredoka" font-size="11" font-weight="700" text-anchor="middle">Brinquedos</text><rect x="150" y="10" width="80" height="40" fill="#FF8A65" stroke="#5D4037" stroke-width="2"/><text x="190" y="35" fill="#fff" font-family="Fredoka" font-size="11" font-weight="700" text-anchor="middle">Julieta</text><rect x="270" y="10" width="80" height="40" fill="#90CAF9" stroke="#5D4037" stroke-width="2"/><text x="310" y="35" fill="#fff" font-family="Fredoka" font-size="11" font-weight="700" text-anchor="middle">José</text><rect x="20" y="75" width="80" height="35" fill="#CE93D8" stroke="#5D4037" stroke-width="2"/><text x="60" y="97" fill="#fff" font-family="Fredoka" font-size="12" font-weight="700" text-anchor="middle">Escola</text><circle cx="190" cy="92" r="22" fill="#81D4FA" stroke="#5D4037" stroke-width="2"/><text x="190" y="96" fill="#01579B" font-family="Fredoka" font-size="11" font-weight="700" text-anchor="middle">Praça</text><rect x="270" y="75" width="80" height="35" fill="#FFCDD2" stroke="#5D4037" stroke-width="2"/><text x="310" y="97" fill="#222" font-family="Fredoka" font-size="11" font-weight="700" text-anchor="middle">Mercado</text><rect x="150" y="135" width="80" height="35" fill="#FFEB3B" stroke="#5D4037" stroke-width="2"/><text x="190" y="158" fill="#5D4037" font-family="Fredoka" font-size="11" font-weight="700" text-anchor="middle">Igreja</text></g>`),
+
+  // === GEOMETRIA / GEOMETRY (Polígonos) ===
+  geo_triangle:()=>paperSvg(`<text x="200" y="35" fill="#1E88E5" font-family="Fredoka" font-size="14" font-weight="700" text-anchor="middle">Qual o nome dessa forma?</text>`+polygon({cx:200,cy:135,r:60,sides:3,color:'#FFB347',stroke:'#F57C00'})),
+  geo_quadrilateral:()=>paperSvg(shape4({cx:200,cy:115,w:120,h:80,label:'Quadrilátero (4 lados)',color:'#5DADE2'})+polygon({cx:200,cy:115,r:55,n:4,color:'#5DADE2',markVertices:true})),
+  geo_pentagon:()=>paperSvg(polygon({cx:200,cy:120,r:60,n:5,label:'Pentágono (5 lados)',color:'#58D68D',markVertices:true})),
+  geo_hexagon:()=>paperSvg(polygon({cx:200,cy:120,r:60,n:6,label:'Hexágono (6 lados)',color:'#A569BD',markVertices:true})),
+  geo_heptagon:()=>paperSvg(polygon({cx:200,cy:120,r:60,n:7,label:'Heptágono (7 lados)',color:'#F1948A',markVertices:true})),
+  geo_octagon:()=>paperSvg(polygon({cx:200,cy:120,r:60,n:8,label:'Octógono (8 lados)',color:'#5DADE2',markVertices:true})),
+  geo_nonagon:()=>paperSvg(polygon({cx:200,cy:120,r:60,n:9,label:'Eneágono (9 lados)',color:'#F39C12',markVertices:true})),
+  geo_decagon:()=>paperSvg(polygon({cx:200,cy:120,r:60,n:10,label:'Decágono (10 lados)',color:'#E91E63',markVertices:true})),
+  geo_square:()=>paperSvg(shape4({cx:200,cy:115,w:100,h:100,label:'Quadrado',color:'#5DADE2'})),
+  geo_rectangle:()=>paperSvg(shape4({cx:200,cy:115,w:140,h:80,label:'Retângulo',color:'#58D68D'})),
+  geo_circle:()=>paperSvg(shapeCircle({cx:200,cy:115,r:55,label:'Círculo (não é polígono!)',color:'#FF9F43'})),
+  geo_count_sides_q:()=>paperSvg(polygon({cx:200,cy:135,r:60,sides:6,color:'#CE93D8',stroke:'#7B1FA2'})+`<text x="200" y="35" fill="#1E88E5" font-family="Fredoka" font-size="14" font-weight="700" text-anchor="middle">Quantos lados tem essa forma?</text>`),
+  geo_count_sides_q2:()=>paperSvg(polygon({cx:200,cy:135,r:60,sides:5,color:'#A5D6A7',stroke:'#388E3C'})+`<text x="200" y="35" fill="#1E88E5" font-family="Fredoka" font-size="14" font-weight="700" text-anchor="middle">Quantos lados tem essa forma?</text>`),
+  geo_count_sides_q3:()=>paperSvg(polygon({cx:200,cy:135,r:60,sides:8,color:'#FF8A65',stroke:'#D84315'})+`<text x="200" y="35" fill="#1E88E5" font-family="Fredoka" font-size="14" font-weight="700" text-anchor="middle">Quantos lados tem essa forma?</text>`),
+  geo_polygon_or_not_circle:()=>paperSvg(circ({cx:200,cy:135,r:55,color:'#FFAB91',stroke:'#D84315'})+`<text x="200" y="35" fill="#1E88E5" font-family="Fredoka" font-size="14" font-weight="700" text-anchor="middle">Essa forma é um polígono?</text>`),
+  geo_polygon_or_not_pent:()=>paperSvg(polygon({cx:200,cy:135,r:55,sides:5,color:'#A5D6A7',stroke:'#388E3C'})+`<text x="200" y="35" fill="#1E88E5" font-family="Fredoka" font-size="14" font-weight="700" text-anchor="middle">Essa forma é um polígono?</text>`),
+
+  // === EN GEOMETRY ===
+  geo_en_triangle:()=>paperSvg(polygon({cx:200,cy:115,r:60,n:3,label:'Triangle (3 sides)',color:'#FFB347',markVertices:true})),
+  geo_en_pentagon:()=>paperSvg(polygon({cx:200,cy:120,r:60,n:5,label:'Pentagon (5 sides)',color:'#58D68D',markVertices:true})),
+  geo_en_hexagon:()=>paperSvg(polygon({cx:200,cy:120,r:60,n:6,label:'Hexagon (6 sides)',color:'#A569BD',markVertices:true})),
+  geo_en_octagon:()=>paperSvg(polygon({cx:200,cy:120,r:60,n:8,label:'Octagon (8 sides)',color:'#5DADE2',markVertices:true})),
+  geo_en_count_q1:()=>paperSvg(polygon({cx:200,cy:120,r:60,n:6,color:'#A569BD',markVertices:true})+`<text x="200" y="40" fill="#1E88E5" font-family="Fredoka" font-size="14" font-weight="700" text-anchor="middle">How many sides?</text>`),
+  geo_en_count_q2:()=>paperSvg(polygon({cx:200,cy:120,r:60,n:8,color:'#5DADE2',markVertices:true})+`<text x="200" y="40" fill="#1E88E5" font-family="Fredoka" font-size="14" font-weight="700" text-anchor="middle">How many sides?</text>`),
+  geo_en_count_q3:()=>paperSvg(polygon({cx:200,cy:120,r:60,n:5,color:'#58D68D',markVertices:true})+`<text x="200" y="40" fill="#1E88E5" font-family="Fredoka" font-size="14" font-weight="700" text-anchor="middle">How many sides?</text>`),
+  geo_en_polygon_circle:()=>paperSvg(shapeCircle({cx:200,cy:115,r:55,color:'#FF9F43'})+`<text x="200" y="40" fill="#1E88E5" font-family="Fredoka" font-size="14" font-weight="700" text-anchor="middle">Is this a polygon?</text>`),
+
+  // === PESO (Balança) ===
+  peso_balance_3kg:()=>paperSvg(scale({cx:200,cy:120,weight:3,unit:'kg',object:'🍉'})+`<text x="200" y="60" fill="#1E88E5" font-family="Fredoka" font-size="14" font-weight="700" text-anchor="middle">Quanto pesa a melancia?</text>`),
+  peso_balance_q:()=>paperSvg(scale({cx:200,cy:120,weight:'?',unit:'kg',object:'🥔'})+`<text x="200" y="60" fill="#1E88E5" font-family="Fredoka" font-size="14" font-weight="700" text-anchor="middle">Vamos pesar!</text>`),
+  peso_units:()=>paperSvg(`<g transform="translate(40,30)"><rect x="0" y="0" width="100" height="60" rx="8" fill="#FFE082" stroke="#F57C00" stroke-width="2"/><text x="50" y="25" fill="#222" font-family="Fredoka" font-size="14" font-weight="700" text-anchor="middle">grama</text><text x="50" y="48" fill="#666" font-family="Quicksand" font-size="11" text-anchor="middle">(g)</text></g><g transform="translate(150,30)"><rect x="0" y="0" width="100" height="60" rx="8" fill="#A5D6A7" stroke="#388E3C" stroke-width="2"/><text x="50" y="25" fill="#222" font-family="Fredoka" font-size="14" font-weight="700" text-anchor="middle">quilo</text><text x="50" y="48" fill="#666" font-family="Quicksand" font-size="11" text-anchor="middle">(kg)</text></g><g transform="translate(260,30)"><rect x="0" y="0" width="100" height="60" rx="8" fill="#90CAF9" stroke="#1565C0" stroke-width="2"/><text x="50" y="25" fill="#222" font-family="Fredoka" font-size="14" font-weight="700" text-anchor="middle">tonelada</text><text x="50" y="48" fill="#666" font-family="Quicksand" font-size="11" text-anchor="middle">(t)</text></g><text x="200" y="120" fill="#FF6B35" font-family="Fredoka" font-size="13" font-weight="700" text-anchor="middle">1 kg = 1.000 g · 1 t = 1.000 kg</text><text x="200" y="160" fill="#222" font-family="Quicksand" font-size="13" text-anchor="middle">Do menor para o maior:</text><text x="200" y="185" fill="#1E88E5" font-family="Fredoka" font-size="14" font-weight="700" text-anchor="middle">grama → quilo → tonelada</text>`),
+
+  // === VOLUME (Copo medidor) ===
+  vol_cup_300:()=>paperSvg(measuringCup({cx:200,cy:120,filledMl:300,maxMl:500})+`<text x="200" y="40" fill="#1E88E5" font-family="Fredoka" font-size="14" font-weight="700" text-anchor="middle">Quantos mL tem no copo?</text>`),
+  vol_cup_400:()=>paperSvg(measuringCup({cx:200,cy:120,filledMl:400,maxMl:500})+`<text x="200" y="40" fill="#1E88E5" font-family="Fredoka" font-size="14" font-weight="700" text-anchor="middle">Quantos mL tem no copo?</text>`),
+  vol_cup_150:()=>paperSvg(measuringCup({cx:200,cy:120,filledMl:150,maxMl:500})+`<text x="200" y="40" fill="#1E88E5" font-family="Fredoka" font-size="14" font-weight="700" text-anchor="middle">Quantos mL tem no copo?</text>`),
+  vol_units:()=>paperSvg(`<g transform="translate(80,30)"><rect x="0" y="0" width="100" height="60" rx="8" fill="#90CAF9" stroke="#1565C0" stroke-width="2"/><text x="50" y="25" fill="#222" font-family="Fredoka" font-size="14" font-weight="700" text-anchor="middle">mililitro</text><text x="50" y="48" fill="#666" font-family="Quicksand" font-size="11" text-anchor="middle">(mL)</text></g><g transform="translate(220,30)"><rect x="0" y="0" width="100" height="60" rx="8" fill="#42A5F5" stroke="#0D47A1" stroke-width="2"/><text x="50" y="25" fill="#fff" font-family="Fredoka" font-size="14" font-weight="700" text-anchor="middle">litro</text><text x="50" y="48" fill="rgba(255,255,255,0.85)" font-family="Quicksand" font-size="11" text-anchor="middle">(L)</text></g><text x="200" y="120" fill="#FF6B35" font-family="Fredoka" font-size="14" font-weight="700" text-anchor="middle">1 L = 1.000 mL</text><text x="200" y="160" fill="#222" font-family="Quicksand" font-size="12" text-anchor="middle">Volume é a quantidade de líquido!</text>`),
+
+  // === RELÓGIO COM MINUTOS DETALHADOS ===
+  clock_min_5em5:()=>paperSvg(clockWithMinuteLabels({cx:200,cy:120,r:80,hour:0,minute:0})+`<text x="200" y="230" fill="#FF6B35" font-family="Fredoka" font-size="12" font-weight="700" text-anchor="middle">Cada número = 5 minutos</text>`),
+  clock_min_15:()=>paperSvg(clockWithMinuteLabels({cx:200,cy:120,r:80,hour:2,minute:15})),
+  clock_min_20:()=>paperSvg(clockWithMinuteLabels({cx:200,cy:120,r:80,hour:5,minute:20})),
+  clock_min_25:()=>paperSvg(clockWithMinuteLabels({cx:200,cy:120,r:80,hour:8,minute:25})),
+  clock_min_40:()=>paperSvg(clockWithMinuteLabels({cx:200,cy:120,r:80,hour:3,minute:40})),
+  clock_min_55:()=>paperSvg(clockWithMinuteLabels({cx:200,cy:120,r:80,hour:11,minute:55})),
+
+  // === CALENDÁRIO ===
+  cal_marco:()=>paperSvg(calendar({month:3,year:2025,monthName:'Março',highlight:[1,8,15,22,29]})+`<text x="200" y="218" fill="#1E88E5" font-family="Fredoka" font-size="11" font-weight="700" text-anchor="middle">Sábados destacados em amarelo</text>`),
+  cal_abril:()=>paperSvg(calendar({month:4,year:2026,monthName:'Abril',highlight:[28]})),
+
+  // === MAPA VISUAL (Trajeto Julieta) ===
+  map_julieta:()=>paperSvg(`<g><!-- background grid --><rect x="20" y="30" width="360" height="180" fill="#A8E6CF" stroke="#2E7D32" stroke-width="2"/><!-- streets (cross) --><rect x="20" y="105" width="360" height="30" fill="#90A4AE"/><rect x="180" y="30" width="30" height="180" fill="#90A4AE"/><!-- House Julieta (top right) --><rect x="305" y="40" width="60" height="50" fill="#FFE082" stroke="#F57C00" stroke-width="2"/><polygon points="305,40 335,20 365,40" fill="#E53935"/><text x="335" y="74" fill="#222" font-family="Fredoka" font-size="9" font-weight="700" text-anchor="middle">Julieta</text><!-- School (center) --><rect x="220" y="55" width="60" height="40" fill="#90CAF9" stroke="#1565C0" stroke-width="2"/><text x="250" y="80" fill="#fff" font-family="Fredoka" font-size="10" font-weight="700" text-anchor="middle">Escola</text><!-- Mercado (bottom center) --><rect x="220" y="155" width="60" height="40" fill="#A5D6A7" stroke="#388E3C" stroke-width="2"/><text x="250" y="180" fill="#fff" font-family="Fredoka" font-size="9" font-weight="700" text-anchor="middle">Mercado</text><!-- Praça (right center, circle) --><circle cx="320" cy="150" r="22" fill="#C5E1A5" stroke="#558B2F" stroke-width="2"/><text x="320" y="155" fill="#fff" font-family="Fredoka" font-size="10" font-weight="700" text-anchor="middle">Praça</text><!-- House José (left center) --><rect x="40" y="55" width="60" height="40" fill="#FFCC80" stroke="#E65100" stroke-width="2"/><text x="70" y="80" fill="#222" font-family="Fredoka" font-size="10" font-weight="700" text-anchor="middle">José</text><!-- Brinquedos --><rect x="40" y="160" width="70" height="35" fill="#F8BBD0" stroke="#AD1457" stroke-width="2"/><text x="75" y="180" fill="#222" font-family="Fredoka" font-size="9" font-weight="700" text-anchor="middle">Brinquedos</text><!-- Path: Julieta → Escola (red arrow) --><path d="M 335,90 L 335,120 L 250,120 L 250,95" fill="none" stroke="#E53935" stroke-width="3" stroke-dasharray="4,4"/><polygon points="250,95 246,103 254,103" fill="#E53935"/></g>`),
+
+  // === GRÁFICO HORIZONTAL (Animals zoo) ===
+  graph_zoo_h:()=>paperSvg(`<text x="200" y="22" fill="#222" font-family="Fredoka" font-size="13" font-weight="700" text-anchor="middle">Animals in a zoo</text><g transform="translate(80,40)"><!-- Y axis labels (animals) --><text x="-5" y="20" fill="#222" font-family="Quicksand" font-size="11" font-weight="600" text-anchor="end">deer</text><text x="-5" y="50" fill="#222" font-family="Quicksand" font-size="11" font-weight="600" text-anchor="end">zebra</text><text x="-5" y="80" fill="#222" font-family="Quicksand" font-size="11" font-weight="600" text-anchor="end">monkey</text><text x="-5" y="110" fill="#222" font-family="Quicksand" font-size="11" font-weight="600" text-anchor="end">crocodile</text><text x="-5" y="140" fill="#222" font-family="Quicksand" font-size="11" font-weight="600" text-anchor="end">elephant</text><!-- Bars (each cell = 3 animals; max 30) --><rect x="0" y="10" width="${21*8}" height="20" fill="#8D6E63" stroke="#3E2723" stroke-width="1"/><rect x="0" y="40" width="${9*8}" height="20" fill="#FF7043" stroke="#BF360C" stroke-width="1"/><rect x="0" y="70" width="${24*8}" height="20" fill="#FFA000" stroke="#E65100" stroke-width="1"/><rect x="0" y="100" width="${6*8}" height="20" fill="#43A047" stroke="#1B5E20" stroke-width="1"/><rect x="0" y="130" width="${15*8}" height="20" fill="#5C6BC0" stroke="#1A237E" stroke-width="1"/><!-- X axis --><line x1="0" y1="160" x2="240" y2="160" stroke="#222" stroke-width="1.5"/><!-- X ticks --><g font-family="Quicksand" font-size="10" font-weight="600" text-anchor="middle">${[0,3,6,9,12,15,18,21,24,27,30].map(v=>`<line x1="${v*8}" y1="158" x2="${v*8}" y2="162" stroke="#222"/><text x="${v*8}" y="174" fill="#222">${v}</text>`).join('')}</g><text x="120" y="190" fill="#222" font-family="Quicksand" font-size="11" font-weight="600" text-anchor="middle">Number of animals</text></g>`),
+
+  // === SEQUÊNCIAS (regressivas, anos bissextos) ===
+  seq_regressive:()=>paperSvg(`<text x="200" y="38" fill="#1E88E5" font-family="Fredoka" font-size="13" font-weight="700" text-anchor="middle">Complete a sequência (regressiva):</text><g transform="translate(20,75)">${[{n:'1550',x:0},{n:'1500',x:75},{n:'1450',x:150},{n:'?',x:225,c:'#FF6B35'},{n:'?',x:300,c:'#FF6B35'}].map((d,i)=>`<rect x="${d.x}" y="0" width="60" height="38" rx="6" fill="#FFF8E1" stroke="#FFC107" stroke-width="2"/><text x="${d.x+30}" y="25" fill="${d.c||'#222'}" font-family="Fredoka" font-size="16" font-weight="700" text-anchor="middle">${d.n}</text>${i<4?`<text x="${d.x+67}" y="25" fill="#1E88E5" font-family="Fredoka" font-size="16" font-weight="700">→</text><text x="${d.x+67}" y="-2" fill="#E53935" font-family="Caveat" font-size="14" font-weight="700">−50</text>`:''}`).join('')}</g><text x="200" y="170" fill="#666" font-family="Quicksand" font-size="11" text-anchor="middle">A cada passo SUBTRAI 50</text>`),
+  seq_bissextos:()=>paperSvg(`<text x="200" y="38" fill="#1E88E5" font-family="Fredoka" font-size="13" font-weight="700" text-anchor="middle">Anos bissextos:</text><g transform="translate(20,75)">${[{n:'2012',x:0},{n:'?',x:60,c:'#FF6B35'},{n:'2020',x:120},{n:'2024',x:180},{n:'?',x:240,c:'#FF6B35'}].map((d,i)=>`<rect x="${d.x}" y="0" width="55" height="38" rx="6" fill="#FFF8E1" stroke="#FFC107" stroke-width="2"/><text x="${d.x+27}" y="25" fill="${d.c||'#222'}" font-family="Fredoka" font-size="14" font-weight="700" text-anchor="middle">${d.n}</text>${i<4?`<text x="${d.x+57}" y="25" fill="#1E88E5" font-family="Fredoka" font-size="14" font-weight="700">→</text>`:''}`).join('')}</g><text x="200" y="170" fill="#666" font-family="Quicksand" font-size="11" text-anchor="middle">Anos bissextos a cada 4 anos!</text>`),
+
+  // === CÁLCULO MENTAL ESPECIAIS ===
+  amigos_100_q1:()=>paperSvg(`<text x="200" y="40" fill="#1E88E5" font-family="Fredoka" font-size="14" font-weight="700" text-anchor="middle">Amigos do 100</text><g transform="translate(60,70)">${[{a:'90',b:'10'},{a:'80',b:'20'},{a:'70',b:'30'}].map((p,i)=>`<g transform="translate(0,${i*40})"><rect x="0" y="0" width="60" height="32" rx="6" fill="#FFF8E1" stroke="#FFC107" stroke-width="2"/><text x="30" y="22" fill="#222" font-family="Fredoka" font-size="14" font-weight="700" text-anchor="middle">${p.a}</text><text x="70" y="22" fill="#1E88E5" font-family="Fredoka" font-size="14" font-weight="700">+</text><rect x="85" y="0" width="60" height="32" rx="6" fill="#FFF8E1" stroke="#FFC107" stroke-width="2"/><text x="115" y="22" fill="#222" font-family="Fredoka" font-size="14" font-weight="700" text-anchor="middle">${p.b}</text><text x="155" y="22" fill="#1E88E5" font-family="Fredoka" font-size="14" font-weight="700">=</text><text x="180" y="22" fill="#388E3C" font-family="Fredoka" font-size="14" font-weight="700">100</text></g>`).join('')}</g><g transform="translate(280,70)">${[{a:'60',b:'40'},{a:'50',b:'50'}].map((p,i)=>`<g transform="translate(0,${i*40})"><rect x="0" y="0" width="40" height="32" rx="6" fill="#FFF8E1" stroke="#FFC107" stroke-width="2"/><text x="20" y="22" fill="#222" font-family="Fredoka" font-size="13" font-weight="700" text-anchor="middle">${p.a}</text><text x="48" y="22" fill="#1E88E5" font-family="Fredoka" font-size="13" font-weight="700">+</text><rect x="60" y="0" width="40" height="32" rx="6" fill="#FFF8E1" stroke="#FFC107" stroke-width="2"/><text x="80" y="22" fill="#222" font-family="Fredoka" font-size="13" font-weight="700" text-anchor="middle">${p.b}</text></g>`).join('')}</g>`),
+  amigos_1000_q:()=>paperSvg(`<text x="200" y="40" fill="#1E88E5" font-family="Fredoka" font-size="14" font-weight="700" text-anchor="middle">Amigos do 1.000</text><g transform="translate(50,70)">${[{a:'800',b:'200'},{a:'700',b:'300'},{a:'350',b:'650'}].map((p,i)=>`<g transform="translate(0,${i*40})"><rect x="0" y="0" width="65" height="32" rx="6" fill="#FFF8E1" stroke="#FFC107" stroke-width="2"/><text x="32" y="22" fill="#222" font-family="Fredoka" font-size="14" font-weight="700" text-anchor="middle">${p.a}</text><text x="75" y="22" fill="#1E88E5" font-family="Fredoka" font-size="14" font-weight="700">+</text><rect x="90" y="0" width="65" height="32" rx="6" fill="#FFF8E1" stroke="#FFC107" stroke-width="2"/><text x="122" y="22" fill="#222" font-family="Fredoka" font-size="14" font-weight="700" text-anchor="middle">${p.b}</text><text x="165" y="22" fill="#1E88E5" font-family="Fredoka" font-size="14" font-weight="700">=</text><text x="195" y="22" fill="#388E3C" font-family="Fredoka" font-size="14" font-weight="700">1.000</text></g>`).join('')}</g>`),
+  incognita_esquerda:()=>paperSvg(`<text x="200" y="80" fill="#1E88E5" font-family="Fredoka" font-size="14" font-weight="700" text-anchor="middle">Descubra o número que falta:</text><g transform="translate(120,110)"><rect x="0" y="0" width="50" height="40" rx="6" fill="#FFE082" stroke="#FF6B35" stroke-width="3"/><text x="25" y="28" fill="#FF6B35" font-family="Fredoka" font-size="22" font-weight="700" text-anchor="middle">?</text><text x="60" y="28" fill="#1E88E5" font-family="Fredoka" font-size="22" font-weight="700">+</text><text x="100" y="28" fill="#222" font-family="Fredoka" font-size="22" font-weight="700">35</text><text x="135" y="28" fill="#1E88E5" font-family="Fredoka" font-size="22" font-weight="700">=</text><text x="170" y="28" fill="#388E3C" font-family="Fredoka" font-size="22" font-weight="700">100</text></g>`),
+
+  // === MENTAL CDU helpers (para mais números do livro) ===
+  mental_cdu_237:()=>paperSvg(`<text x="200" y="40" fill="#1E88E5" font-family="Fredoka" font-size="16" font-weight="700" text-anchor="middle">237 +/- ?</text>`+mvtTable({cols:[{label:'C'},{label:'D'},{label:'U'}],rows:[[{v:'2'},{v:'3'},{v:'7'}]],x:60,y:60,w:280,rowH:48,bigDigits:true})),
+  mental_cdu_546:()=>paperSvg(`<text x="200" y="40" fill="#1E88E5" font-family="Fredoka" font-size="16" font-weight="700" text-anchor="middle">546 +/- ?</text>`+mvtTable({cols:[{label:'C'},{label:'D'},{label:'U'}],rows:[[{v:'5'},{v:'4'},{v:'6'}]],x:60,y:60,w:280,rowH:48,bigDigits:true})),
+
+  // === POR EXTENSO ===
+  por_extenso_3210:()=>paperSvg(`<g transform="translate(60,40)">${mvtTable({cols:[{label:'UM'},{label:'C'},{label:'D'},{label:'U'}],rows:[[{v:'3'},{v:'2'},{v:'1'},{v:'0'}]],x:0,y:0,w:280,rowH:48,bigDigits:true})}</g><text x="200" y="160" fill="#FF6B35" font-family="Fredoka" font-size="13" font-weight="700" text-anchor="middle">Como se escreve esse número por extenso?</text>`),
+
+  // === DINHEIRO (cédulas) ===
+  cedulas_2735_q:()=>paperSvg(`<text x="200" y="35" fill="#1E88E5" font-family="Fredoka" font-size="14" font-weight="700" text-anchor="middle">Cédulas do jogo:</text><g transform="translate(30,55)">${[{v:'1000',c:'#A5D6A7'},{v:'500',c:'#CE93D8'},{v:'100',c:'#FFAB91'},{v:'50',c:'#FFE082'},{v:'10',c:'#90CAF9'},{v:'5',c:'#F48FB1'},{v:'1',c:'#B0BEC5'}].map((b,i)=>`<rect x="${i*48}" y="0" width="42" height="34" rx="5" fill="${b.c}" stroke="#444" stroke-width="1.5"/><text x="${i*48+21}" y="22" fill="#222" font-family="Fredoka" font-size="11" font-weight="700" text-anchor="middle">${b.v}</text>`).join('')}</g><text x="200" y="135" fill="#FF6B35" font-family="Fredoka" font-size="13" font-weight="700" text-anchor="middle">Como obter R$ 2.735?</text><text x="200" y="160" fill="#666" font-family="Quicksand" font-size="11" text-anchor="middle">(várias combinações possíveis!)</text>`),
+
+  // === COMPRIMENTO/MEDIDAS extras ===
+  ruler_KL_MN:()=>paperSvg(ruler({x:30,y:140,cmPx:22,maxCm:15,segments:[{from:0,to:4,label:'KL',color:'#FF1493'},{from:6,to:13,label:'MN',color:'#1E88E5'}]})+`<text x="200" y="50" fill="#1E88E5" font-family="Fredoka" font-size="13" font-weight="700" text-anchor="middle">KL = 4 cm  ·  MN = 7 cm</text>`),
+  ruler_3segs:()=>paperSvg(ruler({x:30,y:160,cmPx:22,maxCm:15,segments:[{from:0,to:8,label:'AB',color:'#FF1493'},{from:0,to:5,label:'CD',color:'#388E3C'},{from:0,to:11,label:'EF',color:'#1E88E5'}]})+`<text x="200" y="40" fill="#1E88E5" font-family="Fredoka" font-size="13" font-weight="700" text-anchor="middle">Compare os 3 segmentos:</text>`),
+  ruler_curve:()=>paperSvg(`<text x="200" y="35" fill="#1E88E5" font-family="Fredoka" font-size="13" font-weight="700" text-anchor="middle">Linha curva — meça com barbante!</text><path d="M 30 100 Q 100 60, 170 100 T 310 100" fill="none" stroke="#FF1493" stroke-width="3"/><circle cx="30" cy="100" r="4" fill="#FF1493"/><circle cx="310" cy="100" r="4" fill="#FF1493"/><text x="22" y="120" fill="#FF1493" font-family="Fredoka" font-size="14" font-weight="700">A</text><text x="316" y="120" fill="#FF1493" font-family="Fredoka" font-size="14" font-weight="700">B</text><text x="200" y="180" fill="#666" font-family="Quicksand" font-size="11" text-anchor="middle">Use barbante e depois meça com régua</text>`),
+  more_less_meter:()=>paperSvg(`<text x="200" y="35" fill="#1E88E5" font-family="Fredoka" font-size="13" font-weight="700" text-anchor="middle">Mais que ou menos que 1 metro?</text><g transform="translate(30,60)"><text font-size="38">🚪</text><text x="80" y="30" fill="#222" font-family="Quicksand" font-size="13" font-weight="700">tapete</text></g><g transform="translate(180,55)"><text font-size="48">🚌</text><text x="100" y="30" fill="#222" font-family="Quicksand" font-size="13" font-weight="700">ônibus</text></g><g transform="translate(30,140)"><text font-size="38">🏢</text><text x="80" y="30" fill="#222" font-family="Quicksand" font-size="13" font-weight="700">prédio</text></g><text x="200" y="220" fill="#666" font-family="Quicksand" font-size="11" text-anchor="middle">1 metro = um passo grande</text>`),
+
+  // === LABIRINTO Help Laura reach the zoo ===
+  laura_zoo:()=>paperSvg(`<text x="200" y="22" fill="#1E88E5" font-family="Fredoka" font-size="13" font-weight="700" text-anchor="middle">Help Laura reach the zoo!</text><text x="200" y="40" fill="#666" font-family="Quicksand" font-size="11" text-anchor="middle">Color the boxes that contain answers</text><g transform="translate(20,55)" font-family="Fredoka" font-size="11" font-weight="700"><!-- Row 1 --><rect x="0" y="0" width="48" height="22" fill="#fff" stroke="#1E88E5"/><text x="24" y="15" text-anchor="middle">937</text><rect x="50" y="0" width="48" height="22" fill="#FFD93D" stroke="#1E88E5"/><text x="74" y="15" text-anchor="middle">946</text><rect x="100" y="0" width="48" height="22" fill="#fff" stroke="#1E88E5"/><text x="124" y="15" text-anchor="middle">437</text><rect x="150" y="0" width="48" height="22" fill="#fff" stroke="#1E88E5"/><text x="174" y="15" text-anchor="middle">743</text><rect x="200" y="0" width="48" height="22" fill="#fff" stroke="#1E88E5"/><text x="224" y="15" text-anchor="middle">335</text><rect x="250" y="0" width="48" height="22" fill="#FFD93D" stroke="#1E88E5"/><text x="274" y="15" text-anchor="middle">995</text><rect x="305" y="0" width="40" height="22" fill="#FF1493" stroke="#1E88E5"/><text x="325" y="15" text-anchor="middle" fill="#fff">ZOO</text><!-- Row 2 --><rect x="50" y="24" width="48" height="22" fill="#FFD93D" stroke="#1E88E5"/><text x="74" y="39" text-anchor="middle">648</text><rect x="100" y="24" width="48" height="22" fill="#fff" stroke="#1E88E5"/><text x="124" y="39" text-anchor="middle">523</text><rect x="150" y="24" width="48" height="22" fill="#fff" stroke="#1E88E5"/><text x="174" y="39" text-anchor="middle">382</text><rect x="200" y="24" width="48" height="22" fill="#fff" stroke="#1E88E5"/><text x="224" y="39" text-anchor="middle">517</text><rect x="250" y="24" width="48" height="22" fill="#FFD93D" stroke="#1E88E5"/><text x="274" y="39" text-anchor="middle">976</text><!-- Row 3 --><rect x="0" y="48" width="48" height="22" fill="#fff" stroke="#1E88E5"/><text x="24" y="63" text-anchor="middle">846</text><rect x="50" y="48" width="48" height="22" fill="#FFD93D" stroke="#1E88E5"/><text x="74" y="63" text-anchor="middle">785</text><rect x="100" y="48" width="48" height="22" fill="#FFD93D" stroke="#1E88E5"/><text x="124" y="63" text-anchor="middle">678</text><rect x="150" y="48" width="48" height="22" fill="#FFD93D" stroke="#1E88E5"/><text x="174" y="63" text-anchor="middle">598</text><rect x="200" y="48" width="48" height="22" fill="#FFD93D" stroke="#1E88E5"/><text x="224" y="63" text-anchor="middle">538</text><!-- Laura --><text x="0" y="100" font-size="20">👧</text></g><text x="200" y="200" fill="#666" font-family="Quicksand" font-size="10" text-anchor="middle">As caixas amarelas formam o caminho!</text>`),
+
+  // === SUBTRAÇÕES NOVAS NO QUADRO CDU ===
+  sub_quadro_986_238:()=>paperSvg(mvtTable({cols:[{label:'C'},{label:'D'},{label:'U'}],rows:[[{v:'9'},{v:'8'},{v:'6'}],[{v:'2'},{v:'3'},{v:'8'}],[{v:'?',color:'#FF6B35'},{v:'?',color:'#FF6B35'},{v:'?',color:'#FF6B35'}]],x:50,y:50,w:300,boldLast:true})+`<text x="200" y="35" fill="#1E88E5" font-family="Fredoka" font-size="13" font-weight="700" text-anchor="middle">986 − 238 = ?</text>`),
+  sub_quadro_986_238_solved:()=>paperSvg(mvtTable({cols:[{label:'C'},{label:'D'},{label:'U'}],rows:[[{v:'9'},{v:'8',cross:true,replace:'7'},{v:'6',cross:true,replace:'16'}],[{v:'2'},{v:'3'},{v:'8'}],[{v:'7'},{v:'4'},{v:'8'}]],x:50,y:60,w:300,boldLast:true})+`<text x="200" y="40" fill="#1E88E5" font-family="Fredoka" font-size="13" font-weight="700" text-anchor="middle">986 − 238 = 748</text>`),
+  sub_quadro_423_199:()=>paperSvg(mvtTable({cols:[{label:'C'},{label:'D'},{label:'U'}],rows:[[{v:'4'},{v:'2'},{v:'3'}],[{v:'1'},{v:'9'},{v:'9'}],[{v:'?',color:'#FF6B35'},{v:'?',color:'#FF6B35'},{v:'?',color:'#FF6B35'}]],x:50,y:50,w:300,boldLast:true})+`<text x="200" y="35" fill="#1E88E5" font-family="Fredoka" font-size="13" font-weight="700" text-anchor="middle">423 − 199 = ?</text>`),
+  sub_quadro_423_199_solved:()=>paperSvg(mvtTable({cols:[{label:'C'},{label:'D'},{label:'U'}],rows:[[{v:'4',cross:true,replace:'3'},{v:'2',cross:true,replace:'11'},{v:'3',cross:true,replace:'13'}],[{v:'1'},{v:'9'},{v:'9'}],[{v:'2'},{v:'2'},{v:'4'}]],x:50,y:60,w:300,boldLast:true})+`<text x="200" y="40" fill="#1E88E5" font-family="Fredoka" font-size="13" font-weight="700" text-anchor="middle">423 − 199 = 224</text>`),
+
+  // === APROXIMAÇÃO 570, 850 ===
+  aprox_570:()=>paperSvg(numberLine({x:30,y:130,w:340,min:400,max:700,step:100,marks:[{value:570,label:'570',color:'#FF1493'}]})+`<text x="200" y="60" fill="#222" font-family="Fredoka" font-size="16" font-weight="700" text-anchor="middle">570 está mais perto de qual centena?</text>`),
+  aprox_850:()=>paperSvg(numberLine({x:30,y:130,w:340,min:700,max:1000,step:100,marks:[{value:850,label:'850',color:'#FF1493'}]})+`<text x="200" y="60" fill="#222" font-family="Fredoka" font-size="16" font-weight="700" text-anchor="middle">850 está mais perto de qual centena?</text>`),
+
+
 };
 // ===================== LESSON ILLUSTRATIONS =====================
 const LILLUS = {
@@ -850,7 +1377,7 @@ const EXAMS = [
     ref:'<p>📖 Livro Unidade A · Capítulos 1 e 2 · Páginas 18, 20, 26–32, 43–44, 56, 67–68, 71, 78–82</p><p>📓 Registros no caderno</p>',
     topics:[
       {id:'mat_decomp',icon:'🧩',name:'Decomposição e Valor de Lugar',desc:'CM · DM · UM · C · D · U',illus:'generic',
-        lesson:`<h3>Decomposição e Valor de Lugar</h3><p>Cada algarismo de um número tem um <span class="hl">valor de lugar</span>. Da direita para a esquerda:</p><p><strong>U</strong> = Unidade · <strong>D</strong> = Dezena · <strong>C</strong> = Centena · <strong>UM</strong> = Unidade de Milhar.</p><p><span class="hl">Decompor</span> é separar o número em ordens. Igual no caderno!</p><p>134 = 100 + 30 + 4<br>4.071 = 4.000 + 0 + 70 + 1<br>1.205 = 1.000 + 200 + 0 + 5</p><p>📌 Dica: 10 notas de 10 = 1 nota de 100. 10 notas de 100 = 1 nota de 1.000!</p>`,
+        lesson:`<h3>Decomposição e Valor de Lugar</h3><p>Cada algarismo de um número tem um <span class="hl">valor de lugar</span>. Da direita para a esquerda:</p><p><span class="hl">U</span> = Unidade · <span class="hl">D</span> = Dezena · <span class="hl">C</span> = Centena · <span class="hl">UM</span> = Unidade de Milhar.</p>${paperSvg(mvtTable({cols:[{label:'UM'},{label:'C'},{label:'D'},{label:'U'}],rows:[[{v:'4'},{v:'0'},{v:'7'},{v:'1'}]],x:30,y:50,w:340,rowH:50,bigDigits:true})+'<text x="200" y="170" fill="#222" font-family="Fredoka" font-size="16" font-weight="700" text-anchor="middle">4.071 = 4.000 + 0 + 70 + 1</text>')}<p><span class="hl">Decompor</span> é separar o número em ordens. Igual no caderno!</p><p>134 = 100 + 30 + 4<br>1.205 = 1.000 + 200 + 0 + 5</p><p>📌 Dica: <span class="hl">10 notas de 10</span> = 1 nota de 100. <span class="hl">10 notas de 100</span> = 1 nota de 1.000!</p>`,
         quiz:[
           {q:'Olhe o quadro de valor de lugar. Qual é o número formado?',type:'num',answer:542,fb:'No quadro: 5 na centena (500), 4 na dezena (40), 2 na unidade (2). Junto: 542.',img:'mat_pv_542',whyWrong:(u)=>{if(u===245)return 'Você inverteu! A centena fica à ESQUERDA, a unidade à direita.';if(u===54)return 'Faltou a unidade. O número tem 3 algarismos: 5, 4, 2 → 542.';return null;}},
           {q:'No quadro abaixo, qual é o número formado?',type:'num',answer:4071,fb:'4 (UM) · 0 (C) · 7 (D) · 1 (U) → 4.071. Tem zero na centena!',img:'mat_pv_4071',whyWrong:(u)=>{if(u===471)return 'Você esqueceu o zero da centena. O número é de 4 ordens: 4.071.';if(u===4710)return 'Cuidado com a ordem dos zeros: 4.071 (zero está na CENTENA, não no fim).';return null;}},
@@ -861,10 +1388,15 @@ const EXAMS = [
           {q:'Usando os algarismos 1, 2, 3 e 0, qual é o MAIOR número de 4 ordens que dá pra formar?',type:'num',answer:3210,fb:'O maior começa pelo MAIOR algarismo: 3, depois 2, depois 1, depois 0 → 3.210.',whyWrong:(u)=>{if(u===123)return 'Esse é um número de 3 ordens. O enunciado pede 4 ordens — use os 4 algarismos!';if(u===321)return 'Faltou usar todos os 4 algarismos. Você não usou o 0.';if(u===3201)return 'Quase! Depois do 3, vem 2, depois 1, depois 0.';return null;}},
           {q:'Qual destes números é o MENOR?',opts:['1.250','725','1.000','999'],correct:1,fb:'725 tem só 3 ordens (centena), os outros têm 4 ordens (milhar). Por isso é o menor.',whyWrong:{0:'1.250 tem milhar — é maior.',2:'1.000 tem milhar — é maior que 725.',3:'999 é maior que 725 (999 > 725).'}},
           {q:'Quantas notas de 10 você precisa para juntar 1 nota de 100?',type:'num',answer:10,fb:'10 × 10 = 100. Dez notas de 10 formam 100!',img:'mat_money_100',whyWrong:(u)=>{if(u===100)return '100 é o valor total, não a quantidade de notas. São 10 notas.';if(u===1)return 'Uma nota de 10 vale só 10. Precisamos de 10 notas.';return null;}},
-          {q:'Quantas notas de 1 são iguais a 1 nota de 1.000?',type:'num',answer:1000,fb:'Mil notas de 1 = 1.000. Cada nota de 1 vale 1!',whyWrong:(u)=>{if(u===100)return '100 notas de 1 = só 100. Precisamos de 1.000.';if(u===10)return '10 notas de 1 = só 10. Faltam muitas!';return null;}}
+          {q:'Quantas notas de 1 são iguais a 1 nota de 1.000?',type:'num',answer:1000,fb:'Mil notas de 1 = 1.000. Cada nota de 1 vale 1!',whyWrong:(u)=>{if(u===100)return '100 notas de 1 = só 100. Precisamos de 1.000.';if(u===10)return '10 notas de 1 = só 10. Faltam muitas!';return null;}},
+          {q:'Olhe o quadro. Como se escreve esse número POR EXTENSO?',opts:['Três duzentos dez','Trinta e dois mil dez','Três mil duzentos e dez','Três mil e dois dez'],correct:2,fb:'3.210 = "três mil duzentos e dez". UM = 3 mil; C = 200; D = 10.',img:'por_extenso_3210',whyWrong:{0:'Faltou o "mil". O 3 está na casa do milhar.',1:'Olhe de novo: é 3.210, não 32.010.',3:'A casa da dezena (1) é "dez", não "dois dez".'}},
+          {q:'500 reais equivalem a quantas notas de 10?',type:'num',answer:50,fb:'500 ÷ 10 = 50 notas. (Tira um zero: 50!)',whyWrong:(u)=>{if(u===5)return '5 notas de 10 = só 50. Precisa de 50 notas.';if(u===100)return '100 notas de 10 = 1.000. É demais.';return null;}},
+          {q:'50 reais equivalem a quantas notas de 1?',type:'num',answer:50,fb:'Cada nota de 1 vale 1, então precisamos de 50 notas para chegar a 50.',whyWrong:(u)=>{if(u===5)return '5 notas de 1 = só 5. Precisa de 50.';return null;}},
+          {q:'Para fazer R$ 2.735, posso usar 2 notas de 1.000 + 7 notas de 100 + 3 notas de 10 + 5 notas de 1?',opts:['Sim','Não','Só se tiver moeda','Não sei'],correct:0,fb:'Sim! 2×1000 + 7×100 + 3×10 + 5×1 = 2000 + 700 + 30 + 5 = 2.735. ✓',img:'cedulas_2735_q'},
+          {q:'Qual é o MAIOR número entre 4.071, 1.205 e 542?',type:'num',answer:4071,fb:'4.071 tem 4 ordens (milhar). 1.205 também tem 4 ordens, mas começa com 1. 542 só tem 3 ordens.',whyWrong:(u)=>{if(u===542)return '542 só tem 3 ordens (centena). Os outros têm milhar.';if(u===1205)return '1.205 começa com 1 milhar. 4.071 começa com 4 milhares — bem maior!';return null;}}
         ]},
-      {id:'mat_add',icon:'➕',name:'Adição com Reserva',desc:'Como no quadro do caderno',illus:'generic',
-        lesson:`<h3>Adição com Reserva</h3><p>Quando somamos e o resultado de uma casa <span class="hl">passa de 9</span>, escrevemos só a unidade e <span class="hl">"reservamos"</span> 1 para a próxima casa (à esquerda).</p><p>Exemplo passo a passo (47 + 35):</p><p>1) Unidades: 7 + 5 = 12. Escreve 2, reserva 1.<br>2) Dezenas: 4 + 3 + 1 = 8.<br>3) Resultado: <strong>82</strong>.</p><p>📌 No caderno, escrevemos a reserva pequena, em vermelho, em cima da próxima casa!</p>`,
+      {id:'mat_add',icon:'➕️',name:'Adição com Reserva',desc:'Como no quadro do caderno',illus:'generic',
+        lesson:`<h3>Adição com Reserva</h3><p>Quando somamos e o resultado de uma casa <span class="hl">passa de 9</span>, escrevemos só a unidade e <span class="hl">reservamos</span> 1 para a próxima casa (à esquerda).</p><p><strong>SEM RESERVA</strong> (exemplo: 423 + 316):</p>${paperSvg(vstack({a:'423',b:'316',op:'+',ans:'739'}))}<p>Cada coluna soma direto, nenhuma passa de 9.</p><p><strong>COM RESERVA</strong> (exemplo: 47 + 35):</p>${paperSvg(vstack({a:'47',b:'35',op:'+',ans:'82',carries:{1:'1'}}))}<p>1) Unidades: 7 + 5 = 12. Escreve 2, <span class="hl">reserva 1</span> em cima da dezena.<br>2) Dezenas: 4 + 3 + 1 = 8.<br>3) Resultado: <span class="hl">82</span>.</p><p>📌 No caderno, escrevemos a reserva pequena, em vermelho, em cima da próxima casa!</p>`,
         quiz:[
           {q:'Resolva esta adição:',type:'num',answer:82,fb:'7+5=12 (escreve 2, reserva 1). 4+3+1=8. → 82.',img:'mat_add_47_35',imgWrong:'mat_add_47_35_solved',whyWrong:(u)=>{if(u===72)return 'Você esqueceu de RESERVAR o 1 da soma 7+5=12.';if(u===712)return 'Você escreveu o 12 inteiro. Só escreve o 2 e reserva 1.';return null;}},
           {q:'Resolva esta adição:',type:'num',answer:451,fb:'6+5=11 (reserva 1). 5+9+1=15 (reserva 1). 3+0+1=4. → 451.',img:'mat_add_356_95',imgWrong:'mat_add_356_95_solved',whyWrong:(u)=>{if(u===441)return 'Quase! Você esqueceu uma reserva. As DUAS casas reservam.';if(u===341)return 'Você esqueceu as duas reservas.';return null;}},
@@ -874,8 +1406,8 @@ const EXAMS = [
           {q:'Resolva esta adição:',type:'num',answer:1012,fb:'1+1=2. 2+9=11 (reserva 1). 8+1+1=10. → 1.012 (a centena virou milhar!)',img:'mat_add_821_191',imgWrong:'mat_add_821_191_solved',whyWrong:(u)=>{if(u===912)return 'A soma das centenas passou de 9 — virou milhar!';if(u===1002)return 'Reveja a soma das dezenas: 2+9=11.';return null;}},
           {q:'Lara tinha 124 figurinhas. Ganhou 86. Com quantas ela ficou?',type:'num',answer:210,fb:'124 + 86 = 210. "Ganhou" significa adição.',img:'mat_add_124_86',imgWrong:'mat_add_124_86_solved',whyWrong:(u)=>{if(u===200)return 'Você esqueceu uma reserva. 4+6=10 (escreve 0, reserva 1).';if(u===38)return 'Isso seria 124 − 86. Mas "ganhou" é adição!';return null;}}
         ]},
-      {id:'mat_sub',icon:'➖',name:'Subtração com Recurso',desc:'Pegar emprestado da próxima casa',illus:'generic',
-        lesson:`<h3>Subtração com Recurso (Empréstimo)</h3><p>Quando o algarismo de cima é <span class="hl">menor</span> que o de baixo, pegamos <span class="hl">emprestado</span> da próxima casa à esquerda.</p><p>Exemplo (63 − 28):</p><p>1) Unidades: 3 não tira 8! Pega 1 dezena emprestada → vira 13.<br>2) 13 − 8 = 5. (A dezena que era 6 ficou 5.)<br>3) Dezenas: 5 − 2 = 3.<br>4) Resultado: <strong>35</strong>.</p><p>📌 No caderno, riscamos a dezena que emprestou e escrevemos o novo valor!</p>`,
+      {id:'mat_sub',icon:'➖️',name:'Subtração com Recurso',desc:'Pegar emprestado da próxima casa',illus:'generic',
+        lesson:`<h3>Subtração com Recurso (Empréstimo)</h3><p>Quando o algarismo de cima é <span class="hl">menor</span> que o de baixo, pegamos <span class="hl">emprestado</span> da próxima casa à esquerda.</p><p><strong>SEM EMPRÉSTIMO</strong> (exemplo: 557 − 315):</p>${paperSvg(vstack({a:'557',b:'315',op:'−',ans:'242'}))}<p>Cada coluna subtrai direto, sem precisar emprestar.</p><p><strong>COM EMPRÉSTIMO</strong> (exemplo: 63 − 28):</p>${paperSvg(vstack({a:'63',b:'28',op:'−',ans:'35',borrows:{0:{newTop:'13'},1:{newTop:'5'}}}))}<p>1) Unidades: 3 não tira 8! Pega 1 dezena emprestada → vira <span class="hl">13</span>.<br>2) 13 − 8 = 5. (A dezena que era 6 ficou 5.)<br>3) Dezenas: 5 − 2 = 3.<br>4) Resultado: <span class="hl">35</span>.</p><p>📌 No caderno, riscamos a dezena que emprestou e escrevemos o novo valor!</p>`,
         quiz:[
           {q:'Resolva esta subtração:',type:'num',answer:35,fb:'3 não tira 8 → vira 13. 13−8=5. Dezena 6 vira 5: 5−2=3. → 35.',img:'mat_sub_63_28',imgWrong:'mat_sub_63_28_solved',whyWrong:(u)=>{if(u===45)return 'Você esqueceu de DIMINUIR a dezena. Ela era 6 e virou 5.';if(u===25)return 'Você diminuiu a dezena em 2. Empresta só 1!';return null;}},
           {q:'Resolva esta subtração:',type:'num',answer:228,fb:'6−8 não dá → vira 16. 16−8=8. Dezena 5 vira 4: 4−2=2. Centena 2 desce. → 228.',img:'mat_sub_256_28',imgWrong:'mat_sub_256_28_solved',whyWrong:(u)=>{if(u===238)return 'Você não diminuiu a dezena depois do empréstimo.';if(u===232)return 'Reveja: 16−8=8.';return null;}},
@@ -883,10 +1415,12 @@ const EXAMS = [
           {q:'Em 415 − 3, precisamos pegar emprestado?',opts:['Sim, da dezena','Não, é só subtrair direto','Sim, da centena','Sim, das duas casas'],correct:1,fb:'5 − 3 = 2 direto, sem precisar emprestar!',img:'mat_sub_415_3',whyWrong:{0:'Só pega emprestado quando o de cima é MENOR. 5 já é maior que 3.',2:'Aqui não precisa nada disso.',3:'5−3=2 direto.'}},
           {q:'Olhe o quadro. Qual é a subtração? (CDU)',type:'num',answer:325,fb:'543 − 218 = 325. Na unidade: 3 não tira 8, pega emprestado (vira 13). 13−8=5. Dezena 4 vira 3: 3−1=2. Centena 5−2=3. → 325.',img:'mat_sub_quadro1',imgWrong:'mat_sub_quadro1_solved',whyWrong:(u)=>{if(u===335)return 'Você esqueceu de DIMINUIR a dezena depois de emprestar.';if(u===335)return null;if(u===225)return 'Reveja a centena: 5−2=3.';return null;}},
           {q:'Pedro tinha 91 cards. Deu 45 para o irmão. Com quantos ele ficou?',type:'num',answer:46,fb:'91 − 45 = 46. "Deu" significa tirar.',img:'mat_sub_91_45',imgWrong:'mat_sub_91_45_solved',whyWrong:(u)=>{if(u===136)return 'Você somou. Mas "deu" é subtração!';if(u===54)return 'Reveja: 1−5 vira 11−5=6 (emprestou). Dezena 9 vira 8: 8−4=4 → 46.';return null;}},
-          {q:'Resolva esta subtração:',type:'num',answer:622,fb:'Empréstimo passa pelo zero! 0−8 não dá; dezena também é 0; pega da centena (8 vira 7). → 622.',img:'mat_sub_800_178',imgWrong:'mat_sub_800_178_solved',whyWrong:(u)=>{if(u===722)return 'Você não emprestou de uma das casas com 0.';if(u===632)return 'A centena ficou 7 depois dos empréstimos. 7−1=6.';return null;}}
+          {q:'Resolva esta subtração:',type:'num',answer:622,fb:'Empréstimo passa pelo zero! 0−8 não dá; dezena também é 0; pega da centena (8 vira 7). → 622.',img:'mat_sub_800_178',imgWrong:'mat_sub_800_178_solved',whyWrong:(u)=>{if(u===722)return 'Você não emprestou de uma das casas com 0.';if(u===632)return 'A centena ficou 7 depois dos empréstimos. 7−1=6.';return null;}},
+          {q:'Olhe o quadro. Qual é a subtração? (CDU)',type:'num',answer:748,fb:'986 − 238 = 748. Unidade: 6 não tira 8 (vira 16, 16−8=8). Dezena 8 vira 7: 7−3=4. Centena 9−2=7. → 748.',img:'sub_quadro_986_238',imgWrong:'sub_quadro_986_238_solved',whyWrong:(u)=>{if(u===758)return 'Você esqueceu de DIMINUIR a dezena depois de emprestar.';if(u===848)return 'Verifique a centena: 9−2=7, não 8.';return null;}},
+          {q:'Olhe o quadro. Qual é a subtração? (CDU)',type:'num',answer:224,fb:'423 − 199 = 224. Empréstimo em CADEIA: unidade vira 13, dezena vira 11, centena vira 3.',img:'sub_quadro_423_199',imgWrong:'sub_quadro_423_199_solved',whyWrong:(u)=>{if(u===324)return 'A centena emprestou: 4 virou 3.';if(u===234)return 'Verifique a dezena depois dos empréstimos.';return null;}}
         ]},
       {id:'mat_mental',icon:'🧠',name:'Cálculo Mental',desc:'Estratégias rápidas: ±10, ±100',illus:'generic',
-        lesson:`<h3>Cálculo Mental</h3><p>Cálculo mental é fazer contas <span class="hl">sem precisar armar</span>. Estratégias:</p><p><strong>+10 ou −10:</strong> só muda a casa da DEZENA. Ex: 237 + 10 = 247.</p><p><strong>+100 ou −100:</strong> só muda a casa da CENTENA. Ex: 392 + 100 = 492.</p><p><strong>Completar 100 ou 1.000:</strong> 80 + 20 = 100. 350 + 650 = 1.000.</p><p><strong>Aproximação:</strong> arredondar para a centena mais próxima. Se a dezena é 0–4, vai pra baixo; se é 5–9, vai pra cima.</p>`,
+        lesson:`<h3>Cálculo Mental</h3><p>Cálculo mental é fazer contas <span class="hl">sem precisar armar</span>. Estratégias:</p><p><span class="hl">+10 ou −10:</span> só muda a casa da DEZENA. Ex: 237 + 10 = 247.</p><p><span class="hl">+100 ou −100:</span> só muda a casa da CENTENA. Ex: 392 + 100 = 492.</p>${paperSvg('<text x="200" y="40" fill="#1E88E5" font-family="Fredoka" font-size="14" font-weight="700" text-anchor="middle">Amigos do 100 — pares que somam 100</text>'+'<g transform="translate(60,65)">'+[[90,10],[80,20],[70,30],[60,40],[50,50]].map((p,i)=>`<rect x="0" y="${i*28}" width="55" height="22" rx="6" fill="#FFF8E1" stroke="#FFC107" stroke-width="1.5"/><text x="27" y="${i*28+16}" fill="#222" font-family="Fredoka" font-size="13" font-weight="700" text-anchor="middle">${p[0]}</text><text x="65" y="${i*28+16}" fill="#1E88E5" font-family="Fredoka" font-size="13" font-weight="700">+</text><rect x="78" y="${i*28}" width="55" height="22" rx="6" fill="#FFF8E1" stroke="#FFC107" stroke-width="1.5"/><text x="105" y="${i*28+16}" fill="#222" font-family="Fredoka" font-size="13" font-weight="700" text-anchor="middle">${p[1]}</text><text x="143" y="${i*28+16}" fill="#1E88E5" font-family="Fredoka" font-size="13" font-weight="700">=</text><text x="175" y="${i*28+16}" fill="#388E3C" font-family="Fredoka" font-size="14" font-weight="700">100</text>`).join('')+'</g>')}<p><span class="hl">Completar 100 ou 1.000:</span> 80 + 20 = 100. 350 + 650 = 1.000.</p><p><span class="hl">Aproximação:</span> arredondar para a centena mais próxima. Se a dezena é 0–4, vai pra baixo; se é 5–9, vai pra cima.</p>`,
         quiz:[
           {q:'Cálculo mental: 237 + 10 = ?',type:'num',answer:247,fb:'+10 só muda a dezena: 23 → 24. → 247.',img:'mat_mental_237_10',whyWrong:(u)=>{if(u===238)return 'Você somou 1 em vez de 10.';if(u===337)return 'Você somou 100 em vez de 10.';return null;}},
           {q:'Cálculo mental: 546 − 100 = ?',type:'num',answer:446,fb:'−100 só muda a centena: 5 → 4. → 446.',img:'mat_mental_546_100',whyWrong:(u)=>{if(u===536)return 'Você tirou 10. −100 muda a CENTENA.';if(u===545)return 'Você tirou 1. −100 muda a centena.';return null;}},
@@ -895,10 +1429,15 @@ const EXAMS = [
           {q:'Aproxime 320 para a CENTENA mais próxima.',opts:['200','300','400','350'],correct:1,fb:'320 está mais perto de 300 (só 20 de diferença).',img:'mat_mental_320',whyWrong:{0:'200 está MUITO longe (120 de diferença).',2:'400 está a 80; 300 está a 20 — bem mais perto.',3:'350 não é centena exata.'}},
           {q:'Aproxime 680 para a CENTENA mais próxima.',opts:['600','650','700','800'],correct:2,fb:'680 está mais perto de 700 (só 20 de diferença).',img:'mat_mental_680',whyWrong:{0:'600 está a 80; 700 está a 20.',1:'650 não é centena exata.',3:'800 está bem longe.'}},
           {q:'Cálculo mental: 481 + 100 = ?',type:'num',answer:581,fb:'+100 muda a centena: 4 → 5. → 581.',img:'mat_mental_481_100',whyWrong:(u)=>{if(u===491)return 'Você somou 10. +100 muda a centena.';return null;}},
-          {q:'Olhe a reta. Para chegar a 2.000, faltam quantos?',type:'num',answer:900,fb:'1.100 + 900 = 2.000.',img:'mat_mental_1100_2000',whyWrong:(u)=>{if(u===100)return '1.100+100=1.200 (ainda falta muito).';return null;}}
+          {q:'Olhe a reta. Para chegar a 2.000, faltam quantos?',type:'num',answer:900,fb:'1.100 + 900 = 2.000.',img:'mat_mental_1100_2000',whyWrong:(u)=>{if(u===100)return '1.100+100=1.200 (ainda falta muito).';return null;}},
+          {q:'Aproxime 570 para a CENTENA mais próxima.',opts:['500','550','600','700'],correct:2,fb:'570 está mais perto de 600 (só 30 de diferença).',img:'aprox_570',whyWrong:{0:'500 está a 70; 600 está a 30 — mais perto.',1:'550 não é centena exata.',3:'700 está bem longe (130).'}},
+          {q:'Aproxime 850 para a CENTENA mais próxima.',opts:['700','800','900','1000'],correct:2,fb:'850 está mais perto de 900 (50 de diferença) — quando a dezena é 5, vai pra cima.',img:'aprox_850',whyWrong:{0:'700 está bem longe (150).',1:'800 está a 50; 900 também a 50. Por convenção, 5 vai pra cima → 900.',3:'1000 está a 150 — bem longe.'}},
+          {q:'Amigos do 100: quanto falta? 70 + ___ = 100',type:'num',answer:30,fb:'70 + 30 = 100. (Os "amigos do 100" sempre somam 100!)',img:'amigos_100_q1',whyWrong:(u)=>{if(u===20)return '70+20=90, ainda falta. Precisa de 30.';if(u===40)return '70+40=110 (passou). É 30.';return null;}},
+          {q:'Amigos do 1.000: quanto falta? 700 + ___ = 1.000',type:'num',answer:300,fb:'700 + 300 = 1.000.',img:'amigos_1000_q',whyWrong:(u)=>{if(u===200)return '700+200=900. Falta 300.';if(u===400)return '700+400=1.100 (passou).';return null;}},
+          {q:'Descubra o número que falta: ___ + 35 = 100',type:'num',answer:65,fb:'? + 35 = 100 → ? = 100 − 35 = 65.',img:'incognita_esquerda',whyWrong:(u)=>{if(u===135)return 'Você somou. Para achar o que falta: 100 − 35 = 65.';if(u===75)return 'Confira: 75+35=110 (passou). É 65.';return null;}}
         ]},
       {id:'mat_med',icon:'📏',name:'Grandezas e Medidas',desc:'Comprimento e tempo',illus:'generic',
-        lesson:`<h3>Grandezas e Medidas</h3><p><strong>Comprimento:</strong> usamos metro (m), centímetro (cm) e milímetro (mm). 1 m = 100 cm. Instrumentos: <span class="hl">régua</span>, <span class="hl">trena</span>, <span class="hl">fita métrica</span>.</p><p>📏 Sempre comece a medir do <strong>zero</strong> da régua!</p><p><strong>Tempo:</strong> 1 hora = 60 minutos · 1 minuto = 60 segundos.</p><p>No relógio analógico:<br>• Ponteiro pequeno = HORAS<br>• Ponteiro grande = MINUTOS</p><p>Os números do relógio marcam minutos de <strong>5 em 5</strong>: 12=0/60, 3=15, 6=30, 9=45.</p>`,
+        lesson:`<h3>Grandezas e Medidas</h3><p><span class="hl">Comprimento:</span> usamos metro (m), centímetro (cm) e milímetro (mm). 1 m = 100 cm. Instrumentos: <span class="hl">régua</span>, <span class="hl">trena</span>, <span class="hl">fita métrica</span>.</p>${paperSvg(ruler({x:30,y:130,cmPx:22,maxCm:15,segments:[{from:0,to:6,label:'AB',color:'#FF1493'}]})+'<text x="200" y="60" fill="#222" font-family="Fredoka" font-size="14" font-weight="700" text-anchor="middle">Segmento AB começa no ZERO e mede 6 cm</text>')}<p>📏 Sempre comece a medir do <span class="hl">zero</span> da régua!</p><p><span class="hl">Tempo:</span> 1 hora = 60 minutos · 1 minuto = 60 segundos.</p>${paperSvg(clock({cx:200,cy:120,r:80,hour:0,minute:0})+[0,1,2,3,4,5,6,7,8,9,10,11].map(i=>{const ang=(i-2)*Math.PI/6;const x=200+(80+18)*Math.cos(ang);const y=120+(80+18)*Math.sin(ang)+4;const v=i*5||60;return `<text x="${x}" y="${y}" fill="#E53935" font-family="Fredoka" font-size="11" font-weight="700" text-anchor="middle">${v===0?60:v}</text>`}).join('')+'<text x="200" y="225" fill="#1E88E5" font-family="Fredoka" font-size="13" font-weight="700" text-anchor="middle">Cada número marca 5 minutos</text>')}<p>No relógio analógico:<br>• <span class="hl">Ponteiro pequeno</span> = HORAS<br>• <span class="hl">Ponteiro grande</span> = MINUTOS</p><p>Os números do relógio marcam minutos de <span class="hl">5 em 5</span>: 12=0/60, 3=15, 6=30, 9=45.</p>`,
         quiz:[
           {q:'Quantos centímetros tem 1 metro?',type:'num',answer:100,fb:'1 m = 100 cm. É como um passo grande!',whyWrong:(u)=>{if(u===10)return '10 cm é o tamanho da palma da mão. Bem menos que 1 metro.';if(u===1000)return '1.000 cm = 10 metros. Bem mais que 1 metro.';return null;}},
           {q:'Olhe a régua. Quanto mede o segmento PQ?',type:'num',answer:5,fb:'PQ vai de 0 até 5 cm na régua. Mede 5 cm!',img:'mat_ruler_pq',whyWrong:(u)=>{if(u===0)return '0 é onde COMEÇA, não o tamanho.';return null;}},
@@ -910,17 +1449,46 @@ const EXAMS = [
           {q:'Quantos minutos tem 1 hora?',type:'num',answer:60,fb:'1 hora = 60 minutos.',whyWrong:(u)=>{if(u===100)return 'Tempo é em base 60, não 100.';if(u===24)return '24 são as HORAS do dia.';return null;}}
         ]},
       {id:'mat_geo',icon:'📊',name:'Gráficos, Trajetos e Calendário',desc:'Ler dados, mapas e datas',illus:'generic',
-        lesson:`<h3>Gráficos, Trajetos e Calendário</h3><p><strong>Gráfico de barras:</strong> a barra MAIS ALTA mostra o MAIOR valor. Sempre leia o TÍTULO e a ESCALA primeiro.</p><p><strong>Pictograma:</strong> usa figurinhas. Cada figurinha pode valer mais de 1 (a legenda diz quanto).</p><p><strong>Trajetos / Mapas:</strong> usamos referências (escola, mercado, praça) e direções (esquerda, direita, frente).</p><p><strong>Calendário:</strong> mostra dias, semanas e meses. Um ano tem 365 dias. <span class="hl">Ano bissexto</span> tem 366 dias e fevereiro com 29 — a cada <strong>4 anos</strong>!</p>`,
+        lesson:`<h3>Gráficos, Trajetos e Calendário</h3><p><span class="hl">Gráfico de barras:</span> a barra MAIS ALTA mostra o MAIOR valor. Sempre leia o TÍTULO e a ESCALA primeiro.</p>${paperSvg(barGraph({data:[{label:'Choco',value:35,color:'#8B4513'},{label:'Limão',value:25,color:'#FFD93D'},{label:'Amora',value:50,color:'#6A1B9A'},{label:'Abacaxi',value:10,color:'#FF9800'}],maxY:60,step:10,w:340,h:180,title:'Cupcakes vendidos'}))}<p><span class="hl">Pictograma:</span> usa figurinhas. Cada figurinha pode valer mais de 1 (a legenda diz quanto).</p><p><span class="hl">Trajetos / Mapas:</span> usamos referências (escola, mercado, praça) e direções (esquerda, direita, frente).</p><p><span class="hl">Calendário:</span> mostra dias, semanas e meses. Um ano tem 365 dias. <span class="hl">Ano bissexto</span> tem 366 dias e fevereiro com 29 — a cada <span class="hl">4 anos</span>!</p>${paperSvg(calendarSvg({month:'Março',year:'2025',startDay:6,days:31,x:30,y:30,w:340}))}`,
         quiz:[
           {q:'Olhe o gráfico. Qual brincadeira teve MAIS votos?',opts:['Esconde-esconde','Cabra-cega','Pular corda','Pular amarelinha'],correct:0,fb:'A barra mais alta é a de Esconde-esconde (12 votos).',img:'mat_graph_brincadeiras',whyWrong:{1:'Cabra-cega tem 9 votos. Veja: tem barra menor que esconde-esconde.',2:'Pular corda tem só 7 votos — a barra mais baixa entre as quatro.',3:'Pular amarelinha tem 11 — perto, mas esconde-esconde é maior (12).'}},
           {q:'Olhe o gráfico das brincadeiras. Quantas crianças no TOTAL participaram?',type:'num',answer:39,fb:'12 + 9 + 7 + 11 = 39 crianças.',img:'mat_graph_brincadeiras',whyWrong:(u)=>{if(u===12)return 'Esse é só o maior valor. Some TODAS as barras.';if(u===36)return 'Confira: 12+9+7+11=39.';return null;}},
           {q:'Olhe o gráfico. Quantas crianças A MAIS escolheram esconde-esconde do que pular corda?',type:'num',answer:5,fb:'12 − 7 = 5 crianças a mais.',img:'mat_graph_brincadeiras',whyWrong:(u)=>{if(u===19)return 'Você somou. "A mais" é diferença → subtração.';if(u===12)return 'Esse é o total da maior. Faça a diferença: 12−7.';return null;}},
           {q:'Olhe o pictograma. Cada estrela vale 2 votos. Quantos votos teve o sabor MORANGO?',type:'num',answer:10,fb:'5 estrelas × 2 votos cada = 10 votos.',img:'mat_picto_morango',whyWrong:(u)=>{if(u===5)return 'Cada estrela vale 2, não 1. Multiplica: 5 × 2 = 10.';if(u===7)return 'Você somou (5+2). É multiplicação: 5 × 2 = 10.';return null;}},
           {q:'O que devemos LER PRIMEIRO em qualquer gráfico?',opts:['A barra mais alta','O título','As cores','Os números'],correct:1,fb:'O título diz SOBRE O QUE é o gráfico.',whyWrong:{0:'A altura só faz sentido depois de saber o tema.',2:'Cores são só pra diferenciar.',3:'Números sem contexto não dizem nada.'}},
+          {q:'Olhe o calendário. Em qual mês ele está mostrando?',opts:['Janeiro','Fevereiro','Março','Abril'],correct:2,fb:'O título no topo diz "Março 2025".',img:'cal_marco',whyWrong:{0:'Olhe o título no topo do calendário.',1:'Olhe o título no topo do calendário.',3:'Olhe o título no topo do calendário.'}},
+          {q:'Olhe o calendário de Março. Quantos dias o mês tem?',type:'num',answer:31,fb:'Março tem 31 dias (vai de 1 a 31).',img:'cal_marco',whyWrong:(u)=>{if(u===30)return 'Conte de novo — vai até 31.';if(u===28)return 'Fevereiro tem 28. Março tem 31.';return null;}},
+          {q:'Olhe o calendário. Quantos dias da semana tem o mês?',type:'num',answer:7,fb:'Toda semana tem 7 dias: D, S, T, Q, Q, S, S.',img:'cal_marco',whyWrong:(u)=>{if(u===5)return '5 são os dias úteis. A semana inteira tem 7.';if(u===31)return '31 é o nº de DIAS do mês, não dias da SEMANA.';return null;}},
           {q:'Um ano normal tem 365 dias. Quantos dias tem um ano bissexto?',type:'num',answer:366,fb:'No bissexto, fevereiro ganha 1 dia extra (29). 365 + 1 = 366.',whyWrong:(u)=>{if(u===365)return 'Bissexto tem UM dia a mais.';return null;}},
           {q:'Anos bissextos acontecem a cada quantos anos?',type:'num',answer:4,fb:'A cada 4 anos! Ex: 2020, 2024, 2028, 2032...',whyWrong:(u)=>{if(u===2)return 'Bissexto é a cada 4 anos.';return null;}},
           {q:'Complete a sequência (de 5 em 5): 1023, 1028, 1033, 1038, ___',type:'num',answer:1043,fb:'A cada passo soma 5: 1038 + 5 = 1043.',img:'mat_seq_5',whyWrong:(u)=>{if(u===1039)return 'Você somou 1 em vez de 5.';if(u===1048)return 'Você pulou um número. Vai de 5 em 5.';return null;}},
+          {q:'Complete a sequência REGRESSIVA (de 50 em 50): 1550, 1500, 1450, ___, ___',type:'num',answer:1400,fb:'1450 − 50 = 1400. (Regressiva = subtrai!)',img:'seq_regressive',whyWrong:(u)=>{if(u===1500)return 'Cuidado, é regressiva — subtrai!';if(u===1350)return 'Você pulou um. O próximo após 1450 é 1400.';return null;}},
+          {q:'Complete: anos bissextos: 2012, ___, 2020, 2024, ___',type:'num',answer:2016,fb:'A cada 4 anos: 2012 + 4 = 2016.',img:'seq_bissextos',whyWrong:(u)=>{if(u===2014)return 'Bissexto é de 4 em 4 anos. 2012+4=2016.';return null;}},
+          {q:'Olhe o mapa. A casa de quem está pintada de amarelo?',opts:['José','Julieta','Mercado','Escola'],correct:1,fb:'A casa de Julieta está no canto superior direito (amarela com telhado vermelho).',img:'map_julieta',whyWrong:{0:'José está à esquerda (laranja).',2:'Mercado é verde, embaixo no centro.',3:'Escola é azul, no centro.'}},
+          {q:'Olhe o mapa. A linha vermelha mostra o trajeto da Julieta indo para qual lugar?',opts:['Mercado','Praça','Escola','Casa do José'],correct:2,fb:'A seta vai da casa de Julieta até a Escola (centro).',img:'map_julieta',whyWrong:{0:'Mercado fica embaixo, mas a seta vai para a Escola.',1:'Praça fica ao lado, mas a seta vai para a Escola.',3:'José está do outro lado.'}},
           {q:'Arraste a referência certa para cada lugar do mapa.',type:'dd',pool:['Escola','Mercado','Praça'],targets:[{label:'Onde se estuda',answer:0,placeholder:'?'},{label:'Onde se compra comida',answer:1,placeholder:'?'},{label:'Onde se brinca',answer:2,placeholder:'?'}],fb:'Escola = estudar, mercado = comprar, praça = brincar.'}
+        ]},
+      {id:'mat_geom',icon:'🔷',name:'Geometria — Polígonos',desc:'Formas planas e seus lados',illus:'generic',
+        lesson:`<h3>Geometria — Polígonos</h3><p><span class="hl">Um polígono é uma forma plana (2D) feita de lados retos que se fecham completamente.</span></p>${paperSvg('<g transform="translate(40,40)">'+polygon({cx:30,cy:50,r:28,sides:3,color:'#FFB347',stroke:'#F57C00'})+'<text x="30" y="100" fill="#222" font-family="Fredoka" font-size="11" font-weight="700" text-anchor="middle">3 lados</text></g>'+'<g transform="translate(140,40)">'+polygon({cx:30,cy:50,r:28,sides:5,color:'#A5D6A7',stroke:'#388E3C'})+'<text x="30" y="100" fill="#222" font-family="Fredoka" font-size="11" font-weight="700" text-anchor="middle">5 lados</text></g>'+'<g transform="translate(240,40)">'+polygon({cx:30,cy:50,r:28,sides:6,color:'#CE93D8',stroke:'#7B1FA2'})+'<text x="30" y="100" fill="#222" font-family="Fredoka" font-size="11" font-weight="700" text-anchor="middle">6 lados</text></g>'+'<g transform="translate(330,40)">'+polygon({cx:30,cy:50,r:28,sides:8,color:'#FF8A65',stroke:'#D84315'})+'<text x="30" y="100" fill="#222" font-family="Fredoka" font-size="11" font-weight="700" text-anchor="middle">8 lados</text></g>')}<p>📐 Os polígonos recebem nome pelo número de lados:</p><p>• 3 lados = <span class="hl">triângulo</span><br>• 4 lados = <span class="hl">quadrilátero</span> (quadrado, retângulo)<br>• 5 lados = <span class="hl">pentágono</span><br>• 6 lados = <span class="hl">hexágono</span><br>• 7 lados = <span class="hl">heptágono</span><br>• 8 lados = <span class="hl">octógono</span><br>• 9 lados = <span class="hl">eneágono</span><br>• 10 lados = <span class="hl">decágono</span></p>${paperSvg('<text x="200" y="40" fill="#1E88E5" font-family="Fredoka" font-size="14" font-weight="700" text-anchor="middle">O CÍRCULO não é polígono — não tem lados retos!</text>'+circ({cx:200,cy:135,r:55,color:'#FFAB91',stroke:'#D84315'}))}<p>📌 O <span class="hl">círculo NÃO é um polígono</span> porque não tem lados retos!</p>`,
+        quiz:[
+          {q:'Que polígono é um quadrado?',opts:['Triângulo','Pentágono','Quadrilátero','Hexágono'],correct:2,fb:'Quadrado tem 4 lados → quadrilátero!',whyWrong:{0:'Triângulo tem 3 lados.',1:'Pentágono tem 5 lados.',3:'Hexágono tem 6 lados.'}},
+          {q:'Que polígono é um retângulo?',opts:['Triângulo','Quadrilátero','Pentágono','Octógono'],correct:1,fb:'Retângulo tem 4 lados → quadrilátero!',img:'mat_poly_rect',whyWrong:{0:'Triângulo tem 3 lados.',2:'Pentágono tem 5 lados.',3:'Octógono tem 8 lados.'}},
+          {q:'Quantos lados tem um hexágono?',type:'num',answer:6,fb:'Hexágono = 6 lados!',whyWrong:(u)=>{if(u===5)return 'Pentágono tem 5 lados. Hexágono tem 6.';if(u===8)return 'Octógono tem 8 lados. Hexágono tem 6.';return null;}},
+          {q:'Quantos lados tem um pentágono?',type:'num',answer:5,fb:'Pentágono = 5 lados!',whyWrong:(u)=>{if(u===6)return 'Hexágono tem 6 lados. Pentágono tem 5.';if(u===4)return 'Quadrilátero tem 4. Pentágono tem 5.';return null;}},
+          {q:'O círculo é um polígono?',opts:['Sim','Não, porque não tem lados retos','Sim, tem 1 lado','Às vezes'],correct:1,fb:'O círculo NÃO é polígono porque polígonos precisam de lados RETOS que se fechem.',img:'geo_polygon_or_not_circle',whyWrong:{0:'Polígono precisa de lados retos — o círculo é curvo.',2:'Polígono precisa de pelo menos 3 lados retos.',3:'Uma forma é polígono ou não é.'}}
+        ]},
+      {id:'mat_pesovol',icon:'⚖️',name:'Peso e Volume',desc:'Quanto pesa? Quanto cabe?',illus:'generic',
+        lesson:`<h3>Peso e Volume</h3><p><span class="hl">Peso</span> mede quão pesado é algo. Usamos <span class="hl">grama (g)</span>, <span class="hl">quilo (kg)</span> e <span class="hl">tonelada (t)</span>.</p><p>📌 1 kg = 1.000 g · 1 t = 1.000 kg</p><p>Instrumento: <span class="hl">balança</span>.</p>${paperSvg(balanceScale({cx:200,cy:130,leftMass:1,rightMass:1.5,leftLabel:'1 maçã',rightLabel:'pesos'}))}<p><span class="hl">Volume</span> mede quanto líquido cabe em algo. Usamos <span class="hl">mililitro (mL)</span> e <span class="hl">litro (L)</span>.</p><p>📌 1 L = 1.000 mL</p><p>Instrumento: <span class="hl">copo medidor</span>.</p>${paperSvg(measuringCup({cx:200,cy:120,filledMl:600,maxMl:1000}))}`,
+        quiz:[
+          {q:'Quantos gramas tem 1 quilo?',type:'num',answer:1000,fb:'1 kg = 1.000 g!',whyWrong:(u)=>{if(u===100)return 'Não — 1 kg = 1.000 g (mil gramas).';if(u===10)return 'Bem mais! 1.000 g = 1 kg.';return null;}},
+          {q:'Quantos quilos tem 1 tonelada?',type:'num',answer:1000,fb:'1 t = 1.000 kg. É bem pesado!',whyWrong:(u)=>{if(u===100)return '1 tonelada = 1.000 quilos!';return null;}},
+          {q:'Qual instrumento usamos para medir peso?',opts:['Régua','Relógio','Balança','Copo medidor'],correct:2,fb:'Balança mede peso!',whyWrong:{0:'Régua mede comprimento.',1:'Relógio mede tempo.',3:'Copo medidor mede volume (líquido).'}},
+          {q:'Olhe o copo medidor. Quantos mL tem dentro?',type:'num',answer:300,fb:'O nível da água está em 300 mL.',img:'vol_cup_300',whyWrong:(u)=>{if(u===500)return '500 mL é o limite do copo. Olhe o nível da ÁGUA.';if(u===200)return 'Olhe com cuidado — está em 300, não 200.';return null;}},
+          {q:'Olhe o copo. Quantos mL tem dentro?',type:'num',answer:400,fb:'Nível da água em 400 mL.',img:'vol_cup_400',whyWrong:(u)=>{if(u===300)return 'Olhe de novo — está em 400.';return null;}},
+          {q:'Olhe o copo. Quantos mL tem dentro?',type:'num',answer:150,fb:'Nível em 150 mL (entre 100 e 200).',img:'vol_cup_150',whyWrong:(u)=>{if(u===100)return 'Está um pouco acima do 100 — em 150.';return null;}},
+          {q:'Quantos mL tem 1 litro?',type:'num',answer:1000,fb:'1 L = 1.000 mL!',whyWrong:(u)=>{if(u===100)return '1 L tem 1.000 mL.';return null;}},
+          {q:'Arraste cada item para a unidade certa:',type:'dd',pool:['gramas','quilos','toneladas'],targets:[{label:'um pacote de açúcar',answer:1,placeholder:'?'},{label:'uma maçã',answer:0,placeholder:'?'},{label:'um caminhão',answer:2,placeholder:'?'}],fb:'Maçã=g, açúcar=kg, caminhão=t. Do leve ao pesado!'},
+          {q:'Para medir o leite que vai numa receita, qual unidade usamos?',opts:['Gramas','Mililitros','Quilômetros','Toneladas'],correct:1,fb:'Líquidos como leite, água, suco — usamos mililitros (mL) ou litros (L).',whyWrong:{0:'Gramas é para PESO, não líquido.',2:'Quilômetros é para distância.',3:'Tonelada é para coisas MUITO pesadas.'}}
         ]}
     ]},
 
@@ -928,7 +1496,7 @@ const EXAMS = [
     ref:'<p>📖 Prime Math: pp.20–22 (Add/Sub no regrouping), 27–31 (Add with regrouping), 37–40 (Sub with regrouping), 44–47 (Word problems), 123 & 125 (Bar graphs), 130–134 (Length, m & cm)</p>',
     topics:[
       {id:'math_place',icon:'🧩',name:'Place Value (H · T · O)',desc:'Hundreds · Tens · Ones',illus:'generic',
-        lesson:`<h3>Place Value</h3><p>Each digit has a <span class="hl">place value</span>. From right to left:</p><p><strong>O</strong> = Ones · <strong>T</strong> = Tens · <strong>H</strong> = Hundreds.</p><p>Example: 423 → 4 hundreds, 2 tens, 3 ones.</p><p>📌 Tip: 10 ones = 1 ten. 10 tens = 1 hundred.</p>`,
+        lesson:`<h3>Place Value</h3><p>Each digit has a <span class="hl">place value</span>. From right to left:</p><p><span class="hl">O</span> = Ones · <span class="hl">T</span> = Tens · <span class="hl">H</span> = Hundreds.</p>${paperSvg(mvtTable({cols:[{label:'H'},{label:'T'},{label:'O'}],rows:[[{v:'4'},{v:'2'},{v:'3'}]],x:60,y:60,w:280,rowH:50,bigDigits:true})+'<text x="200" y="170" fill="#222" font-family="Fredoka" font-size="14" font-weight="700" text-anchor="middle">423 = 4 hundreds + 2 tens + 3 ones</text>')}<p>Example: 423 → 4 hundreds, 2 tens, 3 ones.</p><p>📌 Tip: <span class="hl">10 ones</span> = 1 ten. <span class="hl">10 tens</span> = 1 hundred.</p>`,
         quiz:[
           {q:'Look at the place value table. What number is shown?',type:'num',answer:423,fb:'4 (H) · 2 (T) · 3 (O) → 423.',img:'math_pv_423',whyWrong:(u)=>{if(u===324)return 'You wrote it backwards. Hundreds come FIRST (left).';if(u===43)return 'You missed a digit.';return null;}},
           {q:'Look at the table. What is the value of the 4?',type:'num',answer:400,fb:'The 4 is in the hundreds place. Its value is 400.',img:'math_pv_423',whyWrong:(u)=>{if(u===4)return 'The DIGIT is 4, but the VALUE is 400 (hundreds place).';if(u===40)return '40 would be in the tens place. The 4 here is in hundreds.';return null;}},
@@ -938,8 +1506,8 @@ const EXAMS = [
           {q:'Look at the two numbers. Which is greater?',opts:['521','They are equal','725','We do not know'],correct:2,fb:'725 has 7 hundreds; 521 has only 5 hundreds. So 725 is greater.',img:'math_pv_compare',whyWrong:{0:'521 has fewer hundreds (5 vs 7).',1:'They are different numbers.',3:'We compare hundreds first: 7 > 5.'}},
           {q:'How many tens make 1 hundred?',type:'num',answer:10,fb:'10 tens = 100.',img:'math_money_100',whyWrong:(u)=>{if(u===100)return '100 is the value, not the count. We need 10 tens.';return null;}}
         ]},
-      {id:'math_add',icon:'➕',name:'Addition',desc:'With and without regrouping',illus:'generic',
-        lesson:`<h3>Addition</h3><p><strong>Without regrouping:</strong> add column by column. Example: 423 + 316 = 739.</p><p><strong>With regrouping (carry):</strong> when a column adds up to MORE than 9, write the ones digit and <span class="hl">carry 1</span> to the next column.</p><p>Example: 47 + 35<br>1) Ones: 7 + 5 = 12. Write 2, carry 1.<br>2) Tens: 4 + 3 + 1 = 8.<br>Result: <strong>82</strong>.</p><p>📌 We write the carry as a small red 1 above the next column!</p>`,
+      {id:'math_add',icon:'➕️',name:'Addition',desc:'With and without regrouping',illus:'generic',
+        lesson:`<h3>Addition</h3><p><span class="hl">Without regrouping:</span> add column by column.</p><p>Example: 423 + 316</p>${paperSvg(vstack({a:'423',b:'316',op:'+',ans:'739'}))}<p>Each column adds straight, no column goes over 9.</p><p><span class="hl">With regrouping (carry):</span> when a column adds up to MORE than 9, write the ones digit and <span class="hl">carry 1</span> to the next column.</p><p>Example: 47 + 35</p>${paperSvg(vstack({a:'47',b:'35',op:'+',ans:'82',carries:{1:'1'}}))}<p>1) Ones: 7 + 5 = 12. Write 2, carry 1.<br>2) Tens: 4 + 3 + 1 = 8.<br>Result: <span class="hl">82</span>.</p><p>📌 We write the carry as a small red 1 above the next column!</p>`,
         quiz:[
           {q:'Solve this addition:',type:'num',answer:739,fb:'3+6=9, 2+1=3, 4+3=7 → 739. (No regrouping needed.)',img:'math_add_423_316',imgWrong:'math_add_423_316_solved',whyWrong:(u)=>{if(u===749)return 'Recheck the tens: 2+1=3, not 4.';if(u===839)return 'Recheck the hundreds: 4+3=7, not 8.';return null;}},
           {q:'Solve this addition:',type:'num',answer:95,fb:'8+7=15, write 5, carry 1. 5+3+1=9 → 95.',img:'math_add_58_37',imgWrong:'math_add_58_37_solved',whyWrong:(u)=>{if(u===85)return 'You forgot to CARRY the 1 from 8+7=15.';if(u===815)return 'You wrote the 15 in one column. Write only 5 and carry 1.';return null;}},
@@ -950,8 +1518,8 @@ const EXAMS = [
           {q:'Tom has 45 stickers. He gets 28 more. How many in all?',type:'num',answer:73,fb:'45 + 28 = 73. "How many in all" means add!',img:'math_add_45_28',imgWrong:'math_add_45_28_solved',whyWrong:(u)=>{if(u===17)return 'You subtracted (45−28). But "in all" means add!';if(u===63)return '5+8=13 (carry 1). 4+2+1=7 → 73.';return null;}},
           {q:'When you carry a 1 in addition, where does it go?',opts:['On the next column to the LEFT','At the end of the answer','On the same column','Below the line'],correct:0,fb:'The carry goes ON TOP of the next column to the LEFT.',whyWrong:{1:'The carry must be added in the next column.',2:'The same column already has its answer.',3:'Below the line is where the answer goes.'}}
         ]},
-      {id:'math_sub',icon:'➖',name:'Subtraction',desc:'With and without regrouping',illus:'generic',
-        lesson:`<h3>Subtraction</h3><p><strong>Without regrouping:</strong> subtract column by column. Example: 557 − 315 = 242.</p><p><strong>With regrouping (borrow):</strong> when the top digit is <span class="hl">smaller</span> than the bottom, we <span class="hl">borrow</span> 1 from the next column.</p><p>Example: 63 − 28<br>1) Ones: 3 − 8? No! Borrow 1 ten → ones become 13. 13 − 8 = 5.<br>2) The tens digit was 6, now it is 5. 5 − 2 = 3.<br>Result: <strong>35</strong>.</p><p>📌 We cross out the digit that lent and write the new value above!</p>`,
+      {id:'math_sub',icon:'➖️',name:'Subtraction',desc:'With and without regrouping',illus:'generic',
+        lesson:`<h3>Subtraction</h3><p><span class="hl">Without regrouping:</span> subtract column by column.</p><p>Example: 557 − 315</p>${paperSvg(vstack({a:'557',b:'315',op:'−',ans:'242'}))}<p>Each column subtracts straight, no need to borrow.</p><p><span class="hl">With regrouping (borrow):</span> when the top digit is <span class="hl">smaller</span> than the bottom, we <span class="hl">borrow</span> 1 from the next column.</p><p>Example: 63 − 28</p>${paperSvg(vstack({a:'63',b:'28',op:'−',ans:'35',borrows:{0:{newTop:'13'},1:{newTop:'5'}}}))}<p>1) Ones: 3 − 8? No! Borrow 1 ten → ones become 13. 13 − 8 = 5.<br>2) The tens digit was 6, now it is 5. 5 − 2 = 3.<br>Result: <span class="hl">35</span>.</p><p>📌 We cross out the digit that lent and write the new value above!</p>`,
         quiz:[
           {q:'Solve this subtraction:',type:'num',answer:242,fb:'7−5=2, 5−1=4, 5−3=2 → 242. (No borrowing.)',img:'math_sub_557_315',imgWrong:'math_sub_557_315_solved'},
           {q:'Solve this subtraction:',type:'num',answer:155,fb:'2 cannot take 7 → borrow 1 ten (becomes 12). 12−7=5. Tens 6 becomes 5. → 155.',img:'math_sub_162_7',imgWrong:'math_sub_162_7_solved',whyWrong:(u)=>{if(u===165)return 'You added instead of subtracting.';if(u===145)return 'After borrowing, the tens 6 becomes 5, not 4.';return null;}},
@@ -963,7 +1531,7 @@ const EXAMS = [
           {q:'In 256 − 28, after borrowing, what does the tens digit (5) become?',type:'num',answer:4,fb:'It gave 1 to the ones, so it goes from 5 to 4.',img:'math_sub_256_28',imgWrong:'math_sub_256_28_solved',whyWrong:(u)=>{if(u===5)return 'It LENT 1 to the ones, so it must go DOWN by 1.';if(u===6)return 'It went down, not up.';return null;}}
         ]},
       {id:'math_word',icon:'📖',name:'Word Problems',desc:'Understand · Plan · Answer · Check',illus:'generic',
-        lesson:`<h3>Word Problems</h3><p>Use 4 steps:</p><p><strong>1. Understand:</strong> What do we know? What do we need to find?</p><p><strong>2. Plan:</strong> "How many in all", "altogether", "more" → ADD. "How many left", "fewer", "give away" → SUBTRACT.</p><p><strong>3. Answer:</strong> do the math.</p><p><strong>4. Check:</strong> does the answer make sense?</p>`,
+        lesson:`<h3>Word Problems</h3><p>Use 4 steps:</p><p><span class="hl">1. Understand:</span> What do we know? What do we need to find?</p><p><span class="hl">2. Plan:</span></p><p>"How many in all", "altogether", "more" → <span class="hl">ADD</span>.</p><p>"How many left", "fewer", "give away" → <span class="hl">SUBTRACT</span>.</p><p><span class="hl">3. Answer:</span> do the math.</p><p><span class="hl">4. Check:</span> does the answer make sense?</p><p>Example: <em>"Tom had 45 stickers. He got 28 more. How many in all?"</em></p>${paperSvg(vstack({a:'45',b:'28',op:'+',ans:'73',carries:{1:'1'}}))}<p>"In all" → ADD: 45 + 28 = <span class="hl">73</span> stickers.</p>`,
         quiz:[
           {q:'There are 295 seats on a train. 42 are empty. How many seats are taken?',type:'num',answer:253,fb:'295 − 42 = 253. Total minus empty = taken.',whyWrong:(u)=>{if(u===337)return 'You added. But empty + taken = TOTAL.';return null;}},
           {q:'Ana picked 135 daisies and 150 roses. How many flowers altogether?',type:'num',answer:285,fb:'135 + 150 = 285. "Altogether" means add.',whyWrong:(u)=>{if(u===15)return 'You subtracted. "Altogether" means add!';return null;}},
@@ -975,7 +1543,7 @@ const EXAMS = [
           {q:'Which words usually mean ADD?',opts:['Gave away · left','In all · altogether · more','Fewer · less than','How many are left'],correct:1,fb:'"In all", "altogether", "more" mean ADD.',whyWrong:{0:'"Gave away" and "left" mean SUBTRACT.',2:'"Fewer" and "less than" mean SUBTRACT.',3:'"Left" means SUBTRACT.'}}
         ]},
       {id:'math_meas',icon:'📏',name:'Measurement',desc:'Meters, centimeters, ruler',illus:'generic',
-        lesson:`<h3>Length: Meters & Centimeters</h3><p>A <span class="hl">meter (m)</span> is about a big step. A <span class="hl">centimeter (cm)</span> is small.</p><p><strong>1 meter = 100 centimeters.</strong></p><p>📏 To use the ruler:<br>• Always start at the <strong>zero</strong> mark!<br>• Read where the line ENDS.</p>`,
+        lesson:`<h3>Length: Meters & Centimeters</h3><p>A <span class="hl">meter (m)</span> is about a big step. A <span class="hl">centimeter (cm)</span> is small.</p><p><span class="hl">1 meter = 100 centimeters.</span></p>${paperSvg(ruler({x:30,y:130,cmPx:22,maxCm:15,segments:[{from:0,to:6,label:'AB',color:'#FF1493'}]})+'<text x="200" y="60" fill="#222" font-family="Fredoka" font-size="14" font-weight="700" text-anchor="middle">Line AB starts at 0 and is 6 cm long</text>')}<p>📏 To use the ruler:<br>• Always start at the <span class="hl">zero</span> mark!<br>• Read where the line ENDS.</p>`,
         quiz:[
           {q:'How many centimeters are in 1 meter?',type:'num',answer:100,fb:'1 m = 100 cm.',whyWrong:(u)=>{if(u===10)return '10 cm is small — like a finger.';if(u===1000)return '1.000 cm = 10 meters. Too big.';return null;}},
           {q:'Look at the ruler. How long is the line?',type:'num',answer:6,fb:'The line goes from 0 to 6 → 6 cm.',img:'math_ruler_6',whyWrong:(u)=>{if(u===0)return '0 is where it STARTS. The end is at 6.';return null;}},
@@ -987,15 +1555,43 @@ const EXAMS = [
           {q:'About how long is a classroom?',opts:['5 cm','5 meters','50 meters','500 meters'],correct:1,fb:'A classroom is about 5 to 10 meters.',whyWrong:{0:'5 cm is the size of a finger.',2:'50 meters is half a soccer field.',3:'500 m = 5 soccer fields!'}}
         ]},
       {id:'math_graph',icon:'📊',name:'Bar Graphs',desc:'Reading data with scale > 1',illus:'generic',
-        lesson:`<h3>Bar Graphs</h3><p>A <span class="hl">bar graph</span> uses bars to show numbers. The taller the bar, the bigger the number!</p><p>The <span class="hl">scale</span> tells how much each line means. Sometimes each line = 1, but it can be 2, 3, or more!</p><p>📌 Always read the <strong>title</strong> first. Then look at the scale.</p>`,
+        lesson:`<h3>Bar Graphs</h3><p>A <span class="hl">bar graph</span> uses bars to show numbers. The taller the bar, the bigger the number!</p>${paperSvg(barGraph({data:[{label:'Blue',value:8,color:'#1E88E5'},{label:'Black',value:4,color:'#212121'},{label:'Red',value:4,color:'#E53935'},{label:'Pink',value:4,color:'#FF80AB'}],maxY:10,step:2,w:340,h:180,title:'Hats in a shop'}))}<p>The <span class="hl">scale</span> tells how much each line means. Sometimes each line = 1, but it can be 2, 3, or more!</p><p>📌 Always read the <span class="hl">title</span> first. Then look at the scale.</p><p>Bar graphs can also be <span class="hl">horizontal</span> — bars going to the right instead of up.</p>${paperSvg(hBarGraph({data:[{label:'Deer',value:24,color:'#A1887F'},{label:'Zebra',value:12,color:'#FFFFFF'},{label:'Monkey',value:18,color:'#8D6E63'},{label:'Crocodile',value:9,color:'#43A047'},{label:'Elephant',value:15,color:'#9E9E9E'}],maxX:30,step:3,w:340,h:180,title:'Animals in a zoo'}))}`,
         quiz:[
           {q:'Look at the graph. Which type of cupcake sold the MOST?',opts:['Chocolate','Lemon','Blackberry','Pineapple'],correct:2,fb:'Blackberry has the tallest bar (50 sold).',img:'math_graph_cupcakes',whyWrong:{0:'Chocolate sold 35 — less than blackberry.',1:'Lemon sold 25 — less than blackberry.',3:'Pineapple sold only 10 — the smallest.'}},
           {q:'Look at the cupcake graph. How many MORE blackberry than chocolate were sold?',type:'num',answer:15,fb:'Blackberry 50 − Chocolate 35 = 15.',img:'math_graph_cupcakes',whyWrong:(u)=>{if(u===85)return 'You added. "How many MORE" means subtract.';return null;}},
+          {q:'Look at the graph (full). How many FEWER pineapple than blackberry were sold?',type:'num',answer:40,fb:'Blackberry 50 − Pineapple 10 = 40.',img:'math_graph_cupcakes_full',whyWrong:(u)=>{if(u===60)return 'You added. "Fewer" means subtract.';return null;}},
+          {q:'If the shop wanted to sell 200 cupcakes, how many MORE must they sell? (Total now: 35+25+50+10+25=145)',type:'num',answer:55,fb:'Total sold = 145. 200 − 145 = 55 more needed.',img:'math_graph_cupcakes_full',whyWrong:(u)=>{if(u===200)return 'That is the goal, not the missing amount. Subtract: 200−145.';return null;}},
+          {q:'70 cupcakes sold were eggless. The total was 145. How many had eggs?',type:'num',answer:75,fb:'145 − 70 = 75. The rest had eggs.',img:'math_graph_cupcakes_full'},
+          {q:'Which TWO cupcake flavors together equal the same as blackberry (50)?',opts:['Chocolate + Pineapple','Lemon + Strawberry','Chocolate + Lemon','Pineapple + Strawberry'],correct:1,fb:'Lemon 25 + Strawberry 25 = 50, same as blackberry.',img:'math_graph_cupcakes_full',whyWrong:{0:'35 + 10 = 45, not 50.',2:'35 + 25 = 60, too much.',3:'10 + 25 = 35, too little.'}},
+          {q:'Look at the horizontal graph. Which animal has the MOST in the zoo?',opts:['Deer','Zebra','Monkey','Crocodile'],correct:0,fb:'Deer has the longest bar (24).',img:'math_graph_zoo',whyWrong:{1:'Zebra has only 12.',2:'Monkey has 18 — less than deer.',3:'Crocodile has just 9 — the smallest.'}},
+          {q:'Look at the zoo graph. How many MORE deer than zebras?',type:'num',answer:12,fb:'Deer 24 − Zebra 12 = 12.',img:'math_graph_zoo',whyWrong:(u)=>{if(u===36)return 'You added. "How many MORE" means subtract.';return null;}},
+          {q:'Look at the zoo graph. How many FEWER crocodiles than elephants?',type:'num',answer:6,fb:'Elephant 15 − Crocodile 9 = 6.',img:'math_graph_zoo'},
           {q:'Look at the graph. How many TOTAL hats are in the shop?',type:'num',answer:20,fb:'Blue 8 + Black 4 + Red 4 + Pink 4 = 20.',img:'math_graph_hats',whyWrong:(u)=>{if(u===8)return 'That is just the biggest bar. Add ALL the bars.';return null;}},
           {q:'Look at the hat graph. How many MORE blue hats than red hats?',type:'num',answer:4,fb:'Blue 8 − Red 4 = 4. "How many more" → subtract.',img:'math_graph_hats'},
           {q:'In the pictograph, each apple = 3 votes. How many votes did Apple get?',type:'num',answer:12,fb:'4 apples × 3 votes each = 12.',img:'math_picto_apple',whyWrong:(u)=>{if(u===4)return 'Each apple is worth 3, not 1.';if(u===7)return 'You added 4+3. Multiply: 4 × 3 = 12.';return null;}},
           {q:'In a bar graph, the TALLEST bar means:',opts:['The smallest number','The biggest number','Nothing','A mistake'],correct:1,fb:'Taller = bigger.',whyWrong:{0:'It is the opposite — short bars are small.',2:'The height is the main info!',3:'It is on purpose.'}},
           {q:'What should you read FIRST on a graph?',opts:['The biggest bar','The title','The colors','The smallest number'],correct:1,fb:'The TITLE tells you what the graph is about.',whyWrong:{0:'The bar means nothing without the topic.',2:'Colors only differ; not the topic.',3:'A number alone has no meaning.'}}
+        ]},
+      {id:'math_geometry',icon:'🔷',name:'Geometry — Polygons',desc:'Shapes by number of sides',illus:'generic',
+        lesson:`<h3>Geometry — Polygons</h3><p><span class="hl">A polygon is a flat, 2D shape made of straight sides that fully close.</span></p>${paperSvg('<g transform="translate(40,40)">'+polygon({cx:30,cy:50,r:28,sides:3,color:'#FFB347',stroke:'#F57C00'})+'<text x="30" y="100" fill="#222" font-family="Fredoka" font-size="11" font-weight="700" text-anchor="middle">3 sides</text></g>'+'<g transform="translate(140,40)">'+polygon({cx:30,cy:50,r:28,sides:5,color:'#A5D6A7',stroke:'#388E3C'})+'<text x="30" y="100" fill="#222" font-family="Fredoka" font-size="11" font-weight="700" text-anchor="middle">5 sides</text></g>'+'<g transform="translate(240,40)">'+polygon({cx:30,cy:50,r:28,sides:6,color:'#CE93D8',stroke:'#7B1FA2'})+'<text x="30" y="100" fill="#222" font-family="Fredoka" font-size="11" font-weight="700" text-anchor="middle">6 sides</text></g>'+'<g transform="translate(330,40)">'+polygon({cx:30,cy:50,r:28,sides:8,color:'#FF8A65',stroke:'#D84315'})+'<text x="30" y="100" fill="#222" font-family="Fredoka" font-size="11" font-weight="700" text-anchor="middle">8 sides</text></g>')}<p>Polygons are named by their number of sides:</p><p>• 3 sides = <span class="hl">triangle</span><br>• 4 sides = <span class="hl">quadrilateral</span> (square, rectangle)<br>• 5 sides = <span class="hl">pentagon</span><br>• 6 sides = <span class="hl">hexagon</span><br>• 7 sides = <span class="hl">heptagon</span><br>• 8 sides = <span class="hl">octagon</span><br>• 9 sides = <span class="hl">nonagon</span><br>• 10 sides = <span class="hl">decagon</span></p>${paperSvg('<text x="200" y="40" fill="#1E88E5" font-family="Fredoka" font-size="14" font-weight="700" text-anchor="middle">A CIRCLE is NOT a polygon — no straight sides!</text>'+circ({cx:200,cy:135,r:55,color:'#FFAB91',stroke:'#D84315'}))}<p>📌 The <span class="hl">circle is NOT a polygon</span> because it does not have straight sides.</p>`,
+        quiz:[
+          {q:'What polygon is a square?',opts:['Triangle','Pentagon','Quadrilateral','Hexagon'],correct:2,fb:'A square has 4 sides → quadrilateral!',whyWrong:{0:'Triangle has 3 sides.',1:'Pentagon has 5 sides.',3:'Hexagon has 6 sides.'}},
+          {q:'What polygon is a rectangle?',opts:['Triangle','Quadrilateral','Pentagon','Octagon'],correct:1,fb:'A rectangle has 4 sides → quadrilateral!',img:'math_poly_rect',whyWrong:{0:'Triangle has 3 sides.',2:'Pentagon has 5 sides.',3:'Octagon has 8 sides.'}},
+          {q:'How many sides does a hexagon have?',type:'num',answer:6,fb:'Hexagon = 6 sides!',whyWrong:(u)=>{if(u===5)return 'Pentagon has 5 sides. Hexagon has 6.';if(u===8)return 'Octagon has 8 sides. Hexagon has 6.';return null;}},
+          {q:'How many sides does a pentagon have?',type:'num',answer:5,fb:'Pentagon = 5 sides!',whyWrong:(u)=>{if(u===6)return 'Hexagon has 6 sides. Pentagon has 5.';if(u===4)return 'Quadrilateral has 4. Pentagon has 5.';return null;}},
+          {q:'Is a circle a polygon?',opts:['Yes','No, it does not have straight sides','Yes, it has 1 side','Sometimes'],correct:1,fb:'A circle is NOT a polygon because polygons must have STRAIGHT sides that fully close.',img:'math_poly_circle_q',whyWrong:{0:'Polygons need straight sides — circles are curved.',2:'Polygons need at least 3 straight sides.',3:'A shape is either a polygon or it is not.'}}
+        ]},
+      {id:'math_words2',icon:'📖',name:'Word Problems — Multi-step',desc:'Problems with 2 or 3 steps',illus:'generic',
+        lesson:`<h3>Multi-step Word Problems</h3><p>Some problems need <span class="hl">more than one step</span> to solve!</p><p>Strategy:</p><p><span class="hl">1.</span> Read the WHOLE problem first.<br><span class="hl">2.</span> Identify what you need to find AT THE END.<br><span class="hl">3.</span> Find the missing piece STEP by STEP.<br><span class="hl">4.</span> Do each calculation carefully.<br><span class="hl">5.</span> Check that your final answer makes sense.</p><p>Example: <em>"There are 360 candies. 175 are strawberry, 59 are apple. The rest are grape. How many grape?"</em></p><p><span class="hl">Step 1:</span> strawberry + apple</p>${paperSvg(vstack({a:'175',b:'59',op:'+',ans:'234',carries:{1:'1'}}))}<p><span class="hl">Step 2:</span> total − (strawberry+apple)</p>${paperSvg(vstack({a:'360',b:'234',op:'−',ans:'126',borrows:{1:{newTop:'5'},2:{newTop:'2'}}}))}<p>Answer: <span class="hl">126 grape candies</span>.</p><p>📌 Watch for words like <span class="hl">"altogether"</span>, <span class="hl">"in all"</span>, <span class="hl">"total"</span> — these often mean ADD AT THE END.</p>`,
+        quiz:[
+          {q:'There are 360 candies. 175 are strawberry, 59 are apple, the rest are grape. How many are grape?',type:'num',answer:126,fb:'Step 1: strawberry + apple = 175 + 59 = 234. Step 2: 360 − 234 = 126 grape.',whyWrong:(u)=>{if(u===234)return 'That is just strawberry + apple. Now subtract from 360.';if(u===185)return 'Did you forget to add the apples? 175 + 59 = 234, then 360 − 234 = 126.';return null;}},
+          {q:'A farmer collected 214 chicken eggs. He collected 187 FEWER chicken eggs than duck eggs. How many eggs in all?',type:'num',answer:615,fb:'Step 1: duck eggs = 214 + 187 = 401. Step 2: total = 214 + 401 = 615.',whyWrong:(u)=>{if(u===401)return 'That is just the duck eggs. Add chicken too for total.';if(u===27)return 'Subtraction is wrong direction. Chicken has FEWER than ducks, so ducks = chicken + 187.';return null;}},
+          {q:'A shop sold 617 bottles of water. It sold 429 MORE bottles of water than lemonade. How many bottles of water and lemonade did the shop sell?',type:'num',answer:805,fb:'Lemonade = 617 − 429 = 188. Total = 617 + 188 = 805.',whyWrong:(u)=>{if(u===188)return 'That is just lemonade. Add water too for total.';if(u===1046)return 'You added 617 + 429. But that gives lemonade if water has MORE — actually water has more, so lemonade = water − 429.';return null;}},
+          {q:'There are 504 books on the first floor of a library. 115 FEWER books are on the second floor. How many books on both floors?',type:'num',answer:893,fb:'Second floor = 504 − 115 = 389. Total = 504 + 389 = 893.',whyWrong:(u)=>{if(u===389)return 'That is just the second floor. Add the first floor too for the total.';return null;}},
+          {q:'A postman has 800 letters. He delivered 293 in the morning and 348 in the afternoon. How many MORE letters does he have to deliver?',type:'num',answer:159,fb:'Step 1: delivered = 293 + 348 = 641. Step 2: 800 − 641 = 159 left.',whyWrong:(u)=>{if(u===641)return 'That is just what he delivered. Subtract from 800 to find what is LEFT.';return null;}},
+          {q:'A factory makes 562 nuts. It makes 275 FEWER bolts than nuts. How many nuts AND bolts in all?',type:'num',answer:849,fb:'Bolts = 562 − 275 = 287. Total = 562 + 287 = 849.',whyWrong:(u)=>{if(u===287)return 'That is only the bolts. Add the nuts too for the total!';return null;}},
+          {q:'Tara had 245 stickers. She gave 89 to Anna and 76 to Lia. How many stickers does Tara have left?',type:'num',answer:80,fb:'Step 1: total given = 89 + 76 = 165. Step 2: 245 − 165 = 80 left.',whyWrong:(u)=>{if(u===165)return 'That is just what she gave. Subtract from 245 for what is LEFT.';return null;}},
+          {q:'A bus has 50 seats. 23 adults and 18 children are sitting. How many seats are EMPTY?',type:'num',answer:9,fb:'Step 1: people = 23 + 18 = 41. Step 2: 50 − 41 = 9 empty.',whyWrong:(u)=>{if(u===41)return 'That is the people sitting. Empty = total seats − people.';return null;}}
         ]}
     ]},
 
@@ -1281,20 +1877,39 @@ function openExam(id){
   document.getElementById('topicsTitle').textContent=curExam.name;
   document.getElementById('topicsBadge').textContent=`${curExam.lang==='en'?'🇺🇸':'🇧🇷'} ${curExam.badge} · 📅 ${curExam.date}`;
   const c=['var(--cyan)','var(--orange)','var(--pink)','var(--green)'];
-  document.getElementById('topicGrid').innerHTML=curExam.topics.map((t,i)=>`<div class="topic-card" onclick="openTopic('${t.id}')"><div class="topic-icon">${t.icon}</div><div class="topic-name">${t.name}</div><div class="topic-desc">${t.desc}</div></div>`).join('');
+  function renderIcon(icon){
+    // Replace heavy plus/minus emojis with crisp inline SVG (always visible, any browser/iOS)
+    if(icon.indexOf('➕')!==-1)return '<svg width="36" height="36" viewBox="0 0 36 36" xmlns="http://www.w3.org/2000/svg"><circle cx="18" cy="18" r="16" fill="#39FF14"/><path d="M 18 9 L 18 27 M 9 18 L 27 18" stroke="#0B0E2D" stroke-width="4" stroke-linecap="round"/></svg>';
+    if(icon.indexOf('➖')!==-1)return '<svg width="36" height="36" viewBox="0 0 36 36" xmlns="http://www.w3.org/2000/svg"><circle cx="18" cy="18" r="16" fill="#FF6B35"/><path d="M 9 18 L 27 18" stroke="#0B0E2D" stroke-width="4" stroke-linecap="round"/></svg>';
+    return icon;
+  }
+  document.getElementById('topicGrid').innerHTML=curExam.topics.map((t,i)=>`<div class="topic-card" onclick="openTopic('${t.id}')"><div class="topic-icon">${renderIcon(t.icon)}</div><div class="topic-name">${hl(t.name)}</div><div class="topic-desc">${t.desc}</div></div>`).join('');
   document.getElementById('studyRef').innerHTML=`<div class="study-ref-title">📚 ${curExam.lang==='pt'?'Instrumentos de Estudo':'Study Tools'}</div>${curExam.ref}`;
   go('topics')}
 
+// Highlight key math/literacy keywords in any string with <span class="hl">
+function hl(text){
+  if(!text)return text;
+  // Words to auto-highlight (case-insensitive, whole word)
+  const keywords=['Addition','Subtraction','Adição','Subtração','Multi-step','Polygons','Polígonos','Place Value','Word Problems','Bar Graphs','Geometry','Geometria','Decomposição','Cálculo Mental','Grandezas','Medidas','Calendário','Trajetos','Gráficos','Peso e Volume','Peso','Volume','Reserva','Recurso','Measurement','Length'];
+  let out=text;
+  keywords.forEach(k=>{
+    const re=new RegExp('\\b('+k.replace(/[.*+?^${}()|[\\]\\\\]/g,'\\$&')+')\\b','gi');
+    out=out.replace(re,'<span class="hl">$1</span>');
+  });
+  return out;
+}
+
 function openTopic(id){
   curTopic=curExam.topics.find(t=>t.id===id);
-  document.getElementById('lessonTitle').textContent=curTopic.name;
+  document.getElementById('lessonTitle').innerHTML=hl(curTopic.name);
   document.getElementById('lessonIllus').innerHTML=LILLUS[curTopic.illus]||LILLUS.generic;
   document.getElementById('lessonBody').innerHTML=curTopic.lesson;
   document.getElementById('quizStartBtn').textContent=curExam.lang==='pt'?'🎮 Começar o Quiz!':'🎮 Start the Quiz!';
   go('lesson')}
 
 // ===================== QUIZ =====================
-function startQuiz(){curQuiz=[...curTopic.quiz].sort(()=>Math.random()-.5);qIdx=0;score=0;skipped=0;document.getElementById('quizHdrTitle').textContent=curTopic.icon+' Quiz';go('quiz');renderQ()}
+function startQuiz(){curQuiz=[...curTopic.quiz].sort(()=>Math.random()-.5);qIdx=0;score=0;skipped=0;document.getElementById('quizHdrTitle').innerHTML=curTopic.icon+' '+hl(curTopic.name);go('quiz');renderQ()}
 
 function renderQ(){
   const q=curQuiz[qIdx],total=curQuiz.length,pt=curExam.lang==='pt';
